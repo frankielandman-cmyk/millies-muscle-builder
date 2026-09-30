@@ -172,8 +172,24 @@ body.theme-dark .mainnav button.on{
   color:#fff!important;
   border-color:var(--a)!important;
 }
+
+/* Stable 10 — usability additions only */
+html{background:#090a0c}
+body{zoom:var(--app-scale,1)}
+.scaleRow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0 16px}
+.scaleBtn{min-height:44px;border-radius:14px;border:1px solid var(--l);background:var(--app-card);color:var(--app-text);font-weight:850}
+.scaleBtn.active{background:var(--a)!important;color:#fff!important;border-color:var(--a)!important}
+.monthGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:10px}
+.monthDow{text-align:center;font-size:11px;font-weight:850;color:var(--m);padding:4px 0}
+.monthDay{min-height:48px;border:1px solid var(--l);border-radius:11px;background:var(--app-card);color:var(--app-text);padding:5px 2px;font-weight:800}
+.monthDay small{display:block;font-size:8px;color:var(--m);white-space:nowrap;overflow:hidden}
+.monthDay.today{outline:2px solid var(--a)} .monthDay.selected{background:var(--a)!important;color:#fff!important}
+.monthDay.selected small{color:#fff}.monthBlank{min-height:48px}
+.calendarHead{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.scheduleGrid{display:grid;grid-template-columns:1fr 1.7fr;gap:8px;align-items:center;margin-top:12px}
+.scheduleGrid select{margin:0}
 </style></head><body><main class="app">
-<header><button type="button" class="premiumSettingsBtn" id="settingsShortcut" aria-label="Open settings">⚙️</button><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 9</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
+<header><button type="button" class="premiumSettingsBtn" id="settingsShortcut" aria-label="Open settings">⚙️</button><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 10</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
 <section class="card"><div class="row"><div><b>This week</b><div class="muted" style="font-size:13px">Complete all 4 main lifting days</div></div><b id="week" style="font-size:22px">0 / 4</b></div>
 <div class="row" style="margin-top:12px"><div><button class="pill on" data-place="gym">🏋️ Planet Fitness</button> <button class="pill" data-place="home">🏠 Home</button></div><button class="ghost" id="custom">🎨 Color</button></div></section>
 <section class="card settings" id="settings"><b>Choose your app color</b><div class="swatches">
@@ -190,7 +206,7 @@ body.theme-dark .mainnav button.on{
 
 <section class="feature on" id="feature-train">
 <div class="trainDateNav"><button class="mini" id="prevTrain">←</button><div class="center"><h3 id="trainDateTitle">Today</h3><div class="muted" id="trainDateText"></div></div><button class="mini" id="nextTrain">→</button></div>
-<div id="phaseDisplay" style="text-align:center"></div><button class="foodSearchBtn" id="todayTrain" style="margin:0 0 8px">Jump to Today</button>
+<div id="phaseDisplay" style="text-align:center"></div><div class="buttons" style="margin:0 0 8px"><button class="foodSearchBtn" id="todayTrain">Jump to Today</button><button class="foodSearchBtn" id="openMonth">📅 Month</button></div>
 <nav id="tabs" class="tabs"></nav><section id="panel"></section>
 <details class="card"><summary><b>🏃 Add Cardio</b> <span class="muted" id="cardioSummary"></span></summary>
 <div class="logs" style="margin-top:12px"><label>Type<select id="cardioType"><option>Walking</option><option>Treadmill</option><option>Peloton / Bike</option><option>Stair Climber</option><option>Elliptical</option><option>Running</option><option>Other</option></select></label><label>Minutes<input id="cardioMinutes" inputmode="numeric" placeholder="30"></label><label>Distance (optional)<input id="cardioDistance" inputmode="decimal" placeholder="miles"></label><label>Incline / resistance<input id="cardioLevel" placeholder="optional"></label><label>Calories (optional)<input id="cardioCalories" inputmode="numeric" placeholder="optional"></label><label>Effort<select id="cardioEffort"><option>Easy</option><option selected>Moderate</option><option>Hard</option></select></label></div>
@@ -230,12 +246,18 @@ body.theme-dark .mainnav button.on{
 <details class="card" open><summary><b>💧 Water</b> <span id="waterSummary" class="muted"></span></summary>
 <div style="font-size:27px;font-weight:850;margin-top:12px" id="waterText">0 oz</div>
 <div class="meter"><span id="waterMeter"></span></div>
-<div class="buttons"><button class="mini waterAdd" data-oz="8">+8 oz</button><button class="mini waterAdd" data-oz="16">+16 oz</button><button class="mini waterAdd" data-oz="24">+24 oz</button><button class="mini" id="waterUndo">↩ Undo</button></div>
+<div class="buttons"><button class="mini waterAdd" data-oz="8">+8 oz</button><button class="mini waterAdd" data-oz="24">+24 oz</button><button class="mini waterAdd" data-oz="30">+30 oz</button><button class="mini" id="waterCustom">Custom</button><button class="mini" id="waterUndo">↩ Undo</button></div>
 </details>
 
 <details class="card"><summary><b>📷 Scan / Search Food</b></summary><p class="muted">Coming in the connected version: barcode scanning and food-database search. Manual meal logging works now.</p></details>
 </section>
 
+
+<div class="modal" id="monthModal"><div class="sheet">
+<div class="sheetHead"><div><h2 style="margin:0">Training Calendar</h2><div class="muted">Tap any date to open its scheduled workout.</div></div><button class="mini" id="closeMonth">✕</button></div>
+<div class="calendarHead"><button class="mini" id="prevMonth">←</button><b id="monthTitle"></b><button class="mini" id="nextMonth">→</button></div>
+<div id="monthGrid" class="monthGrid"></div>
+</div></div>
 <div class="modal" id="foodModal"><div class="sheet">
 <div class="sheetHead"><div><h2>Add Food</h2><div class="muted" id="mealDest">Breakfast</div></div><button class="mini" id="closeFood">✕</button></div>
 <input class="searchbox" id="foodSearch" placeholder="Search real foods & brands">
@@ -267,11 +289,16 @@ body.theme-dark .mainnav button.on{
 
 <section class="feature" id="feature-settings">
 <div class="card"><div class="bigicon">⚙️</div><h2>Settings</h2><div class="muted">The things you set once — not things you should have to see every day.</div></div>
-<details class="card"><summary><b>🎨 Appearance</b></summary><div class="muted">Change the whole app background, cards, buttons and text.</div><div class="modeRow"><button type="button" class="modeBtn" data-mode="light">☀️ Light</button><button type="button" class="modeBtn" data-mode="dark">🌙 Dark</button><button type="button" class="modeBtn" data-mode="system">◐ System</button></div><div class="muted" style="margin-top:12px"><b>Dark background</b></div><div class="darkToneRow"><button type="button" class="darkTone" data-darkbg="#08090a" style="background:#08090a" aria-label="Near black"></button><button type="button" class="darkTone" data-darkbg="#0b0c0e" style="background:#0b0c0e" aria-label="Charcoal"></button><button type="button" class="darkTone" data-darkbg="#171412" style="background:#171412" aria-label="Warm black"></button></div><div class="presetRow"><button type="button" data-look="warm">Warm</button><button type="button" data-look="clean">Clean</button><button type="button" data-look="rose">Rose</button><button type="button" data-look="dark">Dark</button></div><div class="appearanceGrid"><label class="appearanceField"><span>Background</span><input type="color" id="lookBg"></label><label class="appearanceField"><span>Cards</span><input type="color" id="lookCard"></label><label class="appearanceField"><span>Buttons</span><input type="color" id="lookAccent"></label><label class="appearanceField"><span>Text</span><input type="color" id="lookText"></label></div><button type="button" class="foodSearchBtn" id="resetLook">Reset appearance</button></details><details class="card"><summary><b>👤 Profile</b></summary><div class="softnote">Update your basic profile and preferences through Setup.</div><button class="foodSearchBtn" id="rerunSetup">Edit Profile / Setup</button></details>
+<details class="card"><summary><b>🎨 Appearance</b></summary><div class="muted">Change the whole app background, cards, buttons and text.</div><div class="muted" style="margin-top:12px"><b>App size</b></div><div class="scaleRow"><button type="button" class="scaleBtn" data-scale=".85">85%</button><button type="button" class="scaleBtn" data-scale=".90">90%</button><button type="button" class="scaleBtn" data-scale="1">100%</button></div><div class="modeRow"><button type="button" class="modeBtn" data-mode="light">☀️ Light</button><button type="button" class="modeBtn" data-mode="dark">🌙 Dark</button><button type="button" class="modeBtn" data-mode="system">◐ System</button></div><div class="muted" style="margin-top:12px"><b>Dark background</b></div><div class="darkToneRow"><button type="button" class="darkTone" data-darkbg="#08090a" style="background:#08090a" aria-label="Near black"></button><button type="button" class="darkTone" data-darkbg="#0b0c0e" style="background:#0b0c0e" aria-label="Charcoal"></button><button type="button" class="darkTone" data-darkbg="#171412" style="background:#171412" aria-label="Warm black"></button></div><div class="presetRow"><button type="button" data-look="warm">Warm</button><button type="button" data-look="clean">Clean</button><button type="button" data-look="rose">Rose</button><button type="button" data-look="dark">Dark</button></div><div class="appearanceGrid"><label class="appearanceField"><span>Background</span><input type="color" id="lookBg"></label><label class="appearanceField"><span>Cards</span><input type="color" id="lookCard"></label><label class="appearanceField"><span>Buttons</span><input type="color" id="lookAccent"></label><label class="appearanceField"><span>Text</span><input type="color" id="lookText"></label></div><button type="button" class="foodSearchBtn" id="resetLook">Reset appearance</button></details><details class="card"><summary><b>👤 Profile</b></summary><div class="softnote">Update your basic profile and preferences through Setup.</div><button class="foodSearchBtn" id="rerunSetup">Edit Profile / Setup</button></details>
 <details class="card"><summary><b>🎯 Goals & Nutrition</b></summary><div class="muted">Current targets</div><div id="settingsGoals" class="quick"></div><button class="foodSearchBtn" id="editGoals">Change Goals</button></details>
 <details class="card"><summary><b>🌸 Cycle Tracking</b></summary><div id="cycleSettingsStatus" class="quick"></div><button class="foodSearchBtn" id="toggleCycle">Turn Cycle Tracking On / Off</button></details>
 <details class="card"><summary><b>❤️ Apple Health</b></summary><div class="muted">Apple Health connection becomes available in the iPhone/HealthKit version.</div></details>
 <details class="card"><summary><b>🔐 Privacy & Friends</b></summary><div class="muted">Future controls for exactly what friends can see. Weight, nutrition details, measurements/photos and cycle information will stay private by default.</div></details>
+
+<details class="card"><summary><b>📅 Workout Schedule</b></summary>
+<div class="muted">Choose what you normally want on each day. Changing the date in Train will automatically open that workout. You can still tap another workout manually anytime.</div>
+<div class="scheduleGrid" id="scheduleGrid"></div>
+</details>
 </section>
 </main>
 
@@ -319,11 +346,35 @@ function trainDay(){let k=trainKey();S.trainingDiary[k]=S.trainingDiary[k]||{};l
 
 const save=()=>{if(S.diary&&typeof diaryCursor!=="undefined"){let k=localDateKey(diaryCursor);if(S.diary[k]){S.diary[k].foods=S.foods;S.diary[k].water=S.nutrition.water||0}}localStorage.setItem("MMBv3",JSON.stringify(S));};const tabs=document.getElementById("tabs"),panel=document.getElementById("panel"),week=document.getElementById("week");
 function theme(){document.documentElement.style.setProperty("--a",S.color);document.querySelector('meta[name="theme-color"]').content=S.color}theme();
+
+const scheduleDefaults={0:"rest",1:"d1",2:"d2",3:"rest",4:"d3",5:"d4",6:"d5"};
+S.workoutSchedule=S.workoutSchedule||scheduleDefaults;
+S.dateWorkoutOverrides=S.dateWorkoutOverrides||{};
+function localDateKey(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
+function workoutForDate(d){return S.dateWorkoutOverrides[localDateKey(d)]||S.workoutSchedule[d.getDay()]||"rest"}
+function syncWorkoutToDate(){S.day=workoutForDate(trainingCursor)}
+function setTrainingDate(d){trainingCursor=new Date(d.getFullYear(),d.getMonth(),d.getDate());syncWorkoutToDate();save();render();renderTrainingExtras();refreshPersistentUI()}
+function buildScheduleSettings(){
+ const names=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"], grid=document.getElementById("scheduleGrid");if(!grid)return;
+ grid.innerHTML=names.map((n,i)=>`<label>${n}</label><select data-sched="${i}">${Object.entries(P).map(([k,p])=>`<option value="${k}" ${S.workoutSchedule[i]===k?"selected":""}>${p.n}</option>`).join("")}</select>`).join("");
+ grid.querySelectorAll("[data-sched]").forEach(x=>x.onchange=()=>{S.workoutSchedule[x.dataset.sched]=x.value;syncWorkoutToDate();save();render();renderMonth()});
+}
+let monthCursor=new Date(trainingCursor.getFullYear(),trainingCursor.getMonth(),1);
+function renderMonth(){
+ const grid=document.getElementById("monthGrid");if(!grid)return;
+ monthTitle.textContent=monthCursor.toLocaleDateString(undefined,{month:"long",year:"numeric"});
+ const y=monthCursor.getFullYear(),m=monthCursor.getMonth(),first=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate();
+ let html=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(x=>`<div class="monthDow">${x}</div>`).join("");
+ html+=Array.from({length:first},()=>`<div class="monthBlank"></div>`).join("");
+ const today=localDateKey(new Date()),selected=localDateKey(trainingCursor);
+ for(let n=1;n<=days;n++){let d=new Date(y,m,n),k=localDateKey(d),wk=workoutForDate(d),label=(P[wk]?.t||"Rest").replace(" + "," + ");html+=`<button class="monthDay ${k===today?"today":""} ${k===selected?"selected":""}" data-cal="${k}">${n}<small>${label}</small></button>`}
+ grid.innerHTML=html;grid.querySelectorAll("[data-cal]").forEach(b=>b.onclick=()=>{let [y,m,d]=b.dataset.cal.split("-").map(Number);monthModal.classList.remove("on");setTrainingDate(new Date(y,m-1,d))});
+}
 function render(){
 let TD=trainDay();week.textContent=["d1","d2","d3","d4"].filter(k=>TD.days[k]).length+" / 4";tabs.innerHTML="";
 let now=new Date(),isToday=trainKey()===`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
 trainDateTitle.textContent=isToday?"Today":"Training Diary";trainDateText.textContent=trainingCursor.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric",year:"numeric"});
-Object.entries(P).forEach(([k,p])=>{let b=document.createElement("button");b.className="tab"+(S.day===k?" on":"");b.textContent=p.n;b.onclick=()=>{S.day=k;save();render()};tabs.appendChild(b)});
+Object.entries(P).forEach(([k,p])=>{let b=document.createElement("button");b.className="tab"+(S.day===k?" on":"");b.textContent=p.n;b.onclick=()=>{S.day=k;S.dateWorkoutOverrides[trainKey()]=k;save();render()};tabs.appendChild(b)});
 
 function renderTrainingExtras(){
  let td=trainDay(), mins=td.cardio.reduce((a,x)=>a+(+x.minutes||0),0);
@@ -335,19 +386,23 @@ function renderTrainingExtras(){
  else if(c.feel==="Heavy today"||c.energy==="Low"||c.cramps||c.fatigue)cycleAdvice.textContent="If warm-ups still feel unusually hard, keep today's weight the same or slightly lighter and prioritize controlled reps. You don't need to force a progression today.";
  else cycleAdvice.textContent="Your cycle phase alone won't automatically lower your workout. This uses how you actually feel and perform today.";
 }
-prevTrain.onclick=()=>{trainingCursor.setDate(trainingCursor.getDate()-1);render();renderTrainingExtras();refreshPersistentUI()};
-nextTrain.onclick=()=>{trainingCursor.setDate(trainingCursor.getDate()+1);render();renderTrainingExtras();refreshPersistentUI()};
-todayTrain.onclick=()=>{trainingCursor=new Date();render();renderTrainingExtras();refreshPersistentUI()};
+prevTrain.onclick=()=>{let d=new Date(trainingCursor);d.setDate(d.getDate()-1);setTrainingDate(d)};
+nextTrain.onclick=()=>{let d=new Date(trainingCursor);d.setDate(d.getDate()+1);setTrainingDate(d)};
+todayTrain.onclick=()=>setTrainingDate(new Date());
+openMonth.onclick=()=>{monthCursor=new Date(trainingCursor.getFullYear(),trainingCursor.getMonth(),1);renderMonth();monthModal.classList.add("on")};
+closeMonth.onclick=()=>monthModal.classList.remove("on");
+prevMonth.onclick=()=>{monthCursor.setMonth(monthCursor.getMonth()-1);renderMonth()};
+nextMonth.onclick=()=>{monthCursor.setMonth(monthCursor.getMonth()+1);renderMonth()};
 addCardio.onclick=()=>{let min=+cardioMinutes.value;if(!min){alert("Add the cardio minutes first.");return}let td=trainDay();td.cardio.push({type:cardioType.value,minutes:min,distance:cardioDistance.value,level:cardioLevel.value,calories:cardioCalories.value,effort:cardioEffort.value});cardioMinutes.value=cardioDistance.value=cardioLevel.value=cardioCalories.value="";save();renderTrainingExtras()};
 saveCycle.onclick=()=>{let td=trainDay();td.cycle={phase:cyclePhase.value,day:cycleDay.value,energy:cycleEnergy.value,feel:weightFeel.value,cramps:symCramps.checked,fatigue:symFatigue.checked,headache:symHeadache.checked,sore:symSore.checked};save();renderTrainingExtras()};
 renderTrainingExtras();
 document.querySelectorAll("[data-place]").forEach(b=>b.classList.toggle("on",b.dataset.place===S.place));
 let p=P[S.day];
 panel.innerHTML=`<div style="margin:10px 2px 14px"><h2 style="margin:0;font-size:25px">${p.t}</h2><div class="muted">${p.s}</div></div>`+p.x.map((e,i)=>{let k=S.day+"-"+i,L=TD.logs[k]||{},sets=TD.sets[k]||[],pic=S.place==="gym"&&imgs[e[0]]?`<button class="mini" data-pic="pic-${i}">📸 Show machine</button><img id="pic-${i}" class="pic" src="${imgs[e[0]]}" alt="${e[0]} reference" style="display:none" onerror="this.style.display='none'">`:"";return `<article class="card ex"><div class="row"><div><h3>${i+1}. ${e[0]}</h3><b>${e[1]} × ${e[2]}</b></div><span class="tag">🎯 ${e[3]}</span></div>
-<div class="quick"><b>${S.place==="gym"?"👀 What to look for":"🏠 Home version"}</b><br>${S.place==="gym"?e[4]:e[8]}</div><div class="buttons">${pic}<button class="mini" data-toggle="why-${i}">💡 Why?</button><button class="mini" data-toggle="how-${i}">⚙️ How?</button><button class="mini" data-toggle="alt-${i}">🔄 Can't find it?</button></div>
+<div class="quick"><b>${S.place==="gym"?"👀 What to look for":"🏠 Home version"}</b><br>${S.place==="gym"?e[4]:e[8]}</div><div class="buttons">${pic}<button class="mini" data-demo="${i}">▶️ Watch demo</button><button class="mini" data-toggle="why-${i}">💡 Why?</button><button class="mini" data-toggle="how-${i}">⚙️ How?</button><button class="mini" data-toggle="alt-${i}">🔄 Can't find it?</button></div>
 <div class="info" id="why-${i}">${e[6]}</div><div class="info" id="how-${i}">${e[5]}</div><div class="info" id="alt-${i}">${S.place==="gym"?e[7]:e[8]}</div>
 ${p.r?"":`<div class="logs"><label>Weight (lb)<input data-w="${i}" inputmode="decimal" value="${L.w||""}" placeholder="e.g. 70"></label><label>Reps<input data-r="${i}" inputmode="numeric" value="${L.r||""}" placeholder="e.g. 10"></label></div><div class="sets">${Array.from({length:e[1]},(_,n)=>`<button class="set ${sets[n]?"done":""}" data-set="${i}-${n}">Set ${n+1}${sets[n]?" ✓":""}</button>`).join("")}</div><div class="last"><b>Last logged:</b> ${L.last||"Nothing yet — today's your baseline!"}</div>`}</article>`}).join("")+(p.r?"":`<button class="finish" id="finish">${TD.days[S.day]?"Workout completed ✓":"Finish workout"}</button>`);
-panel.querySelectorAll("[data-toggle]").forEach(b=>b.onclick=()=>{let x=document.getElementById(b.dataset.toggle);x.style.display=x.style.display==="block"?"none":"block"});
+panel.querySelectorAll("[data-toggle]").forEach(b=>b.onclick=()=>{let x=document.getElementById(b.dataset.toggle);x.style.display=x.style.display==="block"?"none":"block"});panel.querySelectorAll("[data-demo]").forEach(b=>b.onclick=()=>{let e=p.x[+b.dataset.demo],q=encodeURIComponent(e[0]+" exercise form tutorial ACE Fitness");window.open("https://www.youtube.com/results?search_query="+q,"_blank","noopener")});
 panel.querySelectorAll("[data-pic]").forEach(b=>b.onclick=()=>{let x=document.getElementById(b.dataset.pic);let open=x.style.display==="block";x.style.display=open?"none":"block";b.textContent=open?"📸 Show machine":"🙈 Hide machine"});
 panel.querySelectorAll("[data-w]").forEach(x=>x.onchange=()=>{let k=S.day+"-"+x.dataset.w;TD.logs[k]=TD.logs[k]||{};TD.logs[k].w=x.value;save()});
 panel.querySelectorAll("[data-r]").forEach(x=>x.onchange=()=>{let k=S.day+"-"+x.dataset.r;TD.logs[k]=TD.logs[k]||{};TD.logs[k].r=x.value;save()});
@@ -473,7 +528,7 @@ foodPhotoInput.onchange=e=>{
 addCustom.onclick=()=>{if(!customName.value)return;S.foods[activeMeal].push({name:customName.value,serv:"Custom",cal:+customCal.value||0,p:+customP.value||0,c:+customC.value||0,f:+customF.value||0,fi:+customFi.value||0});commitDiary();["customName","customCal","customP","customC","customF","customFi"].forEach(id=>document.getElementById(id).value="");foodModal.classList.remove("on");renderMeals();nutritionSummary()};
 renderFoodResults("");
 function waterUI(){let g=+S.nutrition.waterGoal||0,p=g?Math.min(100,S.water/g*100):0;waterText.textContent=S.water+" / "+(g||"—")+" oz";waterSummary.textContent=S.water+" oz";waterMeter.style.width=p+"%"}
-document.querySelectorAll(".waterAdd").forEach(b=>b.onclick=()=>{let oz=+b.dataset.oz;S.water+=oz;S.waterHistory.push(oz);save();waterUI()});
+document.querySelectorAll(".waterAdd").forEach(b=>b.onclick=()=>{let oz=+b.dataset.oz;S.water+=oz;S.waterHistory.push(oz);save();waterUI()});waterCustom.onclick=()=>{let oz=+prompt("How many ounces?","30");if(!oz||oz<1)return;S.water+=oz;S.waterHistory.push(oz);save();waterUI()};
 waterUndo.onclick=()=>{let x=S.waterHistory.pop()||0;S.water=Math.max(0,S.water-x);save();waterUI()};
 renderMeals();nutritionSummary();waterUI();
 
@@ -526,8 +581,8 @@ if(!S.setupComplete)openSetup();
 refreshPersistentUI();
 
 S.look=S.look||{bg:"#f7f4f0",card:"#ffffff",accent:"#8d6f64",text:"#272321"};
-S.look.mode=S.look.mode||"dark";S.look.darkBg=S.look.darkBg||"#0b0c0e";S.look.darkCard=S.look.darkCard||"#181a1d";S.look.darkText=S.look.darkText||"#f4f1ee";
-function applyLook(){
+S.look.scale=S.look.scale||".90";S.look.mode=S.look.mode||"dark";S.look.darkBg=S.look.darkBg||"#0b0c0e";S.look.darkCard=S.look.darkCard||"#181a1d";S.look.darkText=S.look.darkText||"#f4f1ee";
+function applyLook(){document.documentElement.style.setProperty("--app-scale",S.look.scale||".90");document.querySelectorAll("[data-scale]").forEach(b=>b.classList.toggle("active",b.dataset.scale===(S.look.scale||".90")));
  let mode=S.look.mode||"light";
  let systemDark=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;
  let dark=mode==="dark"||(mode==="system"&&systemDark);
@@ -566,6 +621,6 @@ applyLook();
 document.querySelectorAll("[data-darkbg]").forEach(b=>b.onclick=()=>{
  S.look.mode="dark";S.look.darkBg=b.dataset.darkbg;
  S.look.darkCard=b.dataset.darkbg==="#171412"?"#211d1a":(b.dataset.darkbg==="#08090a"?"#131518":"#181a1d");
- save();applyLook();document.querySelectorAll("[data-darkbg]").forEach(x=>x.classList.toggle("active",x.dataset.darkbg===S.look.darkBg));
+ save();applyLook();document.querySelectorAll("[data-scale]").forEach(b=>b.onclick=()=>{S.look.scale=b.dataset.scale;save();applyLook()});buildScheduleSettings();syncWorkoutToDate();document.querySelectorAll("[data-darkbg]").forEach(x=>x.classList.toggle("active",x.dataset.darkbg===S.look.darkBg));
 });
 </script></body></html>
