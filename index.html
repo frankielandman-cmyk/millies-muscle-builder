@@ -248,7 +248,7 @@ body.theme-dark .trainQuickNav button.isToday{background:color-mix(in srgb,var(-
   </div>
 </div>
 <main class="app">
-<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.19 • INTERNET FOOD SEARCH</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
+<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.20 • SERVING SIZE + SEARCH ACCURACY</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
 <section class="card"><div class="row"><div><b>This week</b><div class="muted" style="font-size:13px">Complete all 4 main lifting days</div></div><b id="week" style="font-size:22px">0 / 4</b></div>
 <div class="row" style="margin-top:12px"><div><button class="pill on" data-place="gym" id="gymPlaceBtn">🏋️ Gym</button> <button class="pill" data-place="home">🏠 Home</button></div><button class="ghost" id="custom">🎨 Color</button></div></section>
 <section class="card settings" id="settings"><b>Choose your app color</b><div class="swatches">
@@ -622,9 +622,46 @@ function offToFood(p){
  let val=(key)=>Math.round(((n[key+"_serving"] ?? (n[key+"_100g"]!=null?n[key+"_100g"]*factor:0))||0)*10)/10;
  return {name:p.product_name||p.generic_name||"Food",serv:p.serving_size||((servingG||100)+" g"),cal:Math.round(kcal||0),p:val("proteins"),c:val("carbohydrates"),f:val("fat"),fi:val("fiber"),brand:p.brands||""}
 }
+function qtyLabel(q){
+ const map={0.25:"¼",0.5:"½",0.75:"¾",1:"1",1.5:"1½",2:"2"};
+ return map[q]||String(q);
+}
+function scaleFood(x,q){
+ q=Math.max(.01,Number(q)||1);
+ const r=n=>Math.round((Number(n)||0)*q*10)/10;
+ return {...x,cal:Math.round((Number(x.cal)||0)*q),p:r(x.p),c:r(x.c),f:r(x.f),fi:r(x.fi),serv:(q===1?x.serv:(qtyLabel(q)+" × "+(x.serv||"serving"))),qty:q,baseServ:x.serv};
+}
+function foodResultCard(x,i){
+ return `<div class="foodChoice" data-foodcard="${i}">
+   <div class="name">${x.name}</div>
+   <div class="sub">${x.brand?x.brand+" • ":""}<span data-servingtext>${x.serv}</span></div>
+   <div class="sub" style="margin-top:4px"><b data-cals>${x.cal}</b> cal • <b data-protein>${x.p}</b>g protein • <span data-carbs>${x.c}</span>g carbs • <span data-fat>${x.f}</span>g fat</div>
+   <div style="display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin-top:12px">
+     <label style="min-width:155px;flex:1"><span class="muted" style="display:block;font-size:12px;margin-bottom:5px">Amount</span>
+       <select data-foodqty="${i}" style="width:100%;min-height:44px;background:#111417;color:#fff;border:1px solid #343941;border-radius:12px;padding:8px 10px;font-size:16px">
+         <option value="0.25">¼ serving</option><option value="0.5">½ serving</option><option value="0.75">¾ serving</option><option value="1" selected>1 serving</option><option value="1.5">1½ servings</option><option value="2">2 servings</option>
+       </select>
+     </label>
+     <button class="mini" data-livepick="${i}" style="min-height:44px">+ Add</button>
+   </div>
+ </div>`;
+}
 function drawFoods(arr,label="Results"){
- foodResults.innerHTML=arr.map((x,i)=>`<div class="foodChoice"><div class="name">${x.name}</div><div class="sub">${x.brand?x.brand+" • ":""}${x.serv} • ${x.cal} cal • ${x.p}g protein</div><button class="mini" data-livepick="${i}">+ Add</button></div>`).join("")||'<div class="muted">No foods found. Try another search or add a custom food.</div>';
- foodResults.querySelectorAll("[data-livepick]").forEach(b=>b.onclick=()=>{let x=window._foodResults[+b.dataset.livepick];S.foods[activeMeal].push({...x});rememberFood(x);commitDiary();foodModal.classList.remove("on");renderMeals();nutritionSummary()})
+ window._foodResults=arr;
+ foodResults.innerHTML=arr.map(foodResultCard).join("")||'<div class="muted">No foods found. Try another search or add a custom food.</div>';
+ foodResults.querySelectorAll("[data-foodqty]").forEach(sel=>sel.onchange=()=>{
+   const i=+sel.dataset.foodqty,x=window._foodResults[i],q=+sel.value,scaled=scaleFood(x,q),card=sel.closest("[data-foodcard]");
+   if(!card)return;
+   card.querySelector("[data-servingtext]").textContent=(q===1?x.serv:(qtyLabel(q)+" × "+x.serv));
+   card.querySelector("[data-cals]").textContent=scaled.cal;
+   card.querySelector("[data-protein]").textContent=scaled.p;
+   card.querySelector("[data-carbs]").textContent=scaled.c;
+   card.querySelector("[data-fat]").textContent=scaled.f;
+ });
+ foodResults.querySelectorAll("[data-livepick]").forEach(b=>b.onclick=()=>{
+   const i=+b.dataset.livepick,card=b.closest("[data-foodcard]"),q=+(card?.querySelector("[data-foodqty]")?.value||1),x=scaleFood(window._foodResults[i],q);
+   S.foods[activeMeal].push({...x});rememberFood(x);commitDiary();foodModal.classList.remove("on");renderMeals();nutritionSummary();
+ })
 }
 
 S.recentFoods=S.recentFoods||[];
@@ -691,6 +728,25 @@ function dedupeFoodResults(items){
    seen.add(k);return true;
  }).filter(x=>Number.isFinite(+x.cal)).slice(0,30);
 }
+function searchTokens(q){return String(q||"").toLowerCase().split(/\s+/).map(x=>x.replace(/[^a-z0-9]/g,"")).filter(x=>x.length>1)}
+function relevanceScore(x,q){
+ const tokens=searchTokens(q),brand=String(x.brand||"").toLowerCase(),name=String(x.name||"").toLowerCase(),hay=brand+" "+name;
+ let matched=tokens.filter(t=>hay.includes(t)).length;
+ let score=matched*20;
+ if(tokens.length&&matched===tokens.length)score+=60;
+ if(tokens[0]&&brand.includes(tokens[0]))score+=25;
+ if(name.includes(String(q).toLowerCase()))score+=25;
+ // Prefer believable packaged-food entries with meaningful macros over empty/zero records.
+ if((+x.cal)>0)score+=2;if((+x.p)>0)score+=1;
+ return {score,matched,total:tokens.length};
+}
+function rankFoodResults(items,q){
+ let scored=dedupeFoodResults(items).map(x=>({x,...relevanceScore(x,q)}));
+ const all=scored.filter(z=>z.total>1&&z.matched===z.total);
+ if(all.length)scored=all; // For a multi-word brand/product search, don't mix in unrelated partial matches.
+ scored.sort((a,b)=>b.score-a.score);
+ return scored.map(z=>z.x).slice(0,30);
+}
 
 let foodSearchSeq=0;
 async function liveFoodSearch(){
@@ -706,32 +762,28 @@ async function liveFoodSearch(){
 
  let found=[];
 
- // 1) USDA FoodData Central — excellent for U.S. branded foods.
+ // 1) Open Food Facts — packaged foods, brands and barcode-linked nutrition.
  try{
-   const u="https://api.nal.usda.gov/fdc/v1/foods/search?api_key=DEMO_KEY&query="+encodeURIComponent(q)+"&pageSize=25&dataType=Branded,Foundation,SR%20Legacy";
-   const j=await fetchJsonWithTimeout(u);
-   found.push(...(j.foods||[]).map(usdaToFood));
- }catch(e){}
-
- // 2) Open Food Facts — broad packaged-food database and barcode data.
- try{
-   const u="https://world.openfoodfacts.org/cgi/search.pl?search_terms="+encodeURIComponent(q)+"&search_simple=1&action=process&json=1&page_size=25&fields=product_name,generic_name,brands,serving_size,serving_quantity,nutriments";
+   const u="https://world.openfoodfacts.org/cgi/search.pl?search_terms="+encodeURIComponent(q)+"&search_simple=1&action=process&json=1&page_size=50&fields=product_name,generic_name,brands,serving_size,serving_quantity,nutriments";
    const j=await fetchJsonWithTimeout(u);
    found.push(...(j.products||[]).filter(p=>p.product_name&&p.nutriments).map(offToFood));
  }catch(e){}
 
+ // 2) USDA FoodData Central — additional U.S. branded-food coverage.
+ try{
+   const u="https://api.nal.usda.gov/fdc/v1/foods/search?api_key=DEMO_KEY&query="+encodeURIComponent(q)+"&pageSize=50&dataType=Branded";
+   const j=await fetchJsonWithTimeout(u);
+   found.push(...(j.foods||[]).map(usdaToFood));
+ }catch(e){}
+
  if(seq!==foodSearchSeq)return;
  const ql=q.toLowerCase();
- found=dedupeFoodResults(found).sort((a,b)=>{
-   const as=((a.brand||"")+" "+a.name).toLowerCase();
-   const bs=((b.brand||"")+" "+b.name).toLowerCase();
-   return (bs.includes(ql)?1:0)-(as.includes(ql)?1:0);
- });
+ found=rankFoodResults(found,q);
 
  if(found.length){
    window._foodResults=found;
    drawFoods(found);
-   liveStatus.textContent="✅ Internet results — tap + Add to log calories & macros";
+   liveStatus.textContent="✅ Internet results — choose your amount, then tap + Add";
  }else{
    renderFoodResults(q);
    if((window._foodResults||[]).length){
