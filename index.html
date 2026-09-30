@@ -248,7 +248,7 @@ body.theme-dark .trainQuickNav button.isToday{background:color-mix(in srgb,var(-
   </div>
 </div>
 <main class="app">
-<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.15 • GOAL SCREEN BUG FIX</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
+<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.16 • AUTO-FILL NUTRITION</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
 <section class="card"><div class="row"><div><b>This week</b><div class="muted" style="font-size:13px">Complete all 4 main lifting days</div></div><b id="week" style="font-size:22px">0 / 4</b></div>
 <div class="row" style="margin-top:12px"><div><button class="pill on" data-place="gym" id="gymPlaceBtn">🏋️ Gym</button> <button class="pill" data-place="home">🏠 Home</button></div><button class="ghost" id="custom">🎨 Color</button></div></section>
 <section class="card settings" id="settings"><b>Choose your app color</b><div class="swatches">
@@ -1011,17 +1011,24 @@ function obProgress(){
 }
 function obNext(){
   if(obEditGoals && obStep===2){
+    captureOnboard();
+    obApplySuggestedNutrition();
     obStep=5;
     renderOnboard();
     return;
   }
   if(obStep<obSteps.length-1){
+    const previousStep=obStep;
     obStep++;
     if(obStep===3 && (obData.sex==="male" || S.profile?.sex==="male")){
       obData.cycleOptIn=false;
       S.cyclePrefs.enabled=false;
       obStep=4;
       save();
+    }
+    if((previousStep===4 && obStep===5) || (previousStep===2 && obStep===5)){
+      captureOnboard();
+      obApplySuggestedNutrition();
     }
     renderOnboard();
   } else finishOnboard()
@@ -1080,6 +1087,16 @@ function obFillNutritionDefaults(){
   if(!obData.fat)obData.fat=n.fat;
   if(!obData.fiber)obData.fiber=n.fiber;
   if(!obData.water)obData.water=n.water;
+  if(!obData.goalWeight)obData.goalWeight=n.goalW;
+}
+function obApplySuggestedNutrition(){
+  const n=obSuggestedNutrition(); if(!n)return;
+  obData.calories=n.calories;
+  obData.protein=n.protein;
+  obData.carbs=n.carbs;
+  obData.fat=n.fat;
+  obData.fiber=n.fiber;
+  obData.water=n.water;
   if(!obData.goalWeight)obData.goalWeight=n.goalW;
 }
 function renderOnboard(){
@@ -1148,7 +1165,7 @@ function renderOnboard(){
   } else {
     obFillNutritionDefaults();
     const sug=obSuggestedNutrition();
-    x=`<div class="onboardTitle">${obEditGoals?"Update your nutrition goals 🍓":"Your nutrition goals 🍓"}</div><div class="onboardSub">${obEditGoals?"These use the profile info you already saved. Review or edit them, then save.":"Here’s a starting target based on the info you entered. You can edit any number."}</div>
+    x=`<div class="onboardTitle">${obEditGoals?"Update your nutrition goals 🍓":"Your nutrition goals 🍓"}</div><div class="onboardSub">${obEditGoals?"We automatically filled these with your newly calculated targets. Review or edit them, then save.":"We automatically filled these from the info you entered. You can edit any number."}</div>
     <div class="onboardCard">
       ${sug?`<div class="softnote" style="margin-bottom:12px"><b>✨ Suggested starting goals</b><br>${sug.calories} calories • ${sug.protein}g protein<br>${sug.carbs}g carbs • ${sug.fat}g fat • ${sug.fiber}g fiber<br>${obGoalNeedsLoss()?`<span class="muted">Estimated maintenance: <b>${sug.tdee} cal/day</b> • Selected pace: <b>${obEsc(obData.lossRate||"1")} lb/week</b>${sug.dailyDeficit?` (~${Math.round(sug.dailyDeficit)} cal/day deficit)`:``}.<br></span>`:""}<span class="muted">Protein is set at about <b>1g per lb of goal body weight</b>.</span></div>`:`<div class="softnote" style="margin-bottom:12px">Add your age, height and current weight to get automatic targets.</div>`}
       <div class="onboardField"><label>Calories</label><input id="obCalories" inputmode="numeric" value="${obEsc(obData.calories||"")}" placeholder="Calories"></div>
