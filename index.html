@@ -248,7 +248,7 @@ body.theme-dark .trainQuickNav button.isToday{background:color-mix(in srgb,var(-
   </div>
 </div>
 <main class="app">
-<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.14 • QUICK GOAL EDIT</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
+<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.15 • GOAL SCREEN BUG FIX</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
 <section class="card"><div class="row"><div><b>This week</b><div class="muted" style="font-size:13px">Complete all 4 main lifting days</div></div><b id="week" style="font-size:22px">0 / 4</b></div>
 <div class="row" style="margin-top:12px"><div><button class="pill on" data-place="gym" id="gymPlaceBtn">🏋️ Gym</button> <button class="pill" data-place="home">🏠 Home</button></div><button class="ghost" id="custom">🎨 Color</button></div></section>
 <section class="card settings" id="settings"><b>Choose your app color</b><div class="swatches">
@@ -1113,9 +1113,9 @@ function renderOnboard(){
     </div>`;
   } else if(obStep===2){
     const loss=obData.goal==="Lose fat + build muscle";
-    onboardContent.innerHTML=`<h1>What’s your goal? 🎯</h1><div class="onboardSub">We’ll use this for both your training plan and nutrition targets.</div>
+    x=`<div class="onboardTitle">What’s your goal? 🎯</div><div class="onboardSub">We’ll use this for both your training plan and nutrition targets.</div>
     <div class="onboardCard"><div class="onboardChoice">
-      ${["Build muscle","Lose fat + build muscle","Get stronger","General fitness"].map(g=>`<button type="button" class="${obData.goal===g?'selected':''}" onclick="obData.goal='${g}';renderOnboard()">${g}</button>`).join("")}
+      ${["Build muscle","Lose fat + build muscle","Get stronger","General fitness"].map(g=>`<button type="button" class="${obData.goal===g?'selected':''}" onclick="captureOnboard();obData.goal='${g}';renderOnboard()">${g}</button>`).join("")}
     </div>
     <div class="onboardField"><label>Current weight</label><input id="obWeight" inputmode="decimal" value="${obEsc(obData.weight||"")}" placeholder="lb"></div>
     ${loss?`<div class="onboardField"><label>How much do you want to lose?</label><input id="obLoseAmount" inputmode="decimal" value="${obEsc(obData.loseAmount||"")}" placeholder="lb"></div>${(+obData.weight>0&&+obData.loseAmount>0)?`<div class="softnote">That puts your goal weight around <b>${Math.max(1,+obData.weight-(+obData.loseAmount))} lb</b>.</div>`:""}`:`<div class="onboardField"><label>Goal weight <span class="muted">(optional)</span></label><input id="obGoalWeight" inputmode="decimal" value="${obEsc(obData.goalWeight||"")}" placeholder="lb"></div>`}
@@ -1148,7 +1148,7 @@ function renderOnboard(){
   } else {
     obFillNutritionDefaults();
     const sug=obSuggestedNutrition();
-    x=`<div class="onboardTitle">Your nutrition goals 🍓</div><div class="onboardSub">Here’s a starting target based on the info you entered. You can edit any number.</div>
+    x=`<div class="onboardTitle">${obEditGoals?"Update your nutrition goals 🍓":"Your nutrition goals 🍓"}</div><div class="onboardSub">${obEditGoals?"These use the profile info you already saved. Review or edit them, then save.":"Here’s a starting target based on the info you entered. You can edit any number."}</div>
     <div class="onboardCard">
       ${sug?`<div class="softnote" style="margin-bottom:12px"><b>✨ Suggested starting goals</b><br>${sug.calories} calories • ${sug.protein}g protein<br>${sug.carbs}g carbs • ${sug.fat}g fat • ${sug.fiber}g fiber<br>${obGoalNeedsLoss()?`<span class="muted">Estimated maintenance: <b>${sug.tdee} cal/day</b> • Selected pace: <b>${obEsc(obData.lossRate||"1")} lb/week</b>${sug.dailyDeficit?` (~${Math.round(sug.dailyDeficit)} cal/day deficit)`:``}.<br></span>`:""}<span class="muted">Protein is set at about <b>1g per lb of goal body weight</b>.</span></div>`:`<div class="softnote" style="margin-bottom:12px">Add your age, height and current weight to get automatic targets.</div>`}
       <div class="onboardField"><label>Calories</label><input id="obCalories" inputmode="numeric" value="${obEsc(obData.calories||"")}" placeholder="Calories"></div>
