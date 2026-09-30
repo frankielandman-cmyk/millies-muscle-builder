@@ -444,6 +444,18 @@ body.theme-dark .trainQuickNav button.isToday{background:color-mix(in srgb,var(-
 <div class="quick" id="homeEquipmentSettingsSummary" style="margin-top:10px"></div>
 <button type="button" class="foodSearchBtn" id="saveHomeEquipmentSettings">Save Home Equipment</button>
 </details>
+
+<details class="card"><summary><b>⏱️ Home Workout Length</b></summary>
+<div class="muted">Choose how long you usually have at home. We’ll keep the workout focused and trim the number of exercises to fit your time.</div>
+<div class="onboardChoice" id="homeWorkoutLengthSettings" style="grid-template-columns:repeat(2,1fr);margin-top:12px">
+  <button type="button" data-homemin="15">15 min</button>
+  <button type="button" data-homemin="30">30 min</button>
+  <button type="button" data-homemin="45">45 min</button>
+  <button type="button" data-homemin="60">60 min</button>
+</div>
+<div class="quick" style="margin-top:10px">Current Home workout: <b id="homeWorkoutLengthSummary"></b></div>
+</details>
+
 <details class="card"><summary><b>🎯 Goals & Nutrition</b></summary><div class="muted">Current targets</div><div id="settingsGoals" class="quick"></div><button class="foodSearchBtn" id="editGoals">Change Goals</button></details>
 <details class="card" id="cycleSettingsCard"><summary><b>🌸 Cycle Tracking</b></summary><div id="cycleSettingsStatus" class="quick"></div><button class="foodSearchBtn" id="toggleCycle">Turn Cycle Tracking On / Off</button></details>
 <details class="card"><summary><b>❤️ Apple Health</b></summary><div class="muted">Apple Health connection becomes available in the iPhone/HealthKit version.</div></details>
@@ -457,7 +469,7 @@ body.theme-dark .trainQuickNav button.isToday{background:color-mix(in srgb,var(-
 <div class="softnote" id="trainingDaysNote">Your weekly goal is 4 training days.</div>
 </details><details class="card"><summary><b>ℹ️ About</b></summary>
 <div class="muted">Millie’s Muscle Builder</div>
-<div class="quick" style="margin-top:10px"><b>Version 12.4.36</b><br>Train smarter. Eat better. Track your progress.</div>
+<div class="quick" style="margin-top:10px"><b>Version 12.4.37</b><br>Train smarter. Eat better. Track your progress.</div>
 </details>
 <details class="card"><summary><b>📅 Workout Schedule</b></summary>
 <div class="muted">The app builds a suggested week from your 3–7 day training goal. You can still change any individual day here.</div>
@@ -875,6 +887,21 @@ function chooseHomeAlternative(e){
  return `<b>${h.name}</b><br><b>Use:</b> ${h.use}<br>${h.how}`;
 }
 
+
+S.homeWorkoutMinutes=[15,30,45,60].includes(Number(S.homeWorkoutMinutes))?Number(S.homeWorkoutMinutes):30;
+
+function homeExerciseLimit(minutes){
+ minutes=Number(minutes)||30;
+ if(minutes<=15)return 3;
+ if(minutes<=30)return 5;
+ if(minutes<=45)return 7;
+ return 99;
+}
+function homeWorkoutTimeLabel(){
+ const m=Number(S.homeWorkoutMinutes)||30;
+ return `${m} min`;
+}
+
 function render(){
 let TD=trainDay();refreshTrainingGoalUI();tabs.innerHTML="";
 let now=new Date(),isToday=trainKey()===`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
@@ -914,7 +941,7 @@ panel.innerHTML=`<div class="card" style="margin:8px 0 12px;padding:14px 16px">
     <div class="muted" style="font-size:11px;font-weight:900;letter-spacing:.05em">TODAY’S PLAN</div>
     <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-top:2px">
       <h3 style="margin:0;font-size:20px">${p.t}</h3>
-      <span class="muted" style="font-size:13px">${p.s}</span>
+      <span class="muted" style="font-size:13px">${p.s}${S.place==="home"?` · 🏠 ${homeWorkoutTimeLabel()}`:""}</span>
     </div>
   </div>
   <button type="button" class="mini" id="customizeTodayWorkout">Customize</button>
@@ -930,7 +957,7 @@ panel.innerHTML=`<div class="card" style="margin:8px 0 12px;padding:14px 16px">
     ${Object.entries(P).filter(([k,v])=>!v.r).map(([k,v])=>`<button type="button" data-switchworkout="${k}">🏋️ ${v.n}</button>`).join("")}
   </div>
 </div>
-</div>`+restFlex+exList.map((e,i)=>{let k=S.day+"-"+i,L=TD.logs[k]||{},sets=TD.sets[k]||[],pic=S.place==="gym"&&imgs[e[0]]?`<button class="mini" data-pic="pic-${i}">📸 Machine</button><img id="pic-${i}" class="pic" src="${imgs[e[0]]}" alt="${e[0]} reference" style="display:none" onerror="this.style.display='none'">`:"";return `<article class="card ex"><div class="row"><div>${S.place==="home"?(()=>{const h=homeExerciseFor(e);return `<h3>${i+1}. ${h.name}</h3><b>${e[1]} × ${e[2]}</b><div class="muted" style="font-size:12px;margin-top:4px">🏠 Use: ${h.use}</div>`})():`<h3>${i+1}. ${e[0]}</h3><b>${e[1]} × ${e[2]}</b>`}</div><div style="display:flex;gap:6px;align-items:center"><span class="tag">🎯 ${e[3]}</span><button type="button" class="mini" data-removeexercise="${i}" aria-label="Remove ${e[0]}">×</button></div></div>
+</div>`+restFlex+(S.place==="home"?exList.slice(0,homeExerciseLimit(S.homeWorkoutMinutes)):exList).map((e,i)=>{let k=S.day+"-"+i,L=TD.logs[k]||{},sets=TD.sets[k]||[],pic=S.place==="gym"&&imgs[e[0]]?`<button class="mini" data-pic="pic-${i}">📸 Machine</button><img id="pic-${i}" class="pic" src="${imgs[e[0]]}" alt="${e[0]} reference" style="display:none" onerror="this.style.display='none'">`:"";return `<article class="card ex"><div class="row"><div>${S.place==="home"?(()=>{const h=homeExerciseFor(e);return `<h3>${i+1}. ${h.name}</h3><b>${e[1]} × ${e[2]}</b><div class="muted" style="font-size:12px;margin-top:4px">🏠 Use: ${h.use}</div>`})():`<h3>${i+1}. ${e[0]}</h3><b>${e[1]} × ${e[2]}</b>`}</div><div style="display:flex;gap:6px;align-items:center"><span class="tag">🎯 ${e[3]}</span><button type="button" class="mini" data-removeexercise="${i}" aria-label="Remove ${e[0]}">×</button></div></div>
 <div class="buttons exerciseActions">${pic}<button class="mini" data-toggle="setup-${i}">👀 Setup</button><button class="mini" data-demo="${i}">▶️ Demo</button><button class="mini" data-toggle="why-${i}">💡 Why</button><button class="mini" data-toggle="alt-${i}">🔄 Alt</button></div>
 <div class="info" id="setup-${i}">${S.place==="gym"?`<b>What to look for</b><br>${e[4]}<br><br><b>How to do it</b><br>${e[5]}`:(()=>{const h=homeExerciseFor(e);return `<b>🏠 Home version: ${h.name}</b><br><b>Use:</b> ${h.use}<br><br><b>How to do it</b><br>${h.how}`})()}</div><div class="info" id="why-${i}">${e[6]}</div><div class="info" id="alt-${i}">${S.place==="gym"?e[7]:chooseHomeAlternative(e)}</div>
 ${p.r?"":(()=>{let hist=latestExercise(e[0]),suggest=suggestedWeight(e[0],e[2]),sets=TD.sets[S.day+"-"+i]||[],last=hist&&hist.sets&&hist.sets.length?hist.sets[hist.sets.length-1]:null;return `<div class="logs"><label>Weight (lb)<input data-w="${i}" inputmode="decimal" value="${L.w||suggest||""}" placeholder="e.g. 70"></label><label>Reps<input data-r="${i}" inputmode="numeric" value="${L.r||""}" placeholder="e.g. 10"></label></div><div class="sets">${Array.from({length:e[1]},(_,n)=>`<button class="set ${sets[n]?"done":""}" data-set="${i}-${n}">Set ${n+1}${sets[n]?" ✓":""}</button>`).join("")}</div><div class="last"><b>Last:</b> ${last?`${last.weight} lb × ${last.reps}`:"Nothing yet"}${suggest?` &nbsp;•&nbsp; <b>Suggested:</b> ${suggest} lb`:""}</div>`})()}</article>`}).join("")+(p.r?"" : `<div class="card" id="exerciseBuilderCard" style="display:none">
@@ -1803,6 +1830,25 @@ rerunSetup.onclick=openSetup;editGoals.onclick=openSetup;
 toggleCycle.onclick=()=>{if(S.profile?.sex==="male"||S.nutrition?.nSex==="male"){S.cyclePrefs.enabled=false;save();refreshPersistentUI();return}S.cyclePrefs.enabled=!S.cyclePrefs.enabled;save();refreshPersistentUI();if(window.MMBSyncProfile)window.MMBSyncProfile()};
 
 
+
+function renderHomeWorkoutLengthSettings(){
+ const root=document.getElementById("homeWorkoutLengthSettings");
+ const sum=document.getElementById("homeWorkoutLengthSummary");
+ if(root){
+   root.querySelectorAll("[data-homemin]").forEach(btn=>{
+     const n=Number(btn.dataset.homemin);
+     btn.classList.toggle("selected",n===Number(S.homeWorkoutMinutes));
+     btn.onclick=()=>{
+       S.homeWorkoutMinutes=n;
+       save();
+       renderHomeWorkoutLengthSettings();
+       if(window.MMBSyncProfile)window.MMBSyncProfile();
+     };
+   });
+ }
+ if(sum)sum.textContent=homeWorkoutTimeLabel();
+}
+
 function renderHomeEquipmentSettings(){
  const root=document.getElementById("homeEquipmentSettingsList");
  const sum=document.getElementById("homeEquipmentSettingsSummary");
@@ -1820,6 +1866,7 @@ function renderHomeEquipmentSettings(){
  if(sum)sum.textContent=homeEquipmentSummary();
 }
 renderHomeEquipmentSettings();
+renderHomeWorkoutLengthSettings();
 const saveHomeEquipmentSettings=document.getElementById("saveHomeEquipmentSettings");
 if(saveHomeEquipmentSettings)saveHomeEquipmentSettings.onclick=()=>{
  save();
@@ -2057,7 +2104,7 @@ function refreshTrainingLocationSettings(){
 const ONBOARD_KEY="MMB_onboarding_v1";
 let obStep=0;
 let obEditGoals=false;
-let obData={cycleOptIn:null,sex:(S.profile?.sex||S.nutrition?.nSex||null),location:(S.trainingLocationMode||S.location||"Gym"),gymName:(S.gymName||""),homeEquipment:[...(S.homeEquipment||[])],homePhotoPreview:"",goal:"Build muscle",activity:"1.55",feet:"",inches:"",weight:"",goalWeight:"",loseAmount:"",lossRate:"1",trainingDays:String(S.trainingDaysPerWeek||4)};
+let obData={cycleOptIn:null,sex:(S.profile?.sex||S.nutrition?.nSex||null),location:(S.trainingLocationMode||S.location||"Gym"),gymName:(S.gymName||""),homeEquipment:[...(S.homeEquipment||[])],homeWorkoutMinutes:Number(S.homeWorkoutMinutes)||30,homePhotoPreview:"",goal:"Build muscle",activity:"1.55",feet:"",inches:"",weight:"",goalWeight:"",loseAmount:"",lossRate:"1",trainingDays:String(S.trainingDaysPerWeek||4)};
 const obSteps=["account","profile","goals","cycle","equipment","nutrition"];
 
 function obEsc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
@@ -2236,6 +2283,12 @@ function renderOnboard(){
         </div>
       </div>
       <div class="onboardTiny">You can edit this later in Settings → Home Equipment.</div>
+      <div class="onboardField">
+        <label>How long do you usually have for a Home workout?</label>
+        <div class="onboardChoice" id="obHomeWorkoutMinutes" style="grid-template-columns:repeat(2,1fr)">
+          ${[15,30,45,60].map(min=>`<button type="button" class="${Number(obData.homeWorkoutMinutes||30)===min?'selected':''}" data-obhomemin="${min}">${min} min</button>`).join("")}
+        </div>
+      </div>
     `:""}
     <div class="onboardTiny">Next: review your suggested calorie, protein, carb, fat, fiber and water goals.</div>
     ${obNav()}</div>`;
@@ -2266,6 +2319,13 @@ function bindHomeSetupControls(){
      const i=obData.homeEquipment.indexOf(eq);
      if(i>=0)obData.homeEquipment.splice(i,1);else obData.homeEquipment.push(eq);
      btn.classList.toggle("selected",obData.homeEquipment.includes(eq));
+   });
+ }
+ const mins=document.getElementById("obHomeWorkoutMinutes");
+ if(mins){
+   mins.querySelectorAll("[data-obhomemin]").forEach(btn=>btn.onclick=()=>{
+     obData.homeWorkoutMinutes=Number(btn.dataset.obhomemin);
+     mins.querySelectorAll("[data-obhomemin]").forEach(x=>x.classList.toggle("selected",x===btn));
    });
  }
  const take=document.getElementById("obTakeHomePhoto");
@@ -2364,6 +2424,7 @@ function mmbCloudProfilePayload(){
    location:S.location||"",
    trainingLocationMode:S.trainingLocationMode||S.location||"Gym",
    homeEquipment:[...(S.homeEquipment||[])],
+   homeWorkoutMinutes:Number(S.homeWorkoutMinutes)||30,
    place:S.place||"gym",
    gymName:S.gymName||"",
    cyclePrefs:S.cyclePrefs||{},
@@ -2401,6 +2462,7 @@ function applyCloudProfile(cp){
    if(cp.location!==undefined)S.location=cp.location;
    if(cp.trainingLocationMode)S.trainingLocationMode=cp.trainingLocationMode;
    if(Array.isArray(cp.homeEquipment))S.homeEquipment=[...cp.homeEquipment];
+   if([15,30,45,60].includes(Number(cp.homeWorkoutMinutes)))S.homeWorkoutMinutes=Number(cp.homeWorkoutMinutes);
    if(cp.place)S.place=cp.place;
    if(cp.gymName!==undefined)S.gymName=cp.gymName;
    if(cp.cyclePrefs)S.cyclePrefs={...(S.cyclePrefs||{}),...cp.cyclePrefs};
@@ -2470,6 +2532,7 @@ function finishOnboard(){
     }
     if(obData.gymName!==undefined) S.gymName=(obData.gymName||"").trim();
     if(Array.isArray(obData.homeEquipment)) S.homeEquipment=[...obData.homeEquipment];
+    if([15,30,45,60].includes(Number(obData.homeWorkoutMinutes))) S.homeWorkoutMinutes=Number(obData.homeWorkoutMinutes);
     localStorage.setItem(ONBOARD_KEY,JSON.stringify({done:true,data:obData,at:new Date().toISOString()}));
     save();
     syncProfileToCloud();
