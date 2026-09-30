@@ -135,7 +135,7 @@ body.theme-dark .premiumSettingsBtn{background:#17191d!important;border-color:#2
 .mainnav{grid-template-columns:repeat(6,1fr)!important}
 .mainnav.cycleHidden{grid-template-columns:repeat(5,1fr)!important}
 .mainnav button{font-size:11px!important;padding-left:3px!important;padding-right:3px!important}
-/* Stable 12.4.51 — Goal photo review flow + swipe tabs + backup/recovery */
+/* Stable 12.4.52 — In-app AI goal photo analysis + swipe tabs + backup/recovery */
 .cycleHero{padding:20px!important;background:linear-gradient(145deg,color-mix(in srgb,var(--a) 14%,var(--app-card)),var(--app-card))!important}
 .cycleHeroTop{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
 .cycleDayBig{font-size:44px;font-weight:950;letter-spacing:-.06em;line-height:1;margin:4px 0 6px}
@@ -459,8 +459,10 @@ setTimeout(()=>{
 
 <div class="card">
   <h3>🤖 Millie’s focus notes</h3>
-  <div class="quick" style="margin-bottom:12px">After you upload the photo here, send that same photo to Millie in ChatGPT. I can suggest the muscle groups and training priorities that best match the look, then you can save the useful parts below.</div>
-  <textarea id="goalFocusNotes" rows="5" placeholder="Example: Build glutes and side delts, strengthen upper back, keep 2 lower-body days..." style="width:100%;box-sizing:border-box;border-radius:14px;padding:12px;background:#101216;color:#fff;border:1px solid #353941;font:inherit;resize:vertical"></textarea>
+  <div class="quick" id="goalAiIntro" style="margin-bottom:12px">Upload a goal photo and Millie will analyze the visible training emphasis automatically, then fill in suggested muscle groups and focus notes here.</div>
+  <div class="softnote" id="goalAiStatus" style="margin-bottom:12px">AI photo analysis is waiting for a photo.</div>
+  <button type="button" class="foodSearchBtn" id="reanalyzeGoalPhoto" style="display:none;margin-bottom:12px">✨ Analyze goal photo again</button>
+  <textarea id="goalFocusNotes" rows="5" placeholder="AI suggestions will appear here after the photo is analyzed." style="width:100%;box-sizing:border-box;border-radius:14px;padding:12px;background:#101216;color:#fff;border:1px solid #353941;font:inherit;resize:vertical"></textarea>
 
   <div style="margin-top:14px"><b>Training areas to consider</b></div>
   <div class="buttons" id="goalFocusChips" style="margin-top:10px;flex-wrap:wrap">
@@ -551,6 +553,12 @@ setTimeout(()=>{
 <details class="card" id="cycleSettingsCard"><summary><b>🌸 Cycle Tracking</b></summary><div id="cycleSettingsStatus" class="quick"></div><button class="foodSearchBtn" id="toggleCycle">Turn Cycle Tracking On / Off</button></details>
 <details class="card"><summary><b>❤️ Apple Health</b></summary><div class="muted">Apple Health connection becomes available in the iPhone/HealthKit version.</div></details>
 <details class="card" id="accountCard"><summary><b>☁️ Account + Cloud</b></summary><div id="accountStatus" class="softnote">Checking account…</div><div id="accountSignedOut"><label>Email<input id="accountEmail" type="email" autocomplete="email" placeholder="you@example.com"></label><label>Password<input id="accountPassword" type="password" autocomplete="current-password" placeholder="8+ characters"></label><div class="row" style="margin-top:12px"><button type="button" class="foodSearchBtn" id="accountSignIn">Log in</button><button type="button" class="foodSearchBtn" id="accountSignUp">Create account</button></div><div class="muted" style="margin-top:10px">Your current workout data stays on this phone while we connect cloud saving safely.</div></div><div id="accountSignedIn" style="display:none"><button type="button" class="foodSearchBtn" id="accountSignOut">Log out</button></div></details>
+<details class="card" id="goalAiSettingsCard"><summary><b>✨ AI Goal Photo Analysis</b></summary>
+<div class="muted">This connects the goal-photo uploader to your private analysis endpoint. The OpenAI API key stays on the server, never in this app.</div>
+<label style="display:block;margin-top:12px">Analysis endpoint<input id="goalAiEndpoint" type="url" inputmode="url" placeholder="https://your-worker.workers.dev" style="width:100%;box-sizing:border-box"></label>
+<button type="button" class="foodSearchBtn" id="saveGoalAiEndpoint" style="margin-top:10px">Save AI Endpoint</button>
+<div class="softnote" id="goalAiEndpointStatus" style="margin-top:10px">Not connected yet.</div>
+</details>
 <details class="card" id="backupRestoreCard"><summary><b>💾 Backup & Restore</b></summary>
 <div class="softnote" id="backupStatus"><b>Auto-save is on.</b><br>Your latest changes are saved on this device automatically.</div>
 <div class="muted" style="margin-top:10px">For protection if the app is deleted or browser data is cleared, download a backup file occasionally. You can restore that file on this or another device.</div>
@@ -568,7 +576,7 @@ setTimeout(()=>{
 </details><details class="card"><summary><b>ℹ️ About</b></summary>
 <div class="muted">Millie’s Muscle Builder</div>
 <div class="quick" style="margin-top:10px">
-  <b id="appVersionUnlock" style="user-select:none;-webkit-user-select:none">Version 12.4.51</b><br>
+  <b id="appVersionUnlock" style="user-select:none;-webkit-user-select:none">Version 12.4.52</b><br>
   Train smarter. Eat better. Track your progress.
 </div>
 <div id="ownerPreviewTools" style="display:none;margin-top:12px">
@@ -1905,14 +1913,39 @@ function preview(input,img){
   if(!input||!img)return;
   input.onchange=()=>{let f=input.files&&input.files[0];if(!f)return;let r=new FileReader();r.onload=e=>{img.src=e.target.result;img.style.display="block"};r.readAsDataURL(f)}
 }
-preview(document.getElementById("inspoInput"),document.getElementById("inspoPreview"));
+
+async function fileToGoalDataUrl(file){
+  const raw=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file)});
+  try{
+    const img=await new Promise((resolve,reject)=>{const i=new Image();i.onload=()=>resolve(i);i.onerror=reject;i.src=raw});
+    const max=1280,scale=Math.min(1,max/Math.max(img.width,img.height));
+    if(scale>=.999)return raw;
+    const c=document.createElement("canvas");c.width=Math.max(1,Math.round(img.width*scale));c.height=Math.max(1,Math.round(img.height*scale));
+    c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+    return c.toDataURL("image/jpeg",.84);
+  }catch(e){return raw}
+}
 
 (function setupGoalFocus(){
   S.goalFocusNotes=S.goalFocusNotes||"";
   S.goalFocusAreas=Array.isArray(S.goalFocusAreas)?S.goalFocusAreas:[];
+  S.goalAiEndpoint=S.goalAiEndpoint||"";
   const notes=document.getElementById("goalFocusNotes");
   const status=document.getElementById("goalFocusStatus");
+  const aiStatus=document.getElementById("goalAiStatus");
+  const endpointInput=document.getElementById("goalAiEndpoint");
+  const endpointStatus=document.getElementById("goalAiEndpointStatus");
+  const reanalyze=document.getElementById("reanalyzeGoalPhoto");
+  const fileInput=document.getElementById("inspoInput");
+  const previewImg=document.getElementById("inspoPreview");
+  let lastGoalFile=null;
   if(notes)notes.value=S.goalFocusNotes;
+  if(endpointInput)endpointInput.value=S.goalAiEndpoint;
+
+  function endpointSummary(){
+    if(!endpointStatus)return;
+    endpointStatus.textContent=S.goalAiEndpoint?"Connected. Goal photos will analyze automatically after upload.":"Not connected yet. Add your Worker URL here once it is deployed.";
+  }
   function paint(){
     document.querySelectorAll(".goalFocusChip").forEach(b=>{
       const on=S.goalFocusAreas.includes(b.dataset.focus);
@@ -1921,6 +1954,36 @@ preview(document.getElementById("inspoInput"),document.getElementById("inspoPrev
       b.style.background=on?"rgba(181,106,128,.22)":"";
     });
   }
+  async function analyzeGoalPhoto(file){
+    if(!file)return;
+    if(!S.goalAiEndpoint){
+      if(aiStatus)aiStatus.textContent="Photo uploaded. AI setup is not connected yet — add the analysis endpoint in Settings → AI Goal Photo Analysis.";
+      return;
+    }
+    if(aiStatus)aiStatus.textContent="✨ Analyzing the goal photo…";
+    if(reanalyze){reanalyze.disabled=true;reanalyze.style.display="inline-block";reanalyze.textContent="Analyzing…"}
+    try{
+      const image_data_url=await fileToGoalDataUrl(file);
+      const res=await fetch(S.goalAiEndpoint.replace(/\/+$/,'')+"/analyze-goal",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({image_data_url})
+      });
+      const data=await res.json().catch(()=>({}));
+      if(!res.ok)throw new Error(data.error||"Analysis failed");
+      const allowed=["Glutes","Quads","Hamstrings","Shoulders","Back","Arms","Core","Conditioning"];
+      S.goalFocusAreas=(Array.isArray(data.focus_areas)?data.focus_areas:[]).filter(x=>allowed.includes(x));
+      S.goalFocusNotes=(data.notes||"").trim();
+      if(notes)notes.value=S.goalFocusNotes;
+      paint();save();
+      if(aiStatus)aiStatus.textContent="✓ Analysis complete. Review the suggestions below before deciding whether to change your workout plan.";
+    }catch(err){
+      if(aiStatus)aiStatus.textContent="I couldn't analyze that photo. Check the AI endpoint in Settings, then try again. "+(err&&err.message?err.message:"");
+    }finally{
+      if(reanalyze){reanalyze.disabled=false;reanalyze.style.display="inline-block";reanalyze.textContent="✨ Analyze goal photo again"}
+    }
+  }
+
   document.querySelectorAll(".goalFocusChip").forEach(b=>b.onclick=()=>{
     const f=b.dataset.focus;
     S.goalFocusAreas=S.goalFocusAreas.includes(f)?S.goalFocusAreas.filter(x=>x!==f):[...S.goalFocusAreas,f];
@@ -1932,7 +1995,23 @@ preview(document.getElementById("inspoInput"),document.getElementById("inspoPrev
     save();
     if(status)status.textContent="Saved. Your current workout plan has NOT been changed.";
   };
-  paint();
+  const saveEndpoint=document.getElementById("saveGoalAiEndpoint");
+  if(saveEndpoint)saveEndpoint.onclick=()=>{
+    let v=(endpointInput?.value||"").trim().replace(/\/+$/,'');
+    if(v&&!/^https:\/\//i.test(v)){endpointStatus.textContent="Use the full https:// Worker URL.";return}
+    S.goalAiEndpoint=v;save();endpointSummary();
+  };
+  if(fileInput&&previewImg){
+    fileInput.onchange=async()=>{
+      const f=fileInput.files&&fileInput.files[0];if(!f)return;
+      lastGoalFile=f;
+      const r=new FileReader();r.onload=e=>{previewImg.src=e.target.result;previewImg.style.display="block"};r.readAsDataURL(f);
+      if(reanalyze)reanalyze.style.display="inline-block";
+      await analyzeGoalPhoto(f);
+    };
+  }
+  if(reanalyze)reanalyze.onclick=()=>lastGoalFile?analyzeGoalPhoto(lastGoalFile):(aiStatus.textContent="Choose a goal photo first.");
+  endpointSummary();paint();
 })();
 document.getElementById("saveCheck").onclick=()=>{let o={date:new Date().toLocaleDateString(),weight:bodyWeight.value,waist:waist.value,hips:hips.value,arm:arm.value};S.checkins.push(o);save();document.getElementById("checkMsg").textContent="Saved check-in • "+o.date};
 function updateStrength(){let rows=[];Object.entries(S.logs).forEach(([k,v])=>{if(v.w){let [d,i]=k.split("-"),p=P[d];if(p&&p.x[i])rows.push(`<b>${p.x[i][0]}</b>: ${v.w} lb${v.r?" × "+v.r:""}`)}});document.getElementById("strengthSummary").innerHTML=rows.length?rows.slice(-10).join("<br>"):"Log weights in Train and your latest numbers will appear here."}
