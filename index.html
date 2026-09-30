@@ -14,7 +14,12 @@ h1{font-size:29px;margin:4px 0}.muted{color:var(--m)}.card{background:var(--c);b
 .mainnav{position:sticky;top:0;z-index:20;display:grid;grid-template-columns:repeat(4,1fr);gap:5px;background:rgba(247,245,241,.96);padding:8px 0;margin:8px 0}
 .mainnav button{border:1px solid var(--l);background:#fff;border-radius:14px;min-height:54px;font-size:12px;font-weight:800;padding:5px}
 .mainnav button.on{background:var(--a);color:#fff;border-color:var(--a)}
-.feature{display:none}.feature.on{display:block}.bigicon{font-size:38px}.feature h2{margin:4px 0}.feature .card h3{margin:0 0 7px}.meter{height:10px;background:var(--s);border-radius:99px;overflow:hidden;margin:8px 0}.meter span{display:block;height:100%;background:var(--a);width:0}
+.feature{display:none}.feature.on{display:block}
+.feature.swipeInNext{animation:mmbSwipeNext .18s ease-out}
+.feature.swipeInPrev{animation:mmbSwipePrev .18s ease-out}
+@keyframes mmbSwipeNext{from{opacity:.45;transform:translateX(18px)}to{opacity:1;transform:translateX(0)}}
+@keyframes mmbSwipePrev{from{opacity:.45;transform:translateX(-18px)}to{opacity:1;transform:translateX(0)}}
+@media (prefers-reduced-motion:reduce){.feature.swipeInNext,.feature.swipeInPrev{animation:none}}.bigicon{font-size:38px}.feature h2{margin:4px 0}.feature .card h3{margin:0 0 7px}.meter{height:10px;background:var(--s);border-radius:99px;overflow:hidden;margin:8px 0}.meter span{display:block;height:100%;background:var(--a);width:0}
 .photoBox{border:2px dashed var(--l);border-radius:16px;padding:18px;text-align:center;background:#fff;margin-top:8px}
 .photoBox input{border:0;padding:6px}.preview{max-width:100%;max-height:280px;border-radius:14px;margin-top:8px;display:none}
 .bottomnote{font-size:12px;color:var(--m);line-height:1.4}
@@ -130,7 +135,7 @@ body.theme-dark .premiumSettingsBtn{background:#17191d!important;border-color:#2
 .mainnav{grid-template-columns:repeat(6,1fr)!important}
 .mainnav.cycleHidden{grid-template-columns:repeat(5,1fr)!important}
 .mainnav button{font-size:11px!important;padding-left:3px!important;padding-right:3px!important}
-/* Stable 12.4.49 — Cycle tracker + backup/recovery */
+/* Stable 12.4.50 — Swipe between main tabs + backup/recovery */
 .cycleHero{padding:20px!important;background:linear-gradient(145deg,color-mix(in srgb,var(--a) 14%,var(--app-card)),var(--app-card))!important}
 .cycleHeroTop{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
 .cycleDayBig{font-size:44px;font-weight:950;letter-spacing:-.06em;line-height:1;margin:4px 0 6px}
@@ -537,7 +542,7 @@ setTimeout(()=>{
 </details><details class="card"><summary><b>ℹ️ About</b></summary>
 <div class="muted">Millie’s Muscle Builder</div>
 <div class="quick" style="margin-top:10px">
-  <b id="appVersionUnlock" style="user-select:none;-webkit-user-select:none">Version 12.4.49</b><br>
+  <b id="appVersionUnlock" style="user-select:none;-webkit-user-select:none">Version 12.4.50</b><br>
   Train smarter. Eat better. Track your progress.
 </div>
 <div id="ownerPreviewTools" style="display:none;margin-top:12px">
@@ -1202,8 +1207,63 @@ document.querySelectorAll("[data-place]").forEach(b=>b.onclick=()=>{
 document.querySelectorAll("[data-color]").forEach(b=>b.onclick=()=>{S.color=b.dataset.color;document.getElementById("picker").value=S.color;theme();save()});document.getElementById("picker").value=S.color;
 document.getElementById("picker").oninput=e=>{S.color=e.target.value;theme();save()};
 S.main=S.main||"train";S.nutrition=S.nutrition||{};S.checkins=S.checkins||[];
-function showMain(name){S.main=name;save();document.querySelectorAll(".feature").forEach(x=>x.classList.toggle("on",x.id==="feature-"+name));document.querySelectorAll("[data-main]").forEach(x=>x.classList.toggle("on",x.dataset.main===name));if(name==="progress")updateStrength();if(name==="cycle")renderCycleSection()}
-document.querySelectorAll("[data-main]").forEach(b=>b.onclick=()=>showMain(b.dataset.main));const settingsShortcut=document.getElementById("settingsShortcut");if(settingsShortcut)settingsShortcut.onclick=()=>showMain("settings");
+function showMain(name,swipeDir){
+  S.main=name;save();
+  document.querySelectorAll(".feature").forEach(x=>{
+    const isOn=x.id==="feature-"+name;
+    x.classList.toggle("on",isOn);
+    x.classList.remove("swipeInNext","swipeInPrev");
+    if(isOn&&swipeDir){
+      void x.offsetWidth;
+      x.classList.add(swipeDir==="next"?"swipeInNext":"swipeInPrev");
+      setTimeout(()=>x.classList.remove("swipeInNext","swipeInPrev"),220);
+    }
+  });
+  document.querySelectorAll("[data-main]").forEach(x=>x.classList.toggle("on",x.dataset.main===name));
+  if(name==="progress")updateStrength();
+  if(name==="cycle")renderCycleSection()
+}
+document.querySelectorAll("[data-main]").forEach(b=>b.onclick=()=>showMain(b.dataset.main));
+(function enableMainTabSwipe(){
+  const app=document.querySelector("main.app");
+  if(!app)return;
+  let sx=0,sy=0,st=0,tracking=false,suppressClickUntil=0;
+
+  function visibleTabs(){
+    return Array.from(document.querySelectorAll("#mainnav [data-main]"))
+      .filter(b=>b.offsetParent!==null && getComputedStyle(b).display!=="none")
+      .map(b=>b.dataset.main);
+  }
+
+  app.addEventListener("touchstart",e=>{
+    if(e.touches.length!==1)return;
+    const t=e.touches[0];
+    sx=t.clientX; sy=t.clientY; st=Date.now(); tracking=true;
+  },{passive:true});
+
+  app.addEventListener("touchend",e=>{
+    if(!tracking||!e.changedTouches.length)return;
+    tracking=false;
+    const t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy,dt=Date.now()-st;
+    if(dt>900||Math.abs(dx)<65||Math.abs(dx)<Math.abs(dy)*1.25)return;
+
+    const tabs=visibleTabs(),cur=tabs.indexOf(S.main||"train");
+    if(cur<0)return;
+    const nextIndex=dx<0?cur+1:cur-1;
+    if(nextIndex<0||nextIndex>=tabs.length)return;
+
+    suppressClickUntil=Date.now()+350;
+    showMain(tabs[nextIndex],dx<0?"next":"prev");
+  },{passive:true});
+
+  app.addEventListener("click",e=>{
+    if(Date.now()<suppressClickUntil){
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  },true);
+})();
+const settingsShortcut=document.getElementById("settingsShortcut");if(settingsShortcut)settingsShortcut.onclick=()=>showMain("settings");
 S.nutrition=S.nutrition||{};S.foods=S.foods||{Breakfast:[],Lunch:[],Dinner:[],Snacks:[]};S.water=S.water||0;S.waterHistory=S.waterHistory||[];
 const meals=["Breakfast","Lunch","Dinner","Snacks"], icons={Breakfast:"🍳",Lunch:"🥪",Dinner:"🍽️",Snacks:"🍿"};
 
@@ -1836,7 +1896,7 @@ function refreshBackupStatus(){
 }
 function buildBackupPackage(){
  let onboard=null;try{onboard=JSON.parse(localStorage.getItem("MMB_onboarding_v1")||"null")}catch(e){}
- return {app:"Millie's Muscle Builder",version:"12.4.49",schema:1,exportedAt:new Date().toISOString(),data:S,onboarding:onboard};
+ return {app:"Millie's Muscle Builder",version:"12.4.50",schema:1,exportedAt:new Date().toISOString(),data:S,onboarding:onboard};
 }
 function downloadMMBBackup(){
  save();
