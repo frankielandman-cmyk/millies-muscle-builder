@@ -159,8 +159,21 @@ body.theme-dark .premiumSettingsBtn{background:#17191d!important;border-color:#2
 .setupProgress{background:#24272c!important}
 .setupProgress>div{background:var(--a)!important}
 .setupBrand{color:#fff!important}
+
+/* Stable 9 — soften main navigation only */
+body.theme-dark .mainnav button{
+  background:#1b1e22!important;
+  color:#b8bbc1!important;
+  border:1px solid #30343a!important;
+  box-shadow:none!important;
+}
+body.theme-dark .mainnav button.on{
+  background:var(--a)!important;
+  color:#fff!important;
+  border-color:var(--a)!important;
+}
 </style></head><body><main class="app">
-<header><button type="button" class="premiumSettingsBtn" id="settingsShortcut" aria-label="Open settings">⚙️</button><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 8</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
+<header><button type="button" class="premiumSettingsBtn" id="settingsShortcut" aria-label="Open settings">⚙️</button><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 9</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
 <section class="card"><div class="row"><div><b>This week</b><div class="muted" style="font-size:13px">Complete all 4 main lifting days</div></div><b id="week" style="font-size:22px">0 / 4</b></div>
 <div class="row" style="margin-top:12px"><div><button class="pill on" data-place="gym">🏋️ Planet Fitness</button> <button class="pill" data-place="home">🏠 Home</button></div><button class="ghost" id="custom">🎨 Color</button></div></section>
 <section class="card settings" id="settings"><b>Choose your app color</b><div class="swatches">
