@@ -248,7 +248,7 @@ body.theme-dark .trainQuickNav button.isToday{background:color-mix(in srgb,var(-
   </div>
 </div>
 <main class="app">
-<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.21 • CAMERA BARCODE + CUSTOM AMOUNTS</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
+<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.22 • VERIFIED WEB FOOD FALLBACK</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
 <section class="card"><div class="row"><div><b>This week</b><div class="muted" style="font-size:13px">Complete all 4 main lifting days</div></div><b id="week" style="font-size:22px">0 / 4</b></div>
 <div class="row" style="margin-top:12px"><div><button class="pill on" data-place="gym" id="gymPlaceBtn">🏋️ Gym</button> <button class="pill" data-place="home">🏠 Home</button></div><button class="ghost" id="custom">🎨 Color</button></div></section>
 <section class="card settings" id="settings"><b>Choose your app color</b><div class="swatches">
@@ -786,7 +786,8 @@ function rankFoodResults(items,q){
 
 
 const verifiedFoods=[
- {name:"Fairlife Nutrition Plan Chocolate",brand:"fairlife",serv:"1 bottle (340 mL)",baseServ:"1 bottle (340 mL)",cal:150,p:30,c:4,f:2.5,fi:1,verified:true,keywords:"fairlife nutrition plan chocolate 30g protein shake 150 calories"}
+ {name:"Fairlife Nutrition Plan Chocolate",brand:"fairlife",serv:"1 bottle (340 mL)",baseServ:"1 bottle (340 mL)",cal:150,p:30,c:4,f:2.5,fi:1,verified:true,keywords:"fairlife nutrition plan chocolate 30g protein shake 150 calories",barcode:"811620020228"},
+ {name:"Kowalski Original Hunter's Mild Smoked Sausage",brand:"Kowalski",serv:"1 piece",baseServ:"1 piece",cal:40,p:5,c:0,f:2,fi:0,verified:true,keywords:"kowalski mild hunter hunters sausage smoked sausage original pork snack",barcode:"0002608626127"}
 ];
 function verifiedMatches(q){
  const tokens=searchTokens(q);
@@ -837,7 +838,7 @@ async function liveFoodSearch(){
    if((window._foodResults||[]).length){
      liveStatus.textContent="Internet lookup did not return a match; showing built-in foods.";
    }else{
-     foodResults.innerHTML='<div class="muted">No match yet. Try the brand + product name, such as “Fairlife Core Power 26g”.</div>';
+     foodResults.innerHTML='<div class="muted">No database match yet. Try the exact brand + product name. Verified products we add manually will also appear here.</div>';
      liveStatus.textContent="No internet result found.";
    }
  }
@@ -847,10 +848,16 @@ async function lookupBarcodeCode(code){
  if(!code)return;
  liveStatus.textContent="Looking up barcode "+code+"…";
 
- // UPC visible on the Fairlife Nutrition Plan Chocolate bottle used to test this build.
- if(code==="811620020228"){
-   drawFoods([{...verifiedFoods[0],barcode:code}]);
-   liveStatus.textContent="✅ Fairlife Nutrition Plan Chocolate found";
+ // Check our verified fallback catalog first.
+ const normalized=code.replace(/^0+/,"");
+ const verifiedByBarcode=verifiedFoods.find(x=>{
+   if(!x.barcode)return false;
+   const xb=String(x.barcode).replace(/\D/g,"");
+   return xb===code || xb.replace(/^0+/,"")===normalized;
+ });
+ if(verifiedByBarcode){
+   drawFoods([{...verifiedByBarcode,barcode:code}]);
+   liveStatus.textContent="✅ Verified product found";
    return;
  }
 
