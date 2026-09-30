@@ -199,8 +199,39 @@ body{zoom:var(--app-scale,1)}
 .changeWorkoutBox{margin-top:16px;padding:14px;border:1px solid var(--l);border-radius:16px;background:var(--app-card)}
 .changeWorkoutBox>button{width:100%;padding:13px}.changeOptions{display:none;margin-top:10px;gap:8px;grid-template-columns:1fr 1fr}.changeOptions.open{display:grid}.changeOptions button{padding:11px 8px}.customActivity{display:none;margin-top:10px}.customActivity.open{display:block}
 
-</style></head><body><main class="app">
-<header><button type="button" class="premiumSettingsBtn" id="settingsShortcut" aria-label="Open settings">⚙️</button><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12 • ACCOUNTS</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
+
+/* Stable 12.1 — first-time onboarding shell. Core app remains unchanged. */
+.onboardOverlay{position:fixed;inset:0;z-index:9999;background:#0b0d0f;overflow:auto;padding:24px 18px 40px}
+.onboardWrap{max-width:620px;margin:0 auto}
+.onboardBrand{font-size:13px;font-weight:900;letter-spacing:.08em;color:#9b9da4;margin-top:10px}
+.onboardTitle{font-size:36px;line-height:1.05;margin:14px 0 10px;font-weight:950}
+.onboardSub{color:#a8aab1;font-size:18px;line-height:1.45;margin-bottom:24px}
+.onboardProgress{display:flex;gap:7px;margin:20px 0 28px}
+.onboardProgress span{height:5px;flex:1;border-radius:99px;background:#25282d}
+.onboardProgress span.on{background:var(--accent)}
+.onboardCard{background:#15181b;border:1px solid #2b2f35;border-radius:24px;padding:22px}
+.onboardField{margin:14px 0}
+.onboardField label{display:block;color:#a8aab1;margin:0 0 7px}
+.onboardField input,.onboardField select{width:100%;box-sizing:border-box;background:#0f1114;color:#fff;border:1px solid #343941;border-radius:15px;padding:15px;font-size:17px}
+.onboardActions{display:flex;gap:10px;margin-top:20px}
+.onboardActions button{flex:1;min-height:54px;border-radius:16px}
+.onboardChoice{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.onboardChoice button{min-height:58px;border-radius:16px}
+.onboardChoice button.selected{background:var(--accent);color:white}
+.onboardTiny{font-size:14px;color:#8f9299;line-height:1.4;margin-top:14px}
+.onboardError{color:#ffb4b4;min-height:20px;margin-top:10px}
+
+</style></head><body>
+
+<div class="onboardOverlay" id="onboardOverlay" style="display:none">
+  <div class="onboardWrap">
+    <div class="onboardBrand">MILLIE'S MUSCLE BUILDER</div>
+    <div class="onboardProgress" id="onboardProgress"></div>
+    <div id="onboardBody"></div>
+  </div>
+</div>
+<main class="app">
+<header><button type="button" class="premiumSettingsBtn" id="settingsShortcut" aria-label="Open settings">⚙️</button><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.1 • ONBOARDING</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
 <section class="card"><div class="row"><div><b>This week</b><div class="muted" style="font-size:13px">Complete all 4 main lifting days</div></div><b id="week" style="font-size:22px">0 / 4</b></div>
 <div class="row" style="margin-top:12px"><div><button class="pill on" data-place="gym">🏋️ Planet Fitness</button> <button class="pill" data-place="home">🏠 Home</button></div><button class="ghost" id="custom">🎨 Color</button></div></section>
 <section class="card settings" id="settings"><b>Choose your app color</b><div class="swatches">
@@ -649,6 +680,119 @@ document.querySelectorAll("[data-darkbg]").forEach(b=>b.onclick=()=>{
  save();applyLook();document.querySelectorAll("[data-scale]").forEach(b=>b.onclick=()=>{S.look.scale=b.dataset.scale;save();applyLook()});buildScheduleSettings();syncWorkoutToDate();document.querySelectorAll("[data-darkbg]").forEach(x=>x.classList.toggle("active",x.dataset.darkbg===S.look.darkBg));
 });
 
+
+
+// Stable 12.1 onboarding — additive only; existing app state/storage remains MMBv3.
+const ONBOARD_KEY="MMB_onboarding_v1";
+let obStep=0;
+let obData={cycleOptIn:null,location:"Planet Fitness",goal:"Build muscle"};
+const obSteps=["account","profile","goals","cycle","equipment","nutrition"];
+
+function obEsc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+function obProgress(){
+  onboardProgress.innerHTML=obSteps.map((_,i)=>`<span class="${i<=obStep?'on':''}"></span>`).join("");
+}
+function obNext(){ if(obStep<obSteps.length-1){obStep++;renderOnboard()} else finishOnboard() }
+function obBack(){ if(obStep>0){obStep--;renderOnboard()} }
+function obNav(back=true,next="Continue"){
+ return `<div class="onboardActions">${back?`<button type="button" onclick="obBack()">← Back</button>`:""}<button type="button" class="primary" onclick="obNext()">${next}</button></div>`;
+}
+function renderOnboard(){
+  obProgress();
+  const signed=!!accountUser;
+  let x="";
+  if(obStep===0){
+    x=`<div class="onboardTitle">${signed?"Welcome back 👋":"Welcome 💪"}</div>
+       <div class="onboardSub">${signed?"Your account is connected. Let’s finish setting up your app.":"Create an account so your setup can belong to you across devices."}</div>
+       <div class="onboardCard">
+       ${signed?`<div class="softnote">✅ Signed in<br>${obEsc(accountUser.email||"")}</div>${obNav(false)}`:
+       `<div class="onboardField"><label>Email</label><input id="obEmail" type="email" autocomplete="email" placeholder="you@example.com"></div>
+        <div class="onboardField"><label>Password</label><input id="obPass" type="password" autocomplete="new-password" placeholder="8+ characters"></div>
+        <div class="onboardActions"><button type="button" onclick="obAuth('login')">Log in</button><button type="button" class="primary" onclick="obAuth('signup')">Create account</button></div>
+        <div class="onboardError" id="obError"></div>
+        <div class="onboardTiny">Already using the app on this phone? Your existing local workout data stays intact.</div>`}
+       </div>`;
+  } else if(obStep===1){
+    x=`<div class="onboardTitle">Tell me about you 👤</div><div class="onboardSub">Just the basics we need to personalize your plan.</div>
+    <div class="onboardCard">
+      <div class="onboardField"><label>Name</label><input id="obName" value="${obEsc(obData.name||"")}" placeholder="First name"></div>
+      <div class="onboardField"><label>Age</label><input id="obAge" inputmode="numeric" value="${obEsc(obData.age||"")}" placeholder="32"></div>
+      ${obNav()}
+    </div>`;
+  } else if(obStep===2){
+    x=`<div class="onboardTitle">What’s your goal? 🎯</div><div class="onboardSub">We’ll use this to guide workouts and progress.</div>
+    <div class="onboardCard"><div class="onboardChoice">
+      ${["Build muscle","Lose fat + build muscle","Get stronger","General fitness"].map(v=>`<button type="button" class="${obData.goal===v?'selected':''}" onclick="obData.goal='${v}';renderOnboard()">${v}</button>`).join("")}
+    </div>
+    <div class="onboardField"><label>Current weight (optional)</label><input id="obWeight" inputmode="decimal" value="${obEsc(obData.weight||"")}" placeholder="lb"></div>
+    <div class="onboardField"><label>Goal weight (optional)</label><input id="obGoalWeight" inputmode="decimal" value="${obEsc(obData.goalWeight||"")}" placeholder="lb"></div>
+    ${obNav()}</div>`;
+  } else if(obStep===3){
+    x=`<div class="onboardTitle">Cycle tracking 🌸</div><div class="onboardSub">Optional. If you use it, we’ll show an estimated cycle phase and let symptoms add context to training.</div>
+    <div class="onboardCard"><div class="onboardChoice">
+      <button type="button" class="${obData.cycleOptIn===true?'selected':''}" onclick="obData.cycleOptIn=true;renderOnboard()">Yes, use it</button>
+      <button type="button" class="${obData.cycleOptIn===false?'selected':''}" onclick="obData.cycleOptIn=false;renderOnboard()">No thanks</button>
+    </div>
+    ${obData.cycleOptIn===true?`<div class="onboardField"><label>Last period start</label><input id="obPeriod" type="date" value="${obEsc(obData.period||"")}"></div><div class="onboardField"><label>Typical cycle length</label><input id="obCycleLen" inputmode="numeric" value="${obEsc(obData.cycleLen||28)}"></div>`:""}
+    ${obNav()}</div>`;
+  } else if(obStep===4){
+    x=`<div class="onboardTitle">Where are you training? 🏋️</div><div class="onboardSub">You can switch this anytime.</div>
+    <div class="onboardCard"><div class="onboardChoice">
+      <button type="button" class="${obData.location==="Planet Fitness"?'selected':''}" onclick="obData.location='Planet Fitness';renderOnboard()">🏋️ Planet Fitness</button>
+      <button type="button" class="${obData.location==="Home"?'selected':''}" onclick="obData.location='Home';renderOnboard()">🏠 Home</button>
+    </div>${obNav()}</div>`;
+  } else {
+    x=`<div class="onboardTitle">Nutrition 🍓</div><div class="onboardSub">Set targets now, or skip them and change everything later in Settings.</div>
+    <div class="onboardCard">
+      <div class="onboardField"><label>Daily calorie target (optional)</label><input id="obCalories" inputmode="numeric" value="${obEsc(obData.calories||"")}" placeholder="Set later"></div>
+      <div class="onboardField"><label>Protein target, grams (optional)</label><input id="obProtein" inputmode="numeric" value="${obEsc(obData.protein||"")}" placeholder="Set later"></div>
+      ${obNav(true,"Start my app 💪")}
+    </div>`;
+  }
+  onboardBody.innerHTML=x;
+}
+function captureOnboard(){
+  const get=id=>document.getElementById(id)?.value;
+  if(obStep===1){obData.name=get("obName")||obData.name;obData.age=get("obAge")||obData.age}
+  if(obStep===2){obData.weight=get("obWeight")||obData.weight;obData.goalWeight=get("obGoalWeight")||obData.goalWeight}
+  if(obStep===3 && obData.cycleOptIn){obData.period=get("obPeriod")||obData.period;obData.cycleLen=get("obCycleLen")||obData.cycleLen}
+  if(obStep===5){obData.calories=get("obCalories")||obData.calories;obData.protein=get("obProtein")||obData.protein}
+}
+const _obNext=obNext;
+obNext=function(){captureOnboard();_obNext()}
+
+async function obAuth(mode){
+  const e=document.getElementById("obEmail")?.value.trim(), p=document.getElementById("obPass")?.value;
+  const er=document.getElementById("obError"); if(er)er.textContent="";
+  if(!e||!p){if(er)er.textContent="Enter your email and password.";return}
+  try{
+    if(!sb) throw new Error("Account service is still loading. Try again in a moment.");
+    const res=mode==="signup"?await sb.auth.signUp({email:e,password:p}):await sb.auth.signInWithPassword({email:e,password:p});
+    if(res.error) throw res.error;
+    accountUser=res.data?.user||accountUser;
+    if(mode==="signup" && !res.data?.session){if(er)er.textContent="Check your email to confirm your account, then come back and log in.";return}
+    await refreshAccountUI(); obNext();
+  }catch(err){if(er)er.textContent=err.message||"Could not connect account."}
+}
+function finishOnboard(){
+  captureOnboard();
+  try{
+    // Only merge fields we can safely identify in the existing state.
+    if(obData.location) S.location=obData.location;
+    localStorage.setItem(ONBOARD_KEY,JSON.stringify({done:true,data:obData,at:new Date().toISOString()}));
+    save();
+  }catch(e){}
+  onboardOverlay.style.display="none";
+  try{renderAll()}catch(e){}
+}
+function maybeStartOnboarding(){
+  let done=false;
+  try{done=!!JSON.parse(localStorage.getItem(ONBOARD_KEY)||"{}").done}catch(e){}
+  // Existing established users are not forced through onboarding; new users are.
+  const established=!!localStorage.getItem("MMBv3");
+  if(!done && !established){onboardOverlay.style.display="block";renderOnboard()}
+}
+setTimeout(maybeStartOnboarding,500);
 
 </script>
 <script>
