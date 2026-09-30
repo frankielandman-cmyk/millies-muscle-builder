@@ -130,7 +130,7 @@ body.theme-dark .premiumSettingsBtn{background:#17191d!important;border-color:#2
 .mainnav{grid-template-columns:repeat(6,1fr)!important}
 .mainnav.cycleHidden{grid-template-columns:repeat(5,1fr)!important}
 .mainnav button{font-size:11px!important;padding-left:3px!important;padding-right:3px!important}
-/* Stable 12.4.47 — Cycle tracker */
+/* Stable 12.4.49 — Cycle tracker + backup/recovery */
 .cycleHero{padding:20px!important;background:linear-gradient(145deg,color-mix(in srgb,var(--a) 14%,var(--app-card)),var(--app-card))!important}
 .cycleHeroTop{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
 .cycleDayBig{font-size:44px;font-weight:950;letter-spacing:-.06em;line-height:1;margin:4px 0 6px}
@@ -520,6 +520,13 @@ setTimeout(()=>{
 <details class="card" id="cycleSettingsCard"><summary><b>🌸 Cycle Tracking</b></summary><div id="cycleSettingsStatus" class="quick"></div><button class="foodSearchBtn" id="toggleCycle">Turn Cycle Tracking On / Off</button></details>
 <details class="card"><summary><b>❤️ Apple Health</b></summary><div class="muted">Apple Health connection becomes available in the iPhone/HealthKit version.</div></details>
 <details class="card" id="accountCard"><summary><b>☁️ Account + Cloud</b></summary><div id="accountStatus" class="softnote">Checking account…</div><div id="accountSignedOut"><label>Email<input id="accountEmail" type="email" autocomplete="email" placeholder="you@example.com"></label><label>Password<input id="accountPassword" type="password" autocomplete="current-password" placeholder="8+ characters"></label><div class="row" style="margin-top:12px"><button type="button" class="foodSearchBtn" id="accountSignIn">Log in</button><button type="button" class="foodSearchBtn" id="accountSignUp">Create account</button></div><div class="muted" style="margin-top:10px">Your current workout data stays on this phone while we connect cloud saving safely.</div></div><div id="accountSignedIn" style="display:none"><button type="button" class="foodSearchBtn" id="accountSignOut">Log out</button></div></details>
+<details class="card" id="backupRestoreCard"><summary><b>💾 Backup & Restore</b></summary>
+<div class="softnote" id="backupStatus"><b>Auto-save is on.</b><br>Your latest changes are saved on this device automatically.</div>
+<div class="muted" style="margin-top:10px">For protection if the app is deleted or browser data is cleared, download a backup file occasionally. You can restore that file on this or another device.</div>
+<div class="row" style="margin-top:12px"><button type="button" class="foodSearchBtn" id="downloadBackup">⬇️ Download Backup</button><button type="button" class="foodSearchBtn" id="restoreBackup">⬆️ Restore Backup</button></div>
+<input id="restoreBackupFile" type="file" accept="application/json,.json" style="display:none">
+<div class="muted" id="backupLastDownload" style="font-size:12px;margin-top:10px">No downloaded backup recorded yet.</div>
+</details>
 <details class="card"><summary><b>🔐 Privacy & Friends</b></summary><div class="muted">Future controls for exactly what friends can see. Weight, nutrition details, measurements/photos and cycle information will stay private by default.</div></details>
 
 <details class="card"><summary><b>🏋️ Weekly Training Goal</b></summary>
@@ -530,7 +537,7 @@ setTimeout(()=>{
 </details><details class="card"><summary><b>ℹ️ About</b></summary>
 <div class="muted">Millie’s Muscle Builder</div>
 <div class="quick" style="margin-top:10px">
-  <b id="appVersionUnlock" style="user-select:none;-webkit-user-select:none">Version 12.4.48</b><br>
+  <b id="appVersionUnlock" style="user-select:none;-webkit-user-select:none">Version 12.4.49</b><br>
   Train smarter. Eat better. Track your progress.
 </div>
 <div id="ownerPreviewTools" style="display:none;margin-top:12px">
@@ -599,10 +606,18 @@ rest:{n:"Active Rest 🌿",t:"Active Recovery",s:"Pick ONE. Finish feeling bette
 ["Peloton Easy Ride",1,"20–30 min","Recovery","Your Peloton.","Keep it easy enough to talk.","Movement without making recovery another hard workout.","Easy walk.","Easy Peloton."],["Easy Walk",1,"20–45 min","Recovery","Outside or treadmill.","Comfortable talking pace.","Keeps you active with little fatigue.","Short walk.","Treadmill walk."],["Mobility + Stretching",1,"10–20 min","Mobility","Floor or mat.","Gentle range; don't force pain.","Can help you feel less stiff.","Complete rest.","Complete rest."],["Complete Rest",1,"Rest","Whole Body","Your couch counts.","Recover, hydrate, eat enough protein.","Training is the stimulus; recovery is where adaptation happens.","Rest.","Rest."]]}};
 let trainingCursor=new Date();
 function trainKey(){let d=trainingCursor,y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,"0"),day=String(d.getDate()).padStart(2,"0");return `${y}-${m}-${day}`}
-let S=JSON.parse(localStorage.getItem("MMBv3")||'{}');S.day=S.day||"d1";S.place=S.place||"gym";S.gymName=S.gymName||"";S.color=S.color||"#8d6e8f";S.logs=S.logs||{};S.sets=S.sets||{};S.days=S.days||{};S.trainingDiary=S.trainingDiary||{};S.profile=S.profile||{};S.cyclePrefs=S.cyclePrefs||{enabled:false,lastPeriod:"",length:28};S.cyclePrefs.periodLength=+S.cyclePrefs.periodLength||5;S.cycleLogs=S.cycleLogs||{};var cycleCalendarCursor=new Date(new Date().getFullYear(),new Date().getMonth(),1),cycleSelectedDate=new Date(),cycleSelectedFlow="None";
+const MMB_DATA_KEY="MMBv3",MMB_RECOVERY_KEY="MMBv3_recovery",MMB_BACKUP_META_KEY="MMBv3_backup_meta";
+function loadMMBState(){
+  const raw=localStorage.getItem(MMB_DATA_KEY);
+  if(raw){try{return JSON.parse(raw)}catch(e){console.warn("Main app data could not be read; checking recovery copy.",e)}}
+  const recovery=localStorage.getItem(MMB_RECOVERY_KEY);
+  if(recovery){try{const r=JSON.parse(recovery);if(r&&r.data){localStorage.setItem(MMB_DATA_KEY,JSON.stringify(r.data));return r.data}}catch(e){console.warn("Recovery copy could not be read.",e)}}
+  return {};
+}
+let S=loadMMBState();S.day=S.day||"d1";S.place=S.place||"gym";S.gymName=S.gymName||"";S.color=S.color||"#8d6e8f";S.logs=S.logs||{};S.sets=S.sets||{};S.days=S.days||{};S.trainingDiary=S.trainingDiary||{};S.profile=S.profile||{};S.cyclePrefs=S.cyclePrefs||{enabled:false,lastPeriod:"",length:28};S.cyclePrefs.periodLength=+S.cyclePrefs.periodLength||5;S.cycleLogs=S.cycleLogs||{};var cycleCalendarCursor=new Date(new Date().getFullYear(),new Date().getMonth(),1),cycleSelectedDate=new Date(),cycleSelectedFlow="None";
 function trainDay(){let k=trainKey();S.trainingDiary[k]=S.trainingDiary[k]||{};let d=S.trainingDiary[k];d.logs=d.logs||{};d.sets=d.sets||{};d.days=d.days||{};d.cardio=Array.isArray(d.cardio)?d.cardio:[];d.cycle=d.cycle||{};return d}
 
-const save=()=>{if(S.diary&&typeof diaryCursor!=="undefined"){let k=localDateKey(diaryCursor);if(S.diary[k]){S.diary[k].foods=S.foods;S.diary[k].water=S.nutrition.water||0}}localStorage.setItem("MMBv3",JSON.stringify(S));};const tabs=document.getElementById("tabs"),panel=document.getElementById("panel"),week=document.getElementById("week");
+const save=()=>{if(S.diary&&typeof diaryCursor!=="undefined"){let k=localDateKey(diaryCursor);if(S.diary[k]){S.diary[k].foods=S.foods;S.diary[k].water=S.nutrition.water||0}}const savedAt=new Date().toISOString();const payload=JSON.stringify(S);localStorage.setItem(MMB_DATA_KEY,payload);try{localStorage.setItem(MMB_RECOVERY_KEY,JSON.stringify({schema:1,savedAt,data:S}));localStorage.setItem(MMB_BACKUP_META_KEY,JSON.stringify({lastAutoSave:savedAt,lastDownload:(JSON.parse(localStorage.getItem(MMB_BACKUP_META_KEY)||"{}").lastDownload||"")}));}catch(e){console.warn("Recovery snapshot could not be written.",e)}try{refreshBackupStatus()}catch(e){}};const tabs=document.getElementById("tabs"),panel=document.getElementById("panel"),week=document.getElementById("week");
 function theme(){document.documentElement.style.setProperty("--a",S.color);document.querySelector('meta[name="theme-color"]').content=S.color}
 function applySexAccent(sex){S.color=sex==="male"?"#4f7fb3":"#ad6b7f";theme();let p=document.getElementById("picker");if(p)p.value=S.color;save()}
 theme();
@@ -1809,6 +1824,45 @@ render();showMain(S.main);
 
 const hc=document.getElementById("healthConnect");
 if(hc)hc.onclick=()=>{document.getElementById("healthNote").textContent="Apple Health requires the iPhone/HealthKit version of the app. Your web app data stays unchanged for now.";};
+
+
+// ---- Backup + recovery ----
+function backupMeta(){try{return JSON.parse(localStorage.getItem(MMB_BACKUP_META_KEY)||"{}")}catch(e){return {}}}
+function prettyBackupTime(iso){if(!iso)return "";try{return new Date(iso).toLocaleString()}catch(e){return iso}}
+function refreshBackupStatus(){
+ const status=document.getElementById("backupStatus"),last=document.getElementById("backupLastDownload"),m=backupMeta();
+ if(status)status.innerHTML=`<b>✅ Auto-save is on.</b><br>${m.lastAutoSave?`Last saved: ${prettyBackupTime(m.lastAutoSave)}`:"Your changes are saved automatically on this device."}<br><span class="muted" style="font-size:12px">A recovery copy is also kept in this browser.</span>`;
+ if(last)last.textContent=m.lastDownload?`Last downloaded backup: ${prettyBackupTime(m.lastDownload)}`:"No downloaded backup recorded yet.";
+}
+function buildBackupPackage(){
+ let onboard=null;try{onboard=JSON.parse(localStorage.getItem("MMB_onboarding_v1")||"null")}catch(e){}
+ return {app:"Millie's Muscle Builder",version:"12.4.49",schema:1,exportedAt:new Date().toISOString(),data:S,onboarding:onboard};
+}
+function downloadMMBBackup(){
+ save();
+ const pack=buildBackupPackage(),blob=new Blob([JSON.stringify(pack,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a"),stamp=new Date().toISOString().slice(0,10);
+ a.href=url;a.download=`millies-muscle-builder-backup-${stamp}.json`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+ const m=backupMeta();m.lastDownload=new Date().toISOString();localStorage.setItem(MMB_BACKUP_META_KEY,JSON.stringify(m));refreshBackupStatus();
+}
+async function restoreMMBBackupFile(file){
+ if(!file)return;
+ let pack;try{pack=JSON.parse(await file.text())}catch(e){alert("That file isn't a valid Millie's Muscle Builder backup.");return}
+ if(!pack||typeof pack!=="object"||!pack.data||typeof pack.data!=="object"){alert("That backup file doesn't contain app data.");return}
+ if(!confirm("Restore this backup? Your current app data on this device will be replaced."))return;
+ try{
+   localStorage.setItem(MMB_DATA_KEY,JSON.stringify(pack.data));
+   localStorage.setItem(MMB_RECOVERY_KEY,JSON.stringify({schema:1,savedAt:new Date().toISOString(),data:pack.data}));
+   if(pack.onboarding)localStorage.setItem("MMB_onboarding_v1",JSON.stringify(pack.onboarding));
+   alert("Backup restored. The app will reload now.");location.reload();
+ }catch(e){alert("The backup couldn't be restored on this device.");console.error(e)}
+}
+(function setupBackupControls(){
+ const d=document.getElementById("downloadBackup"),r=document.getElementById("restoreBackup"),f=document.getElementById("restoreBackupFile");
+ if(d)d.onclick=downloadMMBBackup;
+ if(r&&f)r.onclick=()=>f.click();
+ if(f)f.onchange=()=>{const file=f.files&&f.files[0];restoreMMBBackupFile(file);f.value=""};
+ refreshBackupStatus();
+})();
 
 // ---- V5 setup + persistent settings ----
 S.profile=S.profile||{};
