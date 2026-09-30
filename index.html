@@ -231,7 +231,7 @@ body{zoom:var(--app-scale,1)}
   </div>
 </div>
 <main class="app">
-<header><button type="button" class="premiumSettingsBtn" id="settingsShortcut" aria-label="Open settings">⚙️</button><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.3 • ONBOARDING</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
+<header><button type="button" class="premiumSettingsBtn" id="settingsShortcut" aria-label="Open settings">⚙️</button><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4 • ONBOARDING</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
 <section class="card"><div class="row"><div><b>This week</b><div class="muted" style="font-size:13px">Complete all 4 main lifting days</div></div><b id="week" style="font-size:22px">0 / 4</b></div>
 <div class="row" style="margin-top:12px"><div><button class="pill on" data-place="gym">🏋️ Planet Fitness</button> <button class="pill" data-place="home">🏠 Home</button></div><button class="ghost" id="custom">🎨 Color</button></div></section>
 <section class="card settings" id="settings"><b>Choose your app color</b><div class="swatches">
@@ -699,13 +699,13 @@ function obNav(back=true,next="Continue"){
 }
 function renderOnboard(){
   obProgress();
-  const signed=!!accountUser;
+  const signed=!!window.MMBAccountUser;
   let x="";
   if(obStep===0){
     x=`<div class="onboardTitle">${signed?"Welcome back 👋":"Welcome 💪"}</div>
        <div class="onboardSub">${signed?"Your account is connected. Let’s finish setting up your app.":"Create an account so your setup can belong to you across devices."}</div>
        <div class="onboardCard">
-       ${signed?`<div class="softnote">✅ Signed in<br>${obEsc(accountUser.email||"")}</div>${obNav(false)}`:
+       ${signed?`<div class="softnote">✅ Signed in<br>${obEsc(window.MMBAccountUser?.email||"")}</div>${obNav(false)}`:
        `<div class="onboardField"><label>Email</label><input id="obEmail" type="email" autocomplete="email" placeholder="you@example.com"></div>
         <div class="onboardField"><label>Password</label><input id="obPass" type="password" autocomplete="new-password" placeholder="8+ characters"></div>
         <div class="onboardActions"><button type="button" onclick="obAuth('login')">Log in</button><button type="button" class="primary" onclick="obAuth('signup')">Create account</button></div>
@@ -766,12 +766,12 @@ async function obAuth(mode){
   const er=document.getElementById("obError"); if(er)er.textContent="";
   if(!e||!p){if(er)er.textContent="Enter your email and password.";return}
   try{
-    if(!sb) throw new Error("Account service is still loading. Try again in a moment.");
-    const res=mode==="signup"?await sb.auth.signUp({email:e,password:p}):await sb.auth.signInWithPassword({email:e,password:p});
+    if(!window.MMBCloud) throw new Error("Account service is still loading. Try again in a moment.");
+    const res=mode==="signup"?await window.MMBCloud.auth.signUp({email:e,password:p,options:{emailRedirectTo:"https://frankielandman-cmyk.github.io/millies-muscle-builder/"}}):await window.MMBCloud.auth.signInWithPassword({email:e,password:p});
     if(res.error) throw res.error;
-    accountUser=res.data?.user||accountUser;
+    window.MMBAccountUser=res.data?.user||window.MMBAccountUser||null;
     if(mode==="signup" && !res.data?.session){if(er)er.textContent="Check your email to confirm your account, then come back and log in.";return}
-    await refreshAccountUI(); obNext();
+    obNext();
   }catch(err){if(er)er.textContent=err.message||"Could not connect account."}
 }
 function finishOnboard(){
@@ -796,13 +796,13 @@ async function maybeStartOnboarding(){
   try{done=!!JSON.parse(localStorage.getItem(ONBOARD_KEY)||"{}").done}catch(e){}
   // Wait briefly for Supabase to restore a persisted session.
   try{
-    if(sb){
-      const {data}=await sb.auth.getSession();
-      if(data?.session?.user) accountUser=data.session.user;
+    if(window.MMBCloud){
+      const {data}=await window.MMBCloud.auth.getSession();
+      if(data?.session?.user) window.MMBAccountUser=data.session.user;
     }
   }catch(e){}
   // A genuinely new browser/user gets onboarding. Existing signed-in users or completed setup do not.
-  if(!done && !accountUser){
+  if(!done && !window.MMBAccountUser){
     onboardOverlay.style.display="block";
     renderOnboard();
   }
@@ -815,8 +815,8 @@ setTimeout(maybeStartOnboarding,900);
 const U='https://qcewlvswyrndfizjlgas.supabase.co',K='sb_publishable_TVryiWYyr4LaB5-AusYGEQ_vvWIX-Xh',A='https://frankielandman-cmyk.github.io/millies-muscle-builder/';
 const st=document.getElementById('accountStatus'),out=document.getElementById('accountSignedOut'),inside=document.getElementById('accountSignedIn'),em=document.getElementById('accountEmail'),pw=document.getElementById('accountPassword');
 if(!st)return;if(!window.supabase){st.textContent='Account connection could not load. Your workout app still works normally.';return;}
-const cloud=window.supabase.createClient(U,K,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-function show(u){if(u){st.innerHTML='<b>✅ Signed in</b><br>'+String(u.email||'Your account');out.style.display='none';inside.style.display='block';}else{st.innerHTML='<b>Not signed in yet</b><br>Create an account so we can attach your data to you.';out.style.display='block';inside.style.display='none';}}
+const cloud=window.supabase.createClient(U,K,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});window.MMBCloud=cloud;
+function show(u){window.MMBAccountUser=u||null;if(u){st.innerHTML='<b>✅ Signed in</b><br>'+String(u.email||'Your account');out.style.display='none';inside.style.display='block';}else{st.innerHTML='<b>Not signed in yet</b><br>Create an account so we can attach your data to you.';out.style.display='block';inside.style.display='none';}}
 async function refresh(){const r=await cloud.auth.getSession();show(r.data.session&&r.data.session.user);}
 document.getElementById('accountSignUp').onclick=async()=>{const e=em.value.trim(),p=pw.value;if(!e||p.length<8){alert('Enter your email and a password with at least 8 characters.');return;}st.textContent='Creating your account…';const r=await cloud.auth.signUp({email:e,password:p,options:{emailRedirectTo:A}});if(r.error){st.textContent='⚠️ '+r.error.message;return;}if(r.data.session){show(r.data.user);alert('Account created! 🎉');}else st.innerHTML='<b>📧 Check your email</b><br>Tap the confirmation link, then come back here and log in.';};
 document.getElementById('accountSignIn').onclick=async()=>{const e=em.value.trim(),p=pw.value;if(!e||!p){alert('Enter your email and password.');return;}st.textContent='Logging in…';const r=await cloud.auth.signInWithPassword({email:e,password:p});if(r.error){st.textContent='⚠️ '+r.error.message;return;}show(r.data.user);};
