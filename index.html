@@ -231,7 +231,7 @@ body{zoom:var(--app-scale,1)}
   </div>
 </div>
 <main class="app">
-<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.1 • SAFE</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
+<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.2 • BUTTON FIX</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
 <section class="card"><div class="row"><div><b>This week</b><div class="muted" style="font-size:13px">Complete all 4 main lifting days</div></div><b id="week" style="font-size:22px">0 / 4</b></div>
 <div class="row" style="margin-top:12px"><div><button class="pill on" data-place="gym">🏋️ Planet Fitness</button> <button class="pill" data-place="home">🏠 Home</button></div><button class="ghost" id="custom">🎨 Color</button></div></section>
 <section class="card settings" id="settings"><b>Choose your app color</b><div class="swatches">
@@ -470,7 +470,7 @@ document.querySelectorAll("[data-color]").forEach(b=>b.onclick=()=>{S.color=b.da
 document.getElementById("picker").oninput=e=>{S.color=e.target.value;theme();save()};
 S.main=S.main||"train";S.nutrition=S.nutrition||{};S.checkins=S.checkins||[];
 function showMain(name){S.main=name;save();document.querySelectorAll(".feature").forEach(x=>x.classList.toggle("on",x.id==="feature-"+name));document.querySelectorAll("[data-main]").forEach(x=>x.classList.toggle("on",x.dataset.main===name));if(name==="progress")updateStrength()}
-document.querySelectorAll("[data-main]").forEach(b=>b.onclick=()=>showMain(b.dataset.main));document.getElementById("settingsShortcut").onclick=()=>showMain("settings");
+document.querySelectorAll("[data-main]").forEach(b=>b.onclick=()=>showMain(b.dataset.main));const settingsShortcut=document.getElementById("settingsShortcut");if(settingsShortcut)settingsShortcut.onclick=()=>showMain("settings");
 S.nutrition=S.nutrition||{};S.foods=S.foods||{Breakfast:[],Lunch:[],Dinner:[],Snacks:[]};S.water=S.water||0;S.waterHistory=S.waterHistory||[];
 const meals=["Breakfast","Lunch","Dinner","Snacks"], icons={Breakfast:"🍳",Lunch:"🥪",Dinner:"🍽️",Snacks:"🍿"};
 
