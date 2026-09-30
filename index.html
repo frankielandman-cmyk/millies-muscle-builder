@@ -478,7 +478,7 @@ setTimeout(()=>{
 </details><details class="card"><summary><b>ℹ️ About</b></summary>
 <div class="muted">Millie’s Muscle Builder</div>
 <div class="quick" style="margin-top:10px">
-  <b id="appVersionUnlock" style="user-select:none;-webkit-user-select:none">Version 12.4.43</b><br>
+  <b id="appVersionUnlock" style="user-select:none;-webkit-user-select:none">Version 12.4.44</b><br>
   Train smarter. Eat better. Track your progress.
 </div>
 <div id="ownerPreviewTools" style="display:none;margin-top:12px">
@@ -2275,10 +2275,11 @@ function startFreshSetupPreview(){
    fiberGoal:"",
    waterGoal:""
  };
- const shell=document.getElementById("onboarding");
+ const shell=document.getElementById("onboardOverlay");
  if(shell)shell.style.display="block";
  renderOnboard();
- window.scrollTo({top:0,behavior:"smooth"});
+ const ov=document.getElementById("onboardOverlay");
+ if(ov)ov.scrollTop=0;
 }
 
 
@@ -2296,7 +2297,7 @@ function maybeLaunchHiddenSetupPreview(){
 function exitFreshSetupPreview(){
  onboardingPreviewMode=false;
  onboardingPreviewSnapshot=null;
- const shell=document.getElementById("onboarding");
+ const shell=document.getElementById("onboardOverlay");
  if(shell)shell.style.display="none";
  render();
  showMain("settings");
@@ -2308,13 +2309,15 @@ function previewSetupBanner(){
 
 
 function renderPreviewAccountStep(){
-  const shell=document.getElementById("onboarding");
-  if(!shell)return;
-  shell.style.display="block";
-  shell.innerHTML=`${previewSetupBanner()}
+  const overlay=document.getElementById("onboardOverlay");
+  const body=document.getElementById("onboardBody");
+  if(!overlay||!body)return;
+  overlay.style.display="block";
+  obProgress();
+  body.innerHTML=`${previewSetupBanner()}
+  <div class="onboardTitle">Welcome to Millie’s Muscle Builder 💪</div>
+  <div class="onboardSub">This is the mock account step a new user would see. Nothing here creates a real account.</div>
   <div class="onboardCard">
-    <div class="onboardTitle">Welcome to Millie’s Muscle Builder 💪</div>
-    <div class="onboardSub">This is the mock account step a new user would see. Nothing here creates a real account.</div>
     <div class="onboardField"><label>Email</label><input id="previewEmail" type="email" value="${obEsc(obData.previewEmail||"preview@milliesmusclebuilder.test")}"></div>
     <div class="onboardField"><label>Password</label><input id="previewPassword" type="password" value="${obEsc(obData.previewPassword||"Preview123!")}"></div>
     <div class="softnote">🧪 Preview only — no email is sent and no account is created.</div>
@@ -2649,7 +2652,9 @@ window.MMBRestoreCloudProfile=restoreProfileFromCloud;
 function finishOnboard(){
   captureOnboard();
   if(onboardingPreviewMode){
-    const shell=document.getElementById("onboarding");
+    const overlay=document.getElementById("onboardOverlay");
+    const shell=document.getElementById("onboardBody");
+    if(overlay)overlay.style.display="block";
     if(shell){
       shell.innerHTML=`<div class="onboardCard">
         <div class="onboardTitle">You’re all set 🎉</div>
