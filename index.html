@@ -248,7 +248,7 @@ body.theme-dark .trainQuickNav button.isToday{background:color-mix(in srgb,var(-
   </div>
 </div>
 <main class="app">
-<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.10 • NUTRITION ONBOARDING FIX</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
+<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.11 • SETUP FLOW FIX</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
 <section class="card"><div class="row"><div><b>This week</b><div class="muted" style="font-size:13px">Complete all 4 main lifting days</div></div><b id="week" style="font-size:22px">0 / 4</b></div>
 <div class="row" style="margin-top:12px"><div><button class="pill on" data-place="gym" id="gymPlaceBtn">🏋️ Gym</button> <button class="pill" data-place="home">🏠 Home</button></div><button class="ghost" id="custom">🎨 Color</button></div></section>
 <section class="card settings" id="settings"><b>Choose your app color</b><div class="swatches">
@@ -710,8 +710,11 @@ S.profile=S.profile||{};
 S.cyclePrefs=S.cyclePrefs||{enabled:false,lastPeriod:"",length:28};
 
 function setupShow(n){document.querySelectorAll(".setupStep").forEach(x=>x.classList.remove("on"));document.getElementById("setup"+n).classList.add("on")}
-function openSetup(){setupOverlay.classList.add("on");setupShow(1);
- setupName.value=S.profile.name||"";setupSex.value=S.profile.sex||"female";setupAge.value=S.profile.age||S.nutrition.nAge||"";setupFeet.value=S.profile.feet||S.nutrition.nFeet||"";setupInches.value=S.profile.inches||S.nutrition.nInches||"";setupWeight.value=S.profile.weight||S.nutrition.nWeight||"";setupGoalWeight.value=S.profile.goalWeight||S.nutrition.nGoalWeight||"";
+function openSetup(){
+  // The legacy 3-step setup is retired. Always use the full account onboarding
+  // so goal amount + nutrition targets are never skipped.
+  try{ setupOverlay.classList.remove("on"); }catch(e){}
+  previewOnboarding();
 }
 function calcSetupTargets(){
  let p=S.profile,w=+p.weight,gw=+p.goalWeight,h=(+p.feet*12)+(+p.inches),a=+p.age,act=+p.activity||1.55;
@@ -740,12 +743,17 @@ setupSex.onchange=()=>{applySexAccent(setupSex.value);if(setupSex.value==="male"
 setupNext1.onclick=()=>{if(!setupAge.value||!setupFeet.value||!setupWeight.value||!setupGoalWeight.value)return alert("Add age, height, current weight and goal weight.");applySexAccent(setupSex.value);Object.assign(S.profile,{name:setupName.value,sex:setupSex.value,age:+setupAge.value,feet:+setupFeet.value,inches:+setupInches.value||0,weight:+setupWeight.value,goalWeight:+setupGoalWeight.value});setupShow(2)};
 setupNext2.onclick=()=>{
  S.profile.goal=setupGoal.value;S.profile.activity=+setupActivity.value;
- if(S.profile.sex==="male"){S.cyclePrefs.enabled=false;calcSetupTargets();S.setupComplete=true;save();setupOverlay.classList.remove("on");nutritionSummary();refreshPersistentUI();return;}
+ if(S.profile.sex==="male"){S.cyclePrefs.enabled=false;save();setupOverlay.classList.remove("on");previewOnboarding();return;}
  setupShow(3)
 };
 cycleYes.onclick=()=>{S.cyclePrefs.enabled=true;cycleSetupFields.style.display="block"};
 cycleNo.onclick=()=>{S.cyclePrefs.enabled=false;cycleSetupFields.style.display="none"};
-finishSetup.onclick=()=>{if(S.cyclePrefs.enabled){S.cyclePrefs.lastPeriod=lastPeriod.value;S.cyclePrefs.length=+cycleLength.value||28}calcSetupTargets();S.setupComplete=true;save();setupOverlay.classList.remove("on");nutritionSummary();refreshPersistentUI()};
+finishSetup.onclick=()=>{
+  if(S.cyclePrefs.enabled){S.cyclePrefs.lastPeriod=lastPeriod.value;S.cyclePrefs.length=+cycleLength.value||28}
+  // Never finish from the legacy cycle page; continue into the new nutrition review.
+  setupOverlay.classList.remove("on");
+  previewOnboarding();
+};
 rerunSetup.onclick=openSetup;editGoals.onclick=openSetup;
 toggleCycle.onclick=()=>{if(S.profile?.sex==="male"||S.nutrition?.nSex==="male"){S.cyclePrefs.enabled=false;save();refreshPersistentUI();return}S.cyclePrefs.enabled=!S.cyclePrefs.enabled;save();refreshPersistentUI()};
 /* Legacy setup disabled: the account onboarding below now owns first-time setup. */
