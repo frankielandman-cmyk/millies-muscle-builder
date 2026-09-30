@@ -248,8 +248,8 @@ body.theme-dark .trainQuickNav button.isToday{background:color-mix(in srgb,var(-
   </div>
 </div>
 <main class="app">
-<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.24A • SAFE FOOD EDIT</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
-<section class="card"><div class="row"><div><b>This week</b><div class="muted" style="font-size:13px">Complete all 4 main lifting days</div></div><b id="week" style="font-size:22px">0 / 4</b></div>
+<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.26 • FULL EXERCISE LIBRARY</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
+<section class="card"><div class="row"><div><b>This week</b><div class="muted" id="weekGoalText" style="font-size:13px">Complete 4 training days this week</div></div><b id="week" style="font-size:22px">0 / 4</b></div>
 <div class="row" style="margin-top:12px"><div><button class="pill on" data-place="gym" id="gymPlaceBtn">🏋️ Gym</button> <button class="pill" data-place="home">🏠 Home</button></div><button class="ghost" id="custom">🎨 Color</button></div></section>
 <section class="card settings" id="settings"><b>Choose your app color</b><div class="swatches">
 <button class="sw" style="background:#8d6e8f" data-color="#8d6e8f"></button><button class="sw" style="background:#b36b86" data-color="#b36b86"></button><button class="sw" style="background:#657c68" data-color="#657c68"></button><button class="sw" style="background:#55758c" data-color="#55758c"></button><button class="sw" style="background:#222" data-color="#222222"></button>
@@ -413,7 +413,12 @@ body.theme-dark .trainQuickNav button.isToday{background:color-mix(in srgb,var(-
 <details class="card" id="accountCard"><summary><b>☁️ Account + Cloud</b></summary><div id="accountStatus" class="softnote">Checking account…</div><div id="accountSignedOut"><label>Email<input id="accountEmail" type="email" autocomplete="email" placeholder="you@example.com"></label><label>Password<input id="accountPassword" type="password" autocomplete="current-password" placeholder="8+ characters"></label><div class="row" style="margin-top:12px"><button type="button" class="foodSearchBtn" id="accountSignIn">Log in</button><button type="button" class="foodSearchBtn" id="accountSignUp">Create account</button></div><div class="muted" style="margin-top:10px">Your current workout data stays on this phone while we connect cloud saving safely.</div></div><div id="accountSignedIn" style="display:none"><button type="button" class="foodSearchBtn" id="accountSignOut">Log out</button></div><button type="button" class="foodSearchBtn" id="previewOnboardingBtn" onclick="previewOnboarding()" style="margin-top:12px">👀 Preview New User Setup</button></details>
 <details class="card"><summary><b>🔐 Privacy & Friends</b></summary><div class="muted">Future controls for exactly what friends can see. Weight, nutrition details, measurements/photos and cycle information will stay private by default.</div></details>
 
-<details class="card"><summary><b>📅 Workout Schedule</b></summary>
+<details class="card"><summary><b>🏋️ Weekly Training Goal</b></summary>
+<div class="muted">Choose how many days you want to train each week. Any completed workout counts, including a workout you repeat or one you do on a planned rest day.</div>
+<div class="onboardField" style="margin-top:12px"><label>Training days per week</label>
+<select id="settingsTrainingDays"><option value="3">3 days</option><option value="4">4 days</option><option value="5">5 days</option><option value="6">6 days</option><option value="7">7 days</option></select></div>
+<div class="softnote" id="trainingDaysNote">Your weekly goal is 4 training days.</div>
+</details><details class="card"><summary><b>📅 Workout Schedule</b></summary>
 <div class="muted">Choose what you normally want on each day. Changing the date in Train will automatically open that workout. You can still tap another workout manually anytime.</div>
 <div class="scheduleGrid" id="scheduleGrid"></div>
 </details>
@@ -511,8 +516,163 @@ function exerciseKey(n){return n.trim().toLowerCase().replace(/[^a-z0-9]+/g,"-")
 function latestExercise(n){let a=S.exerciseHistory[exerciseKey(n)]||[];return a.length?a[a.length-1]:null}
 function suggestedWeight(n,r){let x=latestExercise(n);if(!x||!x.sets)return "";let g=x.sets.filter(s=>+s.weight>0&&+s.reps>0);if(!g.length)return "";let w=Math.max(...g.map(s=>+s.weight)),reps=Math.max(...g.filter(s=>+s.weight===w).map(s=>+s.reps)),hi=+(String(r).match(/(\d+)\s*$/)||[])[1]||12;return reps>=hi?w+(w<50?5:10):w}
 function saveExerciseSession(n,sets){let g=sets.filter(s=>+s.weight>0||+s.reps>0);if(!g.length)return;let k=exerciseKey(n),a=S.exerciseHistory[k]=S.exerciseHistory[k]||[],d=trainKey(),e={date:d,sets:g.map(s=>({weight:+s.weight||0,reps:+s.reps||0,done:!!s.done}))},i=a.findIndex(x=>x.date===d);if(i>=0)a[i]=e;else a.push(e);if(a.length>40)a.splice(0,a.length-40)}
+
+S.trainingDaysPerWeek=Math.min(7,Math.max(3,+S.trainingDaysPerWeek||4));
+function weekStartMonday(d){let x=new Date(d);x.setHours(0,0,0,0);let offset=(x.getDay()+6)%7;x.setDate(x.getDate()-offset);return x}
+function completedTrainingDaysThisWeek(){
+ let start=weekStartMonday(new Date()),end=new Date(start);end.setDate(end.getDate()+7);let count=0;
+ Object.entries(S.trainingDiary||{}).forEach(([key,td])=>{
+   let a=key.split("-").map(Number);if(a.length!==3)return;
+   let d=new Date(a[0],a[1]-1,a[2]);
+   if(d>=start&&d<end&&td&&td.days&&Object.values(td.days).some(Boolean))count++;
+ });
+ return count;
+}
+function refreshTrainingGoalUI(){
+ let goal=Math.min(7,Math.max(3,+S.trainingDaysPerWeek||4)),done=completedTrainingDaysThisWeek();
+ if(week)week.textContent=done+" / "+goal;
+ let label=document.getElementById("weekGoalText");if(label)label.textContent="Complete "+goal+" training days this week";
+ let sel=document.getElementById("settingsTrainingDays");if(sel)sel.value=String(goal);
+ let note=document.getElementById("trainingDaysNote");if(note)note.textContent="Your weekly goal is "+goal+" training days.";
+}
+
+
+S.addedExercises=S.addedExercises||{};
+
+const EXERCISE_LIBRARY=[
+["Barbell Bench Press",3,"6–10","Chest • Triceps","Barbell bench station.","Lower the bar with control; press without bouncing.","Compound chest strength and size.","Chest Press Machine","Dumbbell Bench Press","Chest","Barbell"],
+["Dumbbell Bench Press",3,"8–12","Chest • Triceps","Flat bench and dumbbells.","Keep wrists stacked; lower under control.","Chest and triceps with independent arms.","Chest Press Machine","Push-Up","Chest","Dumbbells"],
+["Incline Barbell Bench Press",3,"6–10","Upper Chest • Triceps","Incline bench and barbell.","Keep shoulder blades set; touch upper chest lightly.","Builds upper chest pressing strength.","Incline Chest Press Machine","Incline Dumbbell Press","Chest","Barbell"],
+["Incline Dumbbell Press",3,"8–12","Upper Chest • Triceps","Incline bench and dumbbells.","Press up and slightly inward without clanking dumbbells.","Upper-chest size and shoulder stability.","Incline Chest Press Machine","Feet-Elevated Push-Up","Chest","Dumbbells"],
+["Chest Press Machine",3,"8–12","Chest • Triceps","Seated press machine.","Set handles around mid-chest; control both directions.","Stable chest pressing you can progressively load.","Smith Machine Bench Press","Push-Up","Chest","Machine"],
+["Pec Deck / Chest Fly",3,"10–15","Chest","Pec deck or fly machine.","Keep a soft elbow bend and squeeze chest together.","Direct chest isolation.","Cable Fly","Dumbbell Fly","Chest","Machine"],
+["Cable Fly",3,"10–15","Chest","Dual cable station.","Bring hands together in an arc; keep shoulders down.","Chest isolation with constant cable tension.","Pec Deck","Dumbbell Fly","Chest","Cable"],
+["Push-Up",3,"AMRAP","Chest • Triceps","Open floor or mat.","Keep body in a straight line; chest moves toward floor.","Bodyweight chest, triceps and core.","Chest Press Machine","Incline Push-Up","Chest","Bodyweight"],
+["Assisted Dip",3,"8–12","Chest • Triceps","Assisted dip machine.","Lower under control; lean slightly forward for more chest.","Compound chest and triceps work.","Dip Machine","Bench Dip","Chest","Machine"],
+["Dip",3,"6–12","Chest • Triceps","Parallel bars.","Keep shoulders controlled; stop before painful depth.","Strong chest and triceps compound.","Assisted Dip","Bench Dip","Chest","Bodyweight"],
+
+["Lat Pulldown",3,"8–12","Lats • Biceps","Lat pulldown station.","Drive elbows down toward your ribs without swinging.","Builds back width and pulling strength.","Assisted Pull-Up","Band Pulldown","Back","Cable"],
+["Wide-Grip Lat Pulldown",3,"8–12","Lats • Upper Back","Lat pulldown station with wide bar.","Pull toward upper chest; avoid yanking behind the neck.","Back width and upper-back work.","Assisted Pull-Up","Band Pulldown","Back","Cable"],
+["Neutral-Grip Pulldown",3,"8–12","Lats • Biceps","Pulldown with neutral handles.","Keep chest tall and elbows tracking down.","Lat work with a wrist-friendly grip.","Lat Pulldown","Band Pulldown","Back","Cable"],
+["Assisted Pull-Up",3,"6–10","Lats • Biceps","Assisted pull-up machine.","Lead with chest; pull elbows toward ribs.","Full vertical-pull pattern.","Lat Pulldown","Band-Assisted Pull-Up","Back","Machine"],
+["Pull-Up",3,"AMRAP","Lats • Biceps","Pull-up bar.","Start from control; pull chest toward bar.","Back and arm strength.","Assisted Pull-Up","Band-Assisted Pull-Up","Back","Bodyweight"],
+["Seated Cable Row",3,"8–12","Mid Back • Biceps","Low cable row station.","Pull elbows back; squeeze shoulder blades without leaning way back.","Back thickness and pulling strength.","Row Machine","One-Arm Dumbbell Row","Back","Cable"],
+["Chest-Supported Row",3,"8–12","Mid Back • Lats","Chest-supported row machine or incline bench.","Keep chest supported while pulling elbows back.","Back work with less lower-back fatigue.","Seated Row","Incline Dumbbell Row","Back","Machine"],
+["T-Bar Row",3,"8–12","Mid Back • Lats","T-bar or landmine row setup.","Brace torso and pull toward lower chest.","Heavy back thickness work.","Chest-Supported Row","Dumbbell Row","Back","Machine"],
+["One-Arm Dumbbell Row",3,"8–12","Lats • Mid Back","Bench and dumbbell.","Brace torso and pull elbow toward hip.","Unilateral back and lat development.","Single-Arm Cable Row","Band Row","Back","Dumbbells"],
+["Barbell Row",3,"6–10","Back • Biceps","Barbell and open floor.","Hinge and brace; row toward lower ribs.","Heavy horizontal pulling strength.","T-Bar Row","Dumbbell Row","Back","Barbell"],
+["Smith Machine Row",3,"8–12","Back • Biceps","Smith machine.","Hinge and brace; pull bar toward lower ribs.","Stable heavy rowing option.","Seated Cable Row","Dumbbell Row","Back","Smith Machine"],
+["Straight-Arm Pulldown",3,"10–15","Lats","High cable and straight/rope attachment.","Keep arms mostly straight and sweep toward thighs.","Lat isolation without much biceps help.","Pullover Machine","Band Straight-Arm Pulldown","Back","Cable"],
+["Machine Pullover",3,"10–15","Lats","Pullover machine.","Drive elbows down and back without arching excessively.","Direct lat work.","Straight-Arm Pulldown","Dumbbell Pullover","Back","Machine"],
+["Back Extension",3,"10–15","Lower Back • Glutes","45-degree back-extension bench.","Hinge at hips; finish in a neutral line.","Posterior-chain endurance and strength.","Romanian Deadlift","Bird Dog","Back","Bodyweight"],
+
+["Shoulder Press Machine",3,"8–12","Shoulders • Triceps","Seated shoulder press machine.","Press overhead without shrugging excessively.","Stable overhead pressing strength.","Smith Shoulder Press","Dumbbell Shoulder Press","Shoulders","Machine"],
+["Dumbbell Shoulder Press",3,"8–12","Shoulders • Triceps","Bench and dumbbells.","Keep ribs down and press smoothly overhead.","Shoulder size and pressing strength.","Shoulder Press Machine","Arnold Press","Shoulders","Dumbbells"],
+["Smith Machine Shoulder Press",3,"8–12","Shoulders • Triceps","Smith machine with bench.","Set bench so bar clears face; control the lowering.","Stable overhead pressing.","Shoulder Press Machine","Dumbbell Shoulder Press","Shoulders","Smith Machine"],
+["Arnold Press",3,"8–12","Shoulders","Dumbbells and bench.","Rotate smoothly; avoid forcing range.","Front and side delt pressing variation.","Dumbbell Shoulder Press","Band Press","Shoulders","Dumbbells"],
+["Lateral Raise",3,"12–20","Side Delts","Dumbbells, cables or machine.","Raise arms out with soft elbows; avoid shrugging.","Builds shoulder width.","Lateral Raise Machine","Band Lateral Raise","Shoulders","Dumbbells"],
+["Cable Lateral Raise",3,"12–20","Side Delts","Low cable.","Raise arm out to side under control.","Constant-tension side-delt isolation.","Lateral Raise Machine","Dumbbell Lateral Raise","Shoulders","Cable"],
+["Lateral Raise Machine",3,"12–20","Side Delts","Lateral raise machine.","Lead with elbows and control the return.","Easy-to-load side-delt isolation.","Cable Lateral Raise","Dumbbell Lateral Raise","Shoulders","Machine"],
+["Rear Delt Fly",3,"12–20","Rear Delts • Upper Back","Reverse pec deck.","Open arms without shrugging.","Rear shoulders and posture muscles.","Face Pull","Bent-Over Rear Delt Raise","Shoulders","Machine"],
+["Face Pull",3,"12–20","Rear Delts • Upper Back","High cable with rope.","Pull rope toward face with elbows high.","Rear delts and upper-back control.","Reverse Pec Deck","Band Face Pull","Shoulders","Cable"],
+["Upright Cable Row",3,"10–15","Shoulders • Traps","Low cable and rope/bar.","Pull only as high as comfortable; keep wrists neutral.","Side delts and traps.","Lateral Raise","Dumbbell Upright Row","Shoulders","Cable"],
+["Dumbbell Shrug",3,"10–15","Traps","Dumbbells.","Lift shoulders straight up; pause; lower fully.","Upper-trap strength and size.","Smith Shrug","Band Shrug","Shoulders","Dumbbells"],
+["Smith Machine Shrug",3,"10–15","Traps","Smith machine.","Shrug straight upward without rolling shoulders.","Stable trap loading.","Dumbbell Shrug","Band Shrug","Shoulders","Smith Machine"],
+
+["Biceps Curl Machine",3,"10–15","Biceps","Biceps curl machine.","Keep upper arms planted; curl without swinging.","Direct biceps work.","Cable Curl","Dumbbell Curl","Biceps","Machine"],
+["Dumbbell Curl",3,"8–12","Biceps","Dumbbells.","Keep elbows near sides; avoid swinging.","Classic biceps builder.","Cable Curl","Band Curl","Biceps","Dumbbells"],
+["Hammer Curl",3,"8–12","Biceps • Brachialis","Dumbbells.","Use neutral grip and keep elbows controlled.","Adds arm thickness and forearm involvement.","Rope Hammer Curl","Band Hammer Curl","Biceps","Dumbbells"],
+["Preacher Curl",3,"8–12","Biceps","Preacher bench/machine.","Keep upper arms supported; don't hyperextend at bottom.","Strict biceps work.","Machine Curl","Concentration Curl","Biceps","Machine"],
+["Cable Curl",3,"10–15","Biceps","Low cable and bar/rope.","Keep elbows still while curling.","Constant-tension biceps work.","Curl Machine","Band Curl","Biceps","Cable"],
+["Bayesian Cable Curl",3,"10–15","Biceps","Single low cable behind body.","Keep upper arm slightly behind torso while curling.","Lengthened-position biceps work.","Incline Dumbbell Curl","Band Curl","Biceps","Cable"],
+["Incline Dumbbell Curl",3,"8–12","Biceps","Incline bench and dumbbells.","Let arms hang; curl without moving shoulders forward.","Biceps work through a long range.","Bayesian Cable Curl","Standing Dumbbell Curl","Biceps","Dumbbells"],
+["Concentration Curl",3,"10–15","Biceps","Dumbbell and bench.","Brace upper arm against inner thigh.","Strict unilateral biceps work.","Preacher Curl","Band Curl","Biceps","Dumbbells"],
+
+["Triceps Pressdown",3,"10–15","Triceps","High cable with rope or bar.","Keep elbows tucked and extend fully.","Direct triceps work.","Triceps Machine","Band Pressdown","Triceps","Cable"],
+["Rope Pressdown",3,"10–15","Triceps","High cable with rope.","Separate rope ends slightly at bottom.","Triceps isolation.","Straight-Bar Pressdown","Band Pressdown","Triceps","Cable"],
+["Overhead Cable Triceps Extension",3,"10–15","Triceps","Cable and rope.","Keep elbows pointed forward and extend overhead.","Targets long head of triceps.","Overhead Dumbbell Extension","Band Overhead Extension","Triceps","Cable"],
+["Overhead Dumbbell Extension",3,"10–15","Triceps","One dumbbell.","Keep elbows controlled; lower behind head.","Long-head triceps work.","Cable Overhead Extension","Band Extension","Triceps","Dumbbells"],
+["Skull Crusher",3,"8–12","Triceps","EZ-bar or dumbbells and bench.","Lower toward forehead/behind head with elbows controlled.","Heavy triceps isolation.","Cable Extension","Dumbbell Extension","Triceps","Barbell"],
+["Close-Grip Bench Press",3,"6–10","Triceps • Chest","Bench and barbell.","Use a comfortable narrower grip; keep elbows controlled.","Compound triceps strength.","Smith Close-Grip Press","Close-Grip Push-Up","Triceps","Barbell"],
+["Triceps Dip Machine",3,"8–12","Triceps • Chest","Seated dip machine.","Press handles down without shrugging.","Stable triceps compound.","Assisted Dip","Bench Dip","Triceps","Machine"],
+
+["Back Squat",3,"5–10","Quads • Glutes","Squat rack and barbell.","Brace, keep whole foot planted, squat to comfortable depth.","Foundational lower-body strength.","Hack Squat","Goblet Squat","Quads","Barbell"],
+["Front Squat",3,"5–10","Quads • Glutes","Squat rack and barbell.","Keep torso tall and elbows high.","Quad-focused compound squat.","Hack Squat","Goblet Squat","Quads","Barbell"],
+["Smith Machine Squat",3,"8–12","Quads • Glutes","Smith machine.","Keep whole foot planted and control depth.","Stable squat pattern for progressive loading.","Hack Squat","Goblet Squat","Quads","Smith Machine"],
+["Hack Squat",3,"8–12","Quads • Glutes","Hack squat machine.","Keep back supported and knees tracking with toes.","Heavy quad and glute work.","Leg Press","Goblet Squat","Quads","Machine"],
+["Leg Press",3,"8–15","Quads • Glutes","Leg press machine.","Lower under control; don't lock knees hard.","Heavy leg training with back support.","Hack Squat","Goblet Squat","Quads","Machine"],
+["Single-Leg Press",3,"10–15","Quads • Glutes","Leg press machine.","Use lighter weight and control pelvis position.","Unilateral leg strength.","Split Squat","Reverse Lunge","Quads","Machine"],
+["Leg Extension",3,"10–15","Quads","Leg extension machine.","Align knee with machine pivot; squeeze at top.","Direct quad isolation.","Sissy Squat","Bodyweight Squat","Quads","Machine"],
+["Bulgarian Split Squat",3,"8–12","Quads • Glutes","Bench and dumbbells.","Keep front foot planted; lower under control.","Single-leg strength and glute/quad growth.","Smith Split Squat","Reverse Lunge","Quads","Dumbbells"],
+["Walking Lunge",3,"10–16","Quads • Glutes","Open floor and dumbbells.","Step long enough to keep balance; push through whole foot.","Unilateral legs and conditioning.","Reverse Lunge","Bodyweight Lunge","Quads","Dumbbells"],
+["Reverse Lunge",3,"8–12","Quads • Glutes","Open floor and dumbbells.","Step back and lower with control.","Knee-friendly unilateral leg work.","Split Squat","Bodyweight Reverse Lunge","Quads","Dumbbells"],
+["Step-Up",3,"8–12","Quads • Glutes","Stable box/bench.","Drive through working leg; avoid pushing off trailing foot.","Single-leg strength and glutes.","Leg Press","Bodyweight Step-Up","Quads","Dumbbells"],
+
+["Romanian Deadlift",3,"8–12","Hamstrings • Glutes","Barbell or dumbbells.","Push hips back with soft knees; keep weight close.","Hamstring and glute lengthened loading.","Smith RDL","Dumbbell RDL","Hamstrings","Barbell"],
+["Smith Machine Romanian Deadlift",3,"8–12","Hamstrings • Glutes","Smith machine.","Hinge hips back; keep bar close to legs.","Stable posterior-chain loading.","Romanian Deadlift","Dumbbell RDL","Hamstrings","Smith Machine"],
+["Seated Hamstring Curl",3,"10–15","Hamstrings","Seated curl machine.","Keep hips down; curl smoothly.","Direct hamstring isolation.","Lying Leg Curl","Band Leg Curl","Hamstrings","Machine"],
+["Lying Hamstring Curl",3,"10–15","Hamstrings","Prone leg curl machine.","Keep hips against pad; curl without jerking.","Direct hamstring isolation.","Seated Leg Curl","Band Leg Curl","Hamstrings","Machine"],
+["Standing Leg Curl",3,"10–15","Hamstrings","Standing leg curl machine.","Keep hips square and curl one leg at a time.","Unilateral hamstring isolation.","Seated Leg Curl","Band Curl","Hamstrings","Machine"],
+["Conventional Deadlift",3,"3–8","Glutes • Hamstrings • Back","Barbell and floor.","Brace hard; push floor away; keep bar close.","Whole posterior-chain strength.","Trap-Bar Deadlift","Dumbbell Deadlift","Hamstrings","Barbell"],
+["Trap-Bar Deadlift",3,"5–10","Glutes • Quads • Hamstrings","Trap/hex bar.","Brace and stand tall without leaning back.","Heavy total lower-body pull.","Smith Deadlift","Dumbbell Deadlift","Hamstrings","Barbell"],
+
+["Hip Thrust",3,"8–12","Glutes","Hip thrust machine, barbell or Smith setup.","Tuck ribs, drive hips up, squeeze glutes.","One of the strongest glute-building patterns.","Glute Drive Machine","Dumbbell Hip Thrust","Glutes","Barbell"],
+["Smith Machine Hip Thrust",3,"8–12","Glutes","Smith machine and bench.","Set upper back on bench; drive hips up.","Stable, loadable glute work.","Glute Drive","Dumbbell Hip Thrust","Glutes","Smith Machine"],
+["Glute Drive Machine",3,"8–15","Glutes","Glute drive / hip thrust machine.","Drive through feet and squeeze glutes at top.","Easy-to-load glute isolation/compound.","Smith Hip Thrust","Dumbbell Hip Thrust","Glutes","Machine"],
+["Hip Abduction",3,"12–20","Side Glutes","Hip abduction machine.","Press knees apart without bouncing.","Upper/side glute development.","Cable Abduction","Band Abduction","Glutes","Machine"],
+["Cable Kickback",3,"12–20","Glutes","Low cable and ankle strap.","Extend hip without arching lower back.","Glute isolation.","Kickback Machine","Band Kickback","Glutes","Cable"],
+["Glute Kickback Machine",3,"12–20","Glutes","Kickback machine.","Drive leg back from hip; keep torso stable.","Direct glute isolation.","Cable Kickback","Band Kickback","Glutes","Machine"],
+["Cable Hip Abduction",3,"12–20","Side Glutes","Low cable and ankle strap.","Move leg out to side without leaning.","Side-glute isolation.","Abduction Machine","Band Abduction","Glutes","Cable"],
+["Cable Pull-Through",3,"10–15","Glutes • Hamstrings","Low cable and rope.","Hinge hips back then squeeze glutes through.","Cable hip-hinge pattern.","Romanian Deadlift","Band Pull-Through","Glutes","Cable"],
+
+["Standing Calf Raise",3,"10–20","Calves","Standing calf machine or Smith.","Use full stretch and pause at top.","Calf size and strength.","Leg Press Calf Raise","Single-Leg Calf Raise","Calves","Machine"],
+["Seated Calf Raise",3,"12–20","Calves","Seated calf machine.","Lower heels fully then rise and pause.","Targets calves with bent knees.","Calf Press","Dumbbell Seated Calf Raise","Calves","Machine"],
+["Leg Press Calf Raise",3,"12–20","Calves","Leg press.","Move through ankles only; don't lock knees.","Loadable calf training.","Standing Calf Raise","Bodyweight Calf Raise","Calves","Machine"],
+
+["Cable Crunch",3,"10–20","Abs","High cable and rope.","Curl ribs toward pelvis; don't just hinge hips.","Loadable abdominal flexion.","Ab Crunch Machine","Weighted Crunch","Core","Cable"],
+["Ab Crunch Machine",3,"10–20","Abs","Abdominal crunch machine.","Curl torso using abs; avoid yanking with arms.","Loadable ab training.","Cable Crunch","Floor Crunch","Core","Machine"],
+["Hanging Knee Raise",3,"8–15","Abs • Hip Flexors","Captain's chair or pull-up station.","Curl pelvis upward rather than only lifting knees.","Lower-ab and trunk control.","Captain's Chair Knee Raise","Reverse Crunch","Core","Bodyweight"],
+["Captain's Chair Knee Raise",3,"8–15","Abs • Hip Flexors","Captain's chair.","Keep back supported and curl knees upward.","Core training with support.","Hanging Knee Raise","Reverse Crunch","Core","Machine"],
+["Pallof Press",3,"10–15","Core","Cable at chest height.","Press hands away while resisting rotation.","Anti-rotation core strength.","Cable Hold","Band Pallof Press","Core","Cable"],
+["Plank",3,"30–60 sec","Core","Floor or mat.","Brace glutes and abs; keep straight line.","Core endurance and trunk stiffness.","Machine Crunch","Elevated Plank","Core","Bodyweight"],
+["Side Plank",3,"20–45 sec","Obliques • Core","Floor or mat.","Stack shoulders and hips; keep body straight.","Lateral core stability.","Pallof Press","Knee Side Plank","Core","Bodyweight"],
+["Russian Twist",3,"12–20","Obliques • Core","Mat and optional weight.","Rotate ribcage under control; avoid rushing.","Rotational core endurance.","Cable Rotation","Bodyweight Twist","Core","Bodyweight"],
+
+["Cable Wood Chop",3,"10–15","Obliques • Core","Cable station.","Rotate through torso/hips smoothly.","Rotational trunk strength.","Pallof Press","Band Wood Chop","Core","Cable"],
+["Farmer Carry",3,"30–60 sec","Grip • Core • Traps","Heavy dumbbells or kettlebells.","Walk tall with ribs stacked and controlled steps.","Grip, core and total-body stability.","Suitcase Carry","Grocery Carry","Core","Dumbbells"],
+["Suitcase Carry",3,"30–60 sec","Obliques • Grip","One dumbbell or kettlebell.","Stay upright; resist leaning toward the weight.","Anti-lateral-flexion core strength.","Farmer Carry","Loaded Carry","Core","Dumbbells"],
+
+["Goblet Squat",3,"8–15","Quads • Glutes","Dumbbell or kettlebell.","Hold weight at chest; keep whole foot planted.","Accessible squat pattern.","Leg Press","Bodyweight Squat","Full Body","Dumbbells"],
+["Kettlebell Swing",3,"10–20","Glutes • Hamstrings","Kettlebell.","Hinge and snap hips; don't turn it into a squat.","Powerful hip-hinge conditioning.","Cable Pull-Through","Dumbbell Swing","Full Body","Kettlebell"],
+["Sled Push",4,"20–40 yd","Quads • Glutes • Conditioning","Weighted sled/turf.","Keep torso braced and drive through legs.","Leg strength and conditioning.","Incline Treadmill Push","Hill Walk","Full Body","Machine"],
+["Battle Ropes",4,"20–40 sec","Shoulders • Conditioning","Battle ropes.","Stay braced and create controlled waves.","Upper-body conditioning.","Row Erg","Fast Band Waves","Full Body","Other"],
+["Rowing Machine",3,"5–15 min","Back • Legs • Cardio","Row ergometer.","Drive legs, then torso, then arms; reverse smoothly.","Low-impact full-body cardio.","Bike","Brisk Walk","Cardio","Cardio"],
+["Stair Climber",1,"10–30 min","Legs • Cardio","Stair climber.","Stand tall and avoid hanging heavily on rails.","Lower-body cardio conditioning.","Incline Treadmill","Step-Ups","Cardio","Cardio"],
+["Incline Treadmill Walk",1,"10–45 min","Cardio • Glutes","Treadmill.","Choose a sustainable incline/speed and stay upright.","Low-impact conditioning.","Stair Climber","Outdoor Walk","Cardio","Cardio"],
+["Stationary Bike",1,"10–45 min","Cardio • Legs","Upright or recumbent bike.","Use a smooth cadence and comfortable resistance.","Low-impact cardio.","Elliptical","Outdoor Bike","Cardio","Cardio"],
+["Elliptical",1,"10–45 min","Cardio • Full Body","Elliptical trainer.","Use smooth strides; keep posture tall.","Low-impact conditioning.","Bike","Brisk Walk","Cardio","Cardio"]
+];
+
+function addedExercisesForDay(day){
+ S.addedExercises[day]=Array.isArray(S.addedExercises[day])?S.addedExercises[day]:[];
+ return S.addedExercises[day];
+}
+function libraryTuple(row){
+ return row.slice(0,9);
+}
+function exerciseLibraryMatches(query,category){
+ const q=String(query||"").toLowerCase().trim();
+ const cat=String(category||"All");
+ return EXERCISE_LIBRARY.filter(e=>{
+   const hay=e.join(" ").toLowerCase();
+   const categoryOk=cat==="All"||e[9]===cat||e[10]===cat;
+   const queryOk=!q||q.split(/\s+/).every(t=>hay.includes(t));
+   return categoryOk&&queryOk;
+ }).slice(0,60);
+}
+
 function render(){
-let TD=trainDay();week.textContent=["d1","d2","d3","d4"].filter(k=>TD.days[k]).length+" / 4";tabs.innerHTML="";
+let TD=trainDay();refreshTrainingGoalUI();tabs.innerHTML="";
 let now=new Date(),isToday=trainKey()===`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
 trainDateTitle.textContent=isToday?"Today":"Training Diary";trainDateText.textContent=trainingCursor.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric",year:"numeric"});todayTrain.textContent=isToday?"Today":"↩ Today";todayTrain.classList.toggle("isToday",isToday);todayTrain.disabled=isToday;
 Object.entries(P).forEach(([k,p])=>{let b=document.createElement("button");b.className="tab"+(S.day===k?" on":"");b.textContent=p.n;b.onclick=()=>{S.day=k;S.dateWorkoutOverrides[trainKey()]=k;save();render()};tabs.appendChild(b)});
@@ -540,26 +700,120 @@ renderTrainingExtras();
 document.querySelectorAll("[data-place]").forEach(b=>b.classList.toggle("on",b.dataset.place===S.place));
 let gymBtn=document.getElementById("gymPlaceBtn");if(gymBtn)gymBtn.textContent=`🏋️ ${S.gymName||"Gym"}`;
 let p=P[S.day];
+let baseExerciseCount=p.x.length;
+let exList=[...p.x,...addedExercisesForDay(S.day)];
 let nextStrength=nextScheduledStrength(trainingCursor);
 let restFlex=p.r?`<div class="restCoachBox"><div class="restCoachBadge">✨ Millie’s suggestion</div><h3>Recovery is suggested today</h3><p class="muted">You’re not locked into a rest day. If you feel good and want to train, choose what fits your plan.</p><button class="finish" id="trainInstead">🏋️ I Want to Train Today</button><div class="restSwitchOptions" id="restSwitchOptions"><div class="restMiniTitle">Best fit with your schedule</div><div class="restNextNote">Next up: <b>${P[nextStrength].n}</b></div><div class="restChoiceGrid"><button data-rest-next="keep">▶ Do ${P[nextStrength].n} today — keep schedule the same</button><button data-rest-next="advance">⏩ Do ${P[nextStrength].n} + move my schedule forward</button></div><div class="restDivider"></div><div class="restMiniTitle">Or choose a different strength workout</div><div class="restNextNote">This changes only today. Your normal schedule stays the same.</div><div class="restChoiceGrid">${["d1","d2","d3","d4","d5"].map(k=>`<button data-rest-strength="${k}">🏋️ ${P[k].n}</button>`).join("")}</div></div></div>`:"";
-panel.innerHTML=`<div style="margin:10px 2px 14px"><h2 style="margin:0;font-size:25px">${p.t}</h2><div class="muted">${p.s}</div></div>`+restFlex+p.x.map((e,i)=>{let k=S.day+"-"+i,L=TD.logs[k]||{},sets=TD.sets[k]||[],pic=S.place==="gym"&&imgs[e[0]]?`<button class="mini" data-pic="pic-${i}">📸 Show machine</button><img id="pic-${i}" class="pic" src="${imgs[e[0]]}" alt="${e[0]} reference" style="display:none" onerror="this.style.display='none'">`:"";return `<article class="card ex"><div class="row"><div><h3>${i+1}. ${e[0]}</h3><b>${e[1]} × ${e[2]}</b></div><span class="tag">🎯 ${e[3]}</span></div>
+panel.innerHTML=`<div style="margin:10px 2px 14px"><h2 style="margin:0;font-size:25px">${p.t}</h2><div class="muted">${p.s}</div></div>`+restFlex+exList.map((e,i)=>{let k=S.day+"-"+i,L=TD.logs[k]||{},sets=TD.sets[k]||[],pic=S.place==="gym"&&imgs[e[0]]?`<button class="mini" data-pic="pic-${i}">📸 Show machine</button><img id="pic-${i}" class="pic" src="${imgs[e[0]]}" alt="${e[0]} reference" style="display:none" onerror="this.style.display='none'">`:"";return `<article class="card ex"><div class="row"><div><h3>${i+1}. ${e[0]}</h3><b>${e[1]} × ${e[2]}</b></div><div style="display:flex;gap:6px;align-items:center"><span class="tag">🎯 ${e[3]}</span>${i>=baseExerciseCount?`<button type="button" class="mini" data-removeadded="${i-baseExerciseCount}" aria-label="Remove ${e[0]}">×</button>`:""}</div></div>
 <div class="quick"><b>${S.place==="gym"?"👀 What to look for":"🏠 Home version"}</b><br>${S.place==="gym"?e[4]:e[8]}</div><div class="buttons">${pic}<button class="mini" data-demo="${i}">▶️ Watch demo</button><button class="mini" data-toggle="why-${i}">💡 Why?</button><button class="mini" data-toggle="how-${i}">⚙️ How?</button><button class="mini" data-toggle="alt-${i}">🔄 Can't find it?</button></div>
 <div class="info" id="why-${i}">${e[6]}</div><div class="info" id="how-${i}">${e[5]}</div><div class="info" id="alt-${i}">${S.place==="gym"?e[7]:e[8]}</div>
-${p.r?"":(()=>{let hist=latestExercise(e[0]),suggest=suggestedWeight(e[0],e[2]),sets=TD.sets[S.day+"-"+i]||[],last=hist&&hist.sets&&hist.sets.length?hist.sets[hist.sets.length-1]:null;return `<div class="logs"><label>Weight (lb)<input data-w="${i}" inputmode="decimal" value="${L.w||suggest||""}" placeholder="e.g. 70"></label><label>Reps<input data-r="${i}" inputmode="numeric" value="${L.r||""}" placeholder="e.g. 10"></label></div><div class="sets">${Array.from({length:e[1]},(_,n)=>`<button class="set ${sets[n]?"done":""}" data-set="${i}-${n}">Set ${n+1}${sets[n]?" ✓":""}</button>`).join("")}</div><div class="last"><b>Last:</b> ${last?`${last.weight} lb × ${last.reps}`:"Nothing yet"}${suggest?` &nbsp;•&nbsp; <b>Suggested:</b> ${suggest} lb`:""}</div>`})()}</article>`}).join("")+(p.r?"" : `<div class="changeWorkoutBox"><button id="changeToday">↔ Change Today’s Workout</button><div class="changeOptions" id="changeOptions"><button data-altact="Walk">🚶 Walk</button><button data-altact="Bike / Peloton">🚲 Bike / Peloton</button><button data-altact="Active Recovery">🧘 Active Recovery</button><button data-altact="Complete Rest">😴 Complete Rest</button><button data-altact="Different Strength Workout">🏋️ Different Strength</button><button id="customActBtn">＋ Custom Activity</button></div><div class="customActivity" id="customActivity"><input id="customActName" placeholder="Activity, e.g. hiking"><input id="customActMinutes" inputmode="numeric" placeholder="Minutes"><button id="saveCustomAct">Save activity</button></div></div><button class="finish" id="finish">${TD.days[S.day]?"Workout completed ✓":"Finish workout"}</button>`);
-panel.querySelectorAll("[data-toggle]").forEach(b=>b.onclick=()=>{let x=document.getElementById(b.dataset.toggle);x.style.display=x.style.display==="block"?"none":"block"});panel.querySelectorAll("[data-demo]").forEach(b=>b.onclick=()=>{let e=p.x[+b.dataset.demo],q=encodeURIComponent(e[0]+" exercise form tutorial ACE Fitness");window.open("https://www.youtube.com/results?search_query="+q,"_blank","noopener")});
+${p.r?"":(()=>{let hist=latestExercise(e[0]),suggest=suggestedWeight(e[0],e[2]),sets=TD.sets[S.day+"-"+i]||[],last=hist&&hist.sets&&hist.sets.length?hist.sets[hist.sets.length-1]:null;return `<div class="logs"><label>Weight (lb)<input data-w="${i}" inputmode="decimal" value="${L.w||suggest||""}" placeholder="e.g. 70"></label><label>Reps<input data-r="${i}" inputmode="numeric" value="${L.r||""}" placeholder="e.g. 10"></label></div><div class="sets">${Array.from({length:e[1]},(_,n)=>`<button class="set ${sets[n]?"done":""}" data-set="${i}-${n}">Set ${n+1}${sets[n]?" ✓":""}</button>`).join("")}</div><div class="last"><b>Last:</b> ${last?`${last.weight} lb × ${last.reps}`:"Nothing yet"}${suggest?` &nbsp;•&nbsp; <b>Suggested:</b> ${suggest} lb`:""}</div>`})()}</article>`}).join("")+(p.r?"" : `<div class="card" id="exerciseBuilderCard">
+<div class="row"><div><h3 style="margin:0">➕ Add Exercise</h3><div class="muted" style="font-size:13px;margin-top:3px">Search the full library or make your own.</div></div><button type="button" class="mini" id="toggleExerciseBuilder">Open</button></div>
+<div id="exerciseBuilderBody" style="display:none;margin-top:12px">
+  <input id="exerciseSearch" class="searchbox" placeholder="Search bench press, curls, hack squat…">
+  <select id="exerciseCategory" style="margin-top:8px">
+    <option>All</option><option>Chest</option><option>Back</option><option>Shoulders</option><option>Biceps</option><option>Triceps</option><option>Quads</option><option>Hamstrings</option><option>Glutes</option><option>Calves</option><option>Core</option><option>Full Body</option><option>Cardio</option>
+    <option>Machine</option><option>Cable</option><option>Dumbbells</option><option>Barbell</option><option>Smith Machine</option><option>Bodyweight</option>
+  </select>
+  <div id="exerciseSearchResults" style="margin-top:10px"></div>
+  <button type="button" class="foodSearchBtn" id="showCustomExercise" style="margin-top:10px">＋ Create custom exercise</button>
+  <div id="customExerciseForm" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid #30343a">
+    <input id="customExerciseName" placeholder="Exercise name">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+      <input id="customExerciseSets" type="number" min="1" max="10" value="3" inputmode="numeric" placeholder="Sets">
+      <input id="customExerciseReps" value="8–12" placeholder="Reps, e.g. 8–12">
+    </div>
+    <input id="customExerciseMuscle" style="margin-top:8px" placeholder="Muscle group, e.g. Chest • Triceps">
+    <button type="button" class="finish" id="saveCustomExercise" style="margin-top:10px">Add custom exercise</button>
+  </div>
+</div>
+</div><div class="changeWorkoutBox"><button id="changeToday">↔ Change Today’s Workout</button><div class="changeOptions" id="changeOptions"><button data-altact="Walk">🚶 Walk</button><button data-altact="Bike / Peloton">🚲 Bike / Peloton</button><button data-altact="Active Recovery">🧘 Active Recovery</button><button data-altact="Complete Rest">😴 Complete Rest</button><button data-altact="Different Strength Workout">🏋️ Different Strength</button><button id="customActBtn">＋ Custom Activity</button></div><div class="customActivity" id="customActivity"><input id="customActName" placeholder="Activity, e.g. hiking"><input id="customActMinutes" inputmode="numeric" placeholder="Minutes"><button id="saveCustomAct">Save activity</button></div></div><button class="finish" id="finish">${TD.days[S.day]?"Workout completed ✓":"Finish workout"}</button>`);
+panel.querySelectorAll("[data-toggle]").forEach(b=>b.onclick=()=>{let x=document.getElementById(b.dataset.toggle);x.style.display=x.style.display==="block"?"none":"block"});panel.querySelectorAll("[data-demo]").forEach(b=>b.onclick=()=>{let e=exList[+b.dataset.demo],q=encodeURIComponent(e[0]+" exercise form tutorial ACE Fitness");window.open("https://www.youtube.com/results?search_query="+q,"_blank","noopener")});
 panel.querySelectorAll("[data-pic]").forEach(b=>b.onclick=()=>{let x=document.getElementById(b.dataset.pic);let open=x.style.display==="block";x.style.display=open?"none":"block";b.textContent=open?"📸 Show machine":"🙈 Hide machine"});
 let ti=document.getElementById("trainInstead"),rso=document.getElementById("restSwitchOptions");if(ti)ti.onclick=()=>rso.classList.toggle("open");
 panel.querySelectorAll("[data-rest-next]").forEach(b=>b.onclick=()=>{let chosen=nextScheduledStrength(trainingCursor);S.dateWorkoutOverrides[trainKey()]=chosen;if(b.dataset.restNext==="advance")moveScheduleForwardFrom(trainingCursor);S.day=chosen;save();render();renderMonth()});
 panel.querySelectorAll("[data-rest-strength]").forEach(b=>b.onclick=()=>{let chosen=b.dataset.restStrength;S.dateWorkoutOverrides[trainKey()]=chosen;S.day=chosen;save();render();renderMonth()});
 
+panel.querySelectorAll("[data-removeadded]").forEach(b=>b.onclick=()=>{
+ const idx=+b.dataset.removeadded;
+ addedExercisesForDay(S.day).splice(idx,1);
+ save();render();
+});
+
+let toggleExerciseBuilder=document.getElementById("toggleExerciseBuilder");
+let exerciseBuilderBody=document.getElementById("exerciseBuilderBody");
+let exerciseSearch=document.getElementById("exerciseSearch");
+let exerciseCategory=document.getElementById("exerciseCategory");
+let exerciseSearchResults=document.getElementById("exerciseSearchResults");
+
+function renderExerciseLibraryResults(){
+ if(!exerciseSearchResults)return;
+ let matches=exerciseLibraryMatches(exerciseSearch?.value,exerciseCategory?.value);
+ exerciseSearchResults.innerHTML=matches.length?matches.map((e,i)=>`
+   <div class="foodChoice" style="margin-bottom:8px">
+     <div class="row">
+       <div style="min-width:0;flex:1">
+         <div class="name">${e[0]}</div>
+         <div class="sub">${e[3]} • ${e[9]} • ${e[10]} • ${e[1]} × ${e[2]}</div>
+       </div>
+       <button type="button" class="mini" data-libadd="${i}">+ Add</button>
+     </div>
+   </div>`).join(""):'<div class="muted">No matching exercise. Tap “Create custom exercise” below.</div>';
+ window._exerciseMatches=matches;
+ exerciseSearchResults.querySelectorAll("[data-libadd]").forEach(btn=>btn.onclick=()=>{
+   let e=window._exerciseMatches[+btn.dataset.libadd];
+   if(!e)return;
+   let exists=exList.some(x=>String(x[0]).toLowerCase()===String(e[0]).toLowerCase());
+   if(exists){alert(e[0]+" is already in this workout.");return;}
+   addedExercisesForDay(S.day).push(libraryTuple(e));
+   save();render();
+ });
+}
+
+if(toggleExerciseBuilder)toggleExerciseBuilder.onclick=()=>{
+ let open=exerciseBuilderBody.style.display==="block";
+ exerciseBuilderBody.style.display=open?"none":"block";
+ toggleExerciseBuilder.textContent=open?"Open":"Close";
+ if(!open)renderExerciseLibraryResults();
+};
+if(exerciseSearch)exerciseSearch.oninput=renderExerciseLibraryResults;
+if(exerciseCategory)exerciseCategory.onchange=renderExerciseLibraryResults;
+
+let showCustomExercise=document.getElementById("showCustomExercise");
+let customExerciseForm=document.getElementById("customExerciseForm");
+if(showCustomExercise)showCustomExercise.onclick=()=>{
+ let open=customExerciseForm.style.display==="block";
+ customExerciseForm.style.display=open?"none":"block";
+ showCustomExercise.textContent=open?"＋ Create custom exercise":"− Hide custom exercise";
+};
+let saveCustomExercise=document.getElementById("saveCustomExercise");
+if(saveCustomExercise)saveCustomExercise.onclick=()=>{
+ let name=document.getElementById("customExerciseName").value.trim();
+ let sets=Math.max(1,Math.min(10,+document.getElementById("customExerciseSets").value||3));
+ let reps=document.getElementById("customExerciseReps").value.trim()||"8–12";
+ let muscle=document.getElementById("customExerciseMuscle").value.trim()||"Custom";
+ if(!name){alert("Add an exercise name first.");return;}
+ let exists=exList.some(x=>String(x[0]).toLowerCase()===name.toLowerCase());
+ if(exists){alert(name+" is already in this workout.");return;}
+ addedExercisesForDay(S.day).push([
+   name,sets,reps,muscle,
+   "Custom exercise — use the equipment/setup you prefer.",
+   "Use controlled form and a comfortable range of motion.",
+   "Added by you. Track it here like any other exercise.",
+   "Choose a similar movement for the same muscle group.",
+   "Use the version and equipment you have available."
+ ]);
+ save();render();
+};
+
 panel.querySelectorAll("[data-w]").forEach(inp=>inp.onchange=()=>{let i=+inp.dataset.w,k=S.day+"-"+i,L=TD.logs[k]=TD.logs[k]||{};L.w=inp.value;save()});
 panel.querySelectorAll("[data-r]").forEach(inp=>inp.onchange=()=>{let i=+inp.dataset.r,k=S.day+"-"+i,L=TD.logs[k]=TD.logs[k]||{};L.r=inp.value;save()});
-panel.querySelectorAll("[data-set]").forEach(btn=>btn.onclick=()=>{let [i,n]=btn.dataset.set.split("-").map(Number),k=S.day+"-"+i,L=TD.logs[k]=TD.logs[k]||{},e=p.x[i],a=TD.sets[k]=TD.sets[k]||[];a[n]=!a[n];if(L.w||L.r)saveExerciseSession(e[0],Array.from({length:e[1]},(_,j)=>({weight:+L.w||0,reps:+L.r||0,done:!!a[j]})));save();render()});
+panel.querySelectorAll("[data-set]").forEach(btn=>btn.onclick=()=>{let [i,n]=btn.dataset.set.split("-").map(Number),k=S.day+"-"+i,L=TD.logs[k]=TD.logs[k]||{},e=exList[i],a=TD.sets[k]=TD.sets[k]||[];a[n]=!a[n];if(L.w||L.r)saveExerciseSession(e[0],Array.from({length:e[1]},(_,j)=>({weight:+L.w||0,reps:+L.r||0,done:!!a[j]})));save();render()});
 let ct=document.getElementById("changeToday"),co=document.getElementById("changeOptions");if(ct)ct.onclick=()=>co.classList.toggle("open");
 panel.querySelectorAll("[data-altact]").forEach(b=>b.onclick=()=>{S.dayChanges[trainKey()]={type:b.dataset.altact,original:S.day};save();alert(b.dataset.altact+" saved for today. Your strength workout stays next in rotation.")});
 let cab=document.getElementById("customActBtn"),caf=document.getElementById("customActivity");if(cab)cab.onclick=()=>caf.classList.toggle("open");
 let sca=document.getElementById("saveCustomAct");if(sca)sca.onclick=()=>{let n=document.getElementById("customActName").value.trim(),m=document.getElementById("customActMinutes").value;if(n){S.dayChanges[trainKey()]={type:n,minutes:m,original:S.day};save();alert(n+" saved for today. Your strength workout stays next in rotation.")}};
-let f=document.getElementById("finish");if(f)f.onclick=()=>{p.x.forEach((e,i)=>{let k=S.day+"-"+i,L=TD.logs[k],a=TD.sets[k]||[];if(L&&(L.w||L.r))saveExerciseSession(e[0],Array.from({length:e[1]},(_,j)=>({weight:+L.w||0,reps:+L.r||0,done:!!a[j]})))});TD.days[S.day]=true;save();render()}
+let f=document.getElementById("finish");if(f)f.onclick=()=>{exList.forEach((e,i)=>{let k=S.day+"-"+i,L=TD.logs[k],a=TD.sets[k]||[];if(L&&(L.w||L.r))saveExerciseSession(e[0],Array.from({length:e[1]},(_,j)=>({weight:+L.w||0,reps:+L.r||0,done:!!a[j]})))});TD.days[S.day]=true;save();render()}
 }
 document.querySelectorAll("[data-place]").forEach(b=>b.onclick=()=>{S.place=b.dataset.place;save();render()});document.getElementById("custom").onclick=()=>{let x=document.getElementById("settings");x.style.display=x.style.display==="block"?"none":"block"};
 document.querySelectorAll("[data-color]").forEach(b=>b.onclick=()=>{S.color=b.dataset.color;document.getElementById("picker").value=S.color;theme();save()});document.getElementById("picker").value=S.color;
@@ -1274,6 +1528,14 @@ finishSetup.onclick=()=>{
 };
 rerunSetup.onclick=openSetup;editGoals.onclick=openSetup;
 toggleCycle.onclick=()=>{if(S.profile?.sex==="male"||S.nutrition?.nSex==="male"){S.cyclePrefs.enabled=false;save();refreshPersistentUI();return}S.cyclePrefs.enabled=!S.cyclePrefs.enabled;save();refreshPersistentUI()};
+
+const settingsTrainingDays=document.getElementById("settingsTrainingDays");
+if(settingsTrainingDays){
+ settingsTrainingDays.value=String(S.trainingDaysPerWeek||4);
+ settingsTrainingDays.onchange=()=>{S.trainingDaysPerWeek=Math.min(7,Math.max(3,+settingsTrainingDays.value||4));save();refreshTrainingGoalUI();};
+}
+refreshTrainingGoalUI();
+
 /* Legacy setup disabled: the account onboarding below now owns first-time setup. */
 refreshPersistentUI();
 
@@ -1485,7 +1747,7 @@ function refreshTrainingLocationSettings(){
 const ONBOARD_KEY="MMB_onboarding_v1";
 let obStep=0;
 let obEditGoals=false;
-let obData={cycleOptIn:null,sex:(S.profile?.sex||S.nutrition?.nSex||null),location:"Gym",gymName:"",goal:"Build muscle",activity:"1.55",feet:"",inches:"",weight:"",goalWeight:"",loseAmount:"",lossRate:"1"};
+let obData={cycleOptIn:null,sex:(S.profile?.sex||S.nutrition?.nSex||null),location:"Gym",gymName:"",goal:"Build muscle",activity:"1.55",feet:"",inches:"",weight:"",goalWeight:"",loseAmount:"",lossRate:"1",trainingDays:String(S.trainingDaysPerWeek||4)};
 const obSteps=["account","profile","goals","cycle","equipment","nutrition"];
 
 function obEsc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
@@ -1628,6 +1890,12 @@ function renderOnboard(){
       </select>
       <div class="onboardTiny">If your goal weight is below your current weight, this pace sets your calorie deficit. 1 lb/week is about a 500-calorie daily deficit; 2 lb/week is about 1,000.</div>
     </div>
+    <div class="onboardField"><label>How many days do you want to train each week?</label>
+      <select id="obTrainingDays">
+        ${[3,4,5,6,7].map(n=>`<option value="${n}" ${String(obData.trainingDays||4)===String(n)?'selected':''}>${n} days</option>`).join("")}
+      </select>
+      <div class="onboardTiny">You can change this anytime in Settings. Repeating a workout or training on a rest day still counts.</div>
+    </div>
     ${obNav()}</div>`;
   } else if(obStep===3){
     x=`<div class="onboardTitle">Cycle tracking 🌸</div><div class="onboardSub">Optional. If you use it, we’ll show an estimated cycle phase and let symptoms add context to training.</div>
@@ -1669,6 +1937,7 @@ function captureOnboard(){
     obData.goalWeight=get("obGoalWeight")||obData.goalWeight;
     obData.loseAmount=get("obLoseAmount")||obData.loseAmount;
     obData.lossRate=get("obLossRate")||obData.lossRate||"1";
+    obData.trainingDays=get("obTrainingDays")||obData.trainingDays||String(S.trainingDaysPerWeek||4);
     if(+obData.weight>0&&+obData.loseAmount>0) obData.goalWeight=Math.max(1,+obData.weight-(+obData.loseAmount));
   }
   if(obStep===3 && obData.cycleOptIn){obData.period=get("obPeriod")||obData.period;obData.cycleLen=get("obCycleLen")||obData.cycleLen}
@@ -1732,6 +2001,7 @@ function finishOnboard(){
     if(obData.weight){S.profile.weight=+obData.weight;S.nutrition.nWeight=+obData.weight;}
     if(obData.goalWeight){S.profile.goalWeight=+obData.goalWeight;S.nutrition.nGoalWeight=+obData.goalWeight;}
     S.profile.goal=obData.goal; S.nutrition.nGoal=obData.goal==="Build muscle"?"build":obData.goal==="Lose fat + build muscle"?"recomp":"maintain";
+    S.trainingDaysPerWeek=Math.min(7,Math.max(3,+obData.trainingDays||4));
     S.nutrition.nActivity=+obData.activity||1.55;
     if(obData.calories)S.nutrition.calGoal=+obData.calories;
     if(obData.protein)S.nutrition.proGoal=+obData.protein;
@@ -1753,7 +2023,7 @@ function finishOnboard(){
 function previewOnboarding(){
   obEditGoals=false;
   obStep=0;
-  obData={cycleOptIn:null,sex:(S.profile?.sex||S.nutrition?.nSex||null),location:"Gym",gymName:"",goal:"Build muscle",activity:"1.55",feet:"",inches:"",weight:"",goalWeight:"",loseAmount:"",lossRate:"1"};
+  obData={cycleOptIn:null,sex:(S.profile?.sex||S.nutrition?.nSex||null),location:"Gym",gymName:"",goal:"Build muscle",activity:"1.55",feet:"",inches:"",weight:"",goalWeight:"",loseAmount:"",lossRate:"1",trainingDays:String(S.trainingDaysPerWeek||4)};
   onboardOverlay.style.display="block";
   renderOnboard();
 }
