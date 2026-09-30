@@ -285,8 +285,8 @@ setTimeout(()=>{
 },50);
 
 </script><script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script>
-<link rel="icon" type="image/png" href="app-icon.png?v=12445">
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=12445">
+<link rel="icon" type="image/png" href="app-icon.png?v=12448">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=12448">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Millie’s Muscle Builder">
@@ -530,7 +530,7 @@ setTimeout(()=>{
 </details><details class="card"><summary><b>ℹ️ About</b></summary>
 <div class="muted">Millie’s Muscle Builder</div>
 <div class="quick" style="margin-top:10px">
-  <b id="appVersionUnlock" style="user-select:none;-webkit-user-select:none">Version 12.4.47</b><br>
+  <b id="appVersionUnlock" style="user-select:none;-webkit-user-select:none">Version 12.4.48</b><br>
   Train smarter. Eat better. Track your progress.
 </div>
 <div id="ownerPreviewTools" style="display:none;margin-top:12px">
@@ -1920,11 +1920,12 @@ wireCycleTracker();
 function refreshPersistentUI(){
  const male=S.profile?.sex==="male" || S.nutrition?.nSex==="male";
  if(male)S.cyclePrefs.enabled=false;
- const cycleNavBtn=document.getElementById("cycleNavBtn");if(cycleNavBtn)cycleNavBtn.style.display=male?"none":"";
- const mainnavEl=document.getElementById("mainnav");if(mainnavEl)mainnavEl.classList.toggle("cycleHidden",male);
- if(male&&S.main==="cycle")showMain("train");
- let p=male?null:phaseInfo(trainingCursor);phaseDisplay.innerHTML=p?`<span class="phaseBadge">🌸 ${p.phase} • estimated Day ${p.day}</span>`:"";
- cycleCard.style.display=(!male&&S.cyclePrefs.enabled)?"block":"none";
+ const cycleVisible=!male && S.cyclePrefs.enabled===true;
+ const cycleNavBtn=document.getElementById("cycleNavBtn");if(cycleNavBtn)cycleNavBtn.style.display=cycleVisible?"":"none";
+ const mainnavEl=document.getElementById("mainnav");if(mainnavEl)mainnavEl.classList.toggle("cycleHidden",!cycleVisible);
+ if(!cycleVisible&&S.main==="cycle")showMain("train");
+ let p=cycleVisible?phaseInfo(trainingCursor):null;phaseDisplay.innerHTML=p?`<span class="phaseBadge">🌸 ${p.phase} • estimated Day ${p.day}</span>`:"";
+ cycleCard.style.display=cycleVisible?"block":"none";
  const cycleSettingsCard=document.getElementById("cycleSettingsCard");if(cycleSettingsCard)cycleSettingsCard.style.display=male?"none":"block";
  settingsGoals.innerHTML=`Goal weight: <b>${S.profile.goalWeight||"—"} lb</b><br>Calories: <b>${S.nutrition.calGoal||"—"}</b> • Protein: <b>${S.nutrition.proGoal||"—"}g</b><br>Carbs: ${S.nutrition.carbGoal||"—"}g • Fat: ${S.nutrition.fatGoal||"—"}g • Fiber: ${S.nutrition.fiberGoal||"—"}g`;
  cycleSettingsStatus.innerHTML=S.cyclePrefs.enabled?`On • ${S.cyclePrefs.length||28}-day cycle • phase shown as an estimate`:"Cycle tracking is off.";
