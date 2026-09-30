@@ -248,7 +248,7 @@ body.theme-dark .trainQuickNav button.isToday{background:color-mix(in srgb,var(-
   </div>
 </div>
 <main class="app">
-<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.12 • WEEKLY LOSS GOAL</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
+<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.13 • CALORIE DEFICIT FIX</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
 <section class="card"><div class="row"><div><b>This week</b><div class="muted" style="font-size:13px">Complete all 4 main lifting days</div></div><b id="week" style="font-size:22px">0 / 4</b></div>
 <div class="row" style="margin-top:12px"><div><button class="pill on" data-place="gym" id="gymPlaceBtn">🏋️ Gym</button> <button class="pill" data-place="home">🏠 Home</button></div><button class="ghost" id="custom">🎨 Color</button></div></section>
 <section class="card settings" id="settings"><b>Choose your app color</b><div class="swatches">
@@ -996,7 +996,10 @@ function obBack(){
 function obNav(back=true,next="Continue"){
  return `<div class="onboardActions">${back?`<button type="button" onclick="obBack()">← Back</button>`:""}<button type="button" class="primary" onclick="obNext()">${next}</button></div>`;
 }
-function obGoalNeedsLoss(){return obData.goal==="Lose fat + build muscle"}
+function obGoalNeedsLoss(){
+  const current=+obData.weight||0, goal=+obData.goalWeight||0, amount=+obData.loseAmount||0;
+  return obData.goal==="Lose fat + build muscle" || amount>0 || (current>0 && goal>0 && goal<current);
+}
 function obSuggestedNutrition(){
   const age=+obData.age||0, ft=+obData.feet||0, inch=+obData.inches||0, w=+obData.weight||0, act=+obData.activity||1.55;
   if(!age||!ft||!w)return null;
@@ -1008,7 +1011,7 @@ function obSuggestedNutrition(){
   const tdee=bmr*act;
   let calories=tdee;
   let dailyDeficit=0;
-  if(obData.goal==="Lose fat + build muscle"){
+  if(obGoalNeedsLoss()){
     const rate=Math.max(.25,Math.min(2,+obData.lossRate||1));
     dailyDeficit=rate*500; // ~3,500 kcal per lb ÷ 7 days
     calories=tdee-dailyDeficit;
@@ -1064,13 +1067,13 @@ function renderOnboard(){
       ${obNav()}
     </div>`;
   } else if(obStep===2){
-    const loss=obGoalNeedsLoss();
-    x=`<div class="onboardTitle">What’s your goal? 🎯</div><div class="onboardSub">We’ll use this for both your training plan and nutrition targets.</div>
+    const loss=obData.goal==="Lose fat + build muscle";
+    onboardContent.innerHTML=`<h1>What’s your goal? 🎯</h1><div class="onboardSub">We’ll use this for both your training plan and nutrition targets.</div>
     <div class="onboardCard"><div class="onboardChoice">
-      ${["Build muscle","Lose fat + build muscle","Get stronger","General fitness"].map(v=>`<button type="button" class="${obData.goal===v?'selected':''}" onclick="captureOnboard();obData.goal='${v}';renderOnboard()">${v}</button>`).join("")}
+      ${["Build muscle","Lose fat + build muscle","Get stronger","General fitness"].map(g=>`<button type="button" class="${obData.goal===g?'selected':''}" onclick="obData.goal='${g}';renderOnboard()">${g}</button>`).join("")}
     </div>
     <div class="onboardField"><label>Current weight</label><input id="obWeight" inputmode="decimal" value="${obEsc(obData.weight||"")}" placeholder="lb"></div>
-    ${loss?`<div class="onboardField"><label>How much do you want to lose?</label><input id="obLoseAmount" inputmode="decimal" value="${obEsc(obData.loseAmount||"")}" placeholder="lb"></div>
+    ${loss?`<div class="onboardField"><label>How much do you want to lose?</label><input id="obLoseAmount" inputmode="decimal" value="${obEsc(obData.loseAmount||"")}" placeholder="lb"></div>${(+obData.weight>0&&+obData.loseAmount>0)?`<div class="softnote">That puts your goal weight around <b>${Math.max(1,+obData.weight-(+obData.loseAmount))} lb</b>.</div>`:""}`:`<div class="onboardField"><label>Goal weight <span class="muted">(optional)</span></label><input id="obGoalWeight" inputmode="decimal" value="${obEsc(obData.goalWeight||"")}" placeholder="lb"></div>`}
     <div class="onboardField"><label>How much do you want to lose per week?</label>
       <select id="obLossRate">
         <option value=".5" ${String(obData.lossRate)===".5"?'selected':''}>0.5 lb per week</option>
@@ -1078,9 +1081,8 @@ function renderOnboard(){
         <option value="1.5" ${String(obData.lossRate)==="1.5"?'selected':''}>1.5 lb per week</option>
         <option value="2" ${String(obData.lossRate)==="2"?'selected':''}>2 lb per week</option>
       </select>
-      <div class="onboardTiny">This changes your calorie target. For example, 1 lb/week uses about a 500-calorie daily deficit.</div>
+      <div class="onboardTiny">If your goal weight is below your current weight, this pace sets your calorie deficit. 1 lb/week is about a 500-calorie daily deficit; 2 lb/week is about 1,000.</div>
     </div>
-    ${(+obData.weight>0&&+obData.loseAmount>0)?`<div class="softnote">That puts your goal weight around <b>${Math.max(1,+obData.weight-(+obData.loseAmount))} lb</b>.</div>`:""}`:`<div class="onboardField"><label>Goal weight <span class="muted">(optional)</span></label><input id="obGoalWeight" inputmode="decimal" value="${obEsc(obData.goalWeight||"")}" placeholder="lb"></div>`}
     ${obNav()}</div>`;
   } else if(obStep===3){
     x=`<div class="onboardTitle">Cycle tracking 🌸</div><div class="onboardSub">Optional. If you use it, we’ll show an estimated cycle phase and let symptoms add context to training.</div>
@@ -1117,7 +1119,13 @@ function renderOnboard(){
 function captureOnboard(){
   const get=id=>document.getElementById(id)?.value;
   if(obStep===1){obData.name=get("obName")||obData.name;obData.age=get("obAge")||obData.age;obData.feet=get("obFeet")||obData.feet;obData.inches=get("obInches")??obData.inches;obData.activity=get("obActivity")||obData.activity;if(obData.sex){S.profile=S.profile||{};S.profile.sex=obData.sex;S.nutrition=S.nutrition||{};S.nutrition.nSex=obData.sex;if(obData.sex==="male"){S.cyclePrefs.enabled=false;obData.cycleOptIn=false;}applySexAccent(obData.sex);save();}}
-  if(obStep===2){obData.weight=get("obWeight")||obData.weight;obData.goalWeight=get("obGoalWeight")||obData.goalWeight;obData.loseAmount=get("obLoseAmount")||obData.loseAmount;obData.lossRate=get("obLossRate")||obData.lossRate||"1";if(obGoalNeedsLoss()&&+obData.weight>0&&+obData.loseAmount>0)obData.goalWeight=Math.max(1,+obData.weight-(+obData.loseAmount));}
+  if(obStep===2){
+    obData.weight=get("obWeight")||obData.weight;
+    obData.goalWeight=get("obGoalWeight")||obData.goalWeight;
+    obData.loseAmount=get("obLoseAmount")||obData.loseAmount;
+    obData.lossRate=get("obLossRate")||obData.lossRate||"1";
+    if(+obData.weight>0&&+obData.loseAmount>0) obData.goalWeight=Math.max(1,+obData.weight-(+obData.loseAmount));
+  }
   if(obStep===3 && obData.cycleOptIn){obData.period=get("obPeriod")||obData.period;obData.cycleLen=get("obCycleLen")||obData.cycleLen}
   if(obStep===4 && obData.location==="Gym"){obData.gymName=get("obGymName")??obData.gymName}
   if(obStep===5){obData.calories=get("obCalories")||obData.calories;obData.protein=get("obProtein")||obData.protein;obData.carbs=get("obCarbs")||obData.carbs;obData.fat=get("obFat")||obData.fat;obData.fiber=get("obFiber")||obData.fiber;obData.water=get("obWater")||obData.water}
@@ -1127,7 +1135,7 @@ obNext=function(){
   captureOnboard();
   if(obStep===1 && (!obData.age||!obData.feet||!obData.sex)){alert("Add your age, height, and sex for calculations so we can build your nutrition goals.");return;}
   if(obStep===2 && !obData.weight){alert("Add your current weight so we can calculate your nutrition goals.");return;}
-  if(obStep===2 && obGoalNeedsLoss() && !obData.loseAmount){alert("Add how much you want to lose.");return;}
+  if(obStep===2 && obData.goal==="Lose fat + build muscle" && !obData.loseAmount){alert("Add how much you want to lose.");return;}
   _obNext();
 }
 
