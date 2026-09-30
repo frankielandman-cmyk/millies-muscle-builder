@@ -248,7 +248,7 @@ body.theme-dark .trainQuickNav button.isToday{background:color-mix(in srgb,var(-
   </div>
 </div>
 <main class="app">
-<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.9 • MALE CYCLE FIX</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
+<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.10 • NUTRITION ONBOARDING FIX</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
 <section class="card"><div class="row"><div><b>This week</b><div class="muted" style="font-size:13px">Complete all 4 main lifting days</div></div><b id="week" style="font-size:22px">0 / 4</b></div>
 <div class="row" style="margin-top:12px"><div><button class="pill on" data-place="gym" id="gymPlaceBtn">🏋️ Gym</button> <button class="pill" data-place="home">🏠 Home</button></div><button class="ghost" id="custom">🎨 Color</button></div></section>
 <section class="card settings" id="settings"><b>Choose your app color</b><div class="swatches">
@@ -665,15 +665,27 @@ function renderMeals(){
  root.querySelectorAll("[data-openfood]").forEach(b=>b.onclick=()=>openFood(b.dataset.openfood));
  root.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{let [m,i]=b.dataset.del.split("|");S.foods[m].splice(+i,1);commitDiary();renderMeals();nutritionSummary()})
 }
-closeFood.onclick=()=>foodModal.classList.remove("on");foodModal.onclick=e=>{if(e.target===foodModal)foodModal.classList.remove("on")};
+closeFood.onclick=()=>{clearFoodPhoto();foodModal.classList.remove("on")};foodModal.onclick=e=>{if(e.target===foodModal){clearFoodPhoto();foodModal.classList.remove("on")}};
 foodSearch.onkeydown=e=>{if(e.key==="Enter")liveFoodSearch()};liveSearchBtn.onclick=liveFoodSearch;barcodeBtn.onclick=barcodeLookup;
 photoFoodBtn.onclick=()=>foodPhotoInput.click();
+let activeFoodPhotoUrl=null;
+function clearFoodPhoto(){
+ if(activeFoodPhotoUrl){try{URL.revokeObjectURL(activeFoodPhotoUrl)}catch(e){} activeFoodPhotoUrl=null;}
+ foodPhotoInput.value="";
+ foodPhotoPreview.innerHTML="";
+ foodPhotoPreview.style.display="none";
+}
 foodPhotoInput.onchange=e=>{
  const f=e.target.files&&e.target.files[0]; if(!f)return;
- const url=URL.createObjectURL(f);
+ if(activeFoodPhotoUrl){try{URL.revokeObjectURL(activeFoodPhotoUrl)}catch(e){}}
+ const url=URL.createObjectURL(f); activeFoodPhotoUrl=url;
  foodPhotoPreview.style.display="block";
- foodPhotoPreview.innerHTML=`<div class="foodChoice"><div class="name">📸 Photo ready</div><div class="sub">For best results, photograph the Nutrition Facts panel straight-on with good lighting. Automatic label reading will activate when the vision backend is connected.</div><img src="${url}" alt="Food package preview" style="width:100%;max-height:230px;object-fit:contain;border-radius:12px;margin-top:9px"><button class="mini" id="photoManual">Enter nutrition from this label</button></div>`;
- setTimeout(()=>{let b=document.getElementById("photoManual");if(b)b.onclick=()=>customName.focus()},0);
+ foodPhotoPreview.innerHTML=`<div class="foodChoice"><div class="name">📸 Photo ready</div><div class="sub">For best results, photograph the Nutrition Facts panel straight-on with good lighting. Automatic label reading will activate when the vision backend is connected.</div><img src="${url}" alt="Food package preview" style="width:100%;max-height:230px;object-fit:contain;border-radius:12px;margin-top:9px"><div class="buttons" style="margin-top:10px"><button class="mini" id="photoRetake">↻ Retake Photo</button><button class="mini" id="photoRemove">🗑 Remove Photo</button></div><button class="mini" id="photoManual" style="margin-top:8px">Enter nutrition from this label</button></div>`;
+ setTimeout(()=>{
+   let b=document.getElementById("photoManual");if(b)b.onclick=()=>customName.focus();
+   let r=document.getElementById("photoRetake");if(r)r.onclick=()=>foodPhotoInput.click();
+   let d=document.getElementById("photoRemove");if(d)d.onclick=clearFoodPhoto;
+ },0);
 };
 
 addCustom.onclick=()=>{if(!customName.value)return;S.foods[activeMeal].push({name:customName.value,serv:"Custom",cal:+customCal.value||0,p:+customP.value||0,c:+customC.value||0,f:+customF.value||0,fi:+customFi.value||0});commitDiary();["customName","customCal","customP","customC","customF","customFi"].forEach(id=>document.getElementById(id).value="");foodModal.classList.remove("on");renderMeals();nutritionSummary()};
@@ -956,7 +968,13 @@ function obProgress(){
 function obNext(){
   if(obStep<obSteps.length-1){
     obStep++;
-    if(obStep===3 && (obData.sex==="male" || S.profile?.sex==="male")){obData.cycleOptIn=false;S.cyclePrefs.enabled=false;obStep=4;save();}
+    if(obStep===3 && (obData.sex==="male" || S.profile?.sex==="male")){
+      obData.cycleOptIn=false;
+      S.cyclePrefs.enabled=false;
+      obStep=4;
+      save();
+    }
+    // Step 5 is always the nutrition-goals review for every user.
     renderOnboard();
   } else finishOnboard()
 }
@@ -1053,7 +1071,9 @@ function renderOnboard(){
     <div class="onboardCard"><div class="onboardChoice">
       <button type="button" class="${obData.location==="Gym"?'selected':''}" onclick="obData.location='Gym';renderOnboard()">🏋️ Gym</button>
       <button type="button" class="${obData.location==="Home"?'selected':''}" onclick="obData.location='Home';renderOnboard()">🏠 Home</button>
-    </div>${obData.location==="Gym"?`<div class="onboardField"><label>Which gym? <span class="muted">(optional)</span></label><input id="obGymName" value="${obEsc(obData.gymName||'')}" placeholder="Planet Fitness, Anytime Fitness, YMCA…"></div>`:""}${obNav()}</div>`;
+    </div>${obData.location==="Gym"?`<div class="onboardField"><label>Which gym? <span class="muted">(optional)</span></label><input id="obGymName" value="${obEsc(obData.gymName||'')}" placeholder="Planet Fitness, Anytime Fitness, YMCA…"></div>`:""}
+    <div class="onboardTiny">Next: review your suggested calorie, protein, carb, fat, fiber and water goals.</div>
+    ${obNav()}</div>`;
   } else {
     obFillNutritionDefaults();
     const sug=obSuggestedNutrition();
@@ -1168,8 +1188,9 @@ async function maybeStartOnboarding(){
       if(data?.session?.user) window.MMBAccountUser=data.session.user;
     }
   }catch(e){}
-  // A genuinely new browser/user gets onboarding. Existing signed-in users or completed setup do not.
-  if(!done && !window.MMBAccountUser){
+  // Anyone who has not completed onboarding should finish it, even if their account
+  // session has already been restored after email confirmation/login.
+  if(!done){
     onboardOverlay.style.display="block";
     renderOnboard();
   }
