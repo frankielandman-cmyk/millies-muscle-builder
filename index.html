@@ -135,7 +135,7 @@ body.theme-dark .premiumSettingsBtn{background:#17191d!important;border-color:#2
 .mainnav{grid-template-columns:repeat(6,1fr)!important}
 .mainnav.cycleHidden{grid-template-columns:repeat(5,1fr)!important}
 .mainnav button{font-size:11px!important;padding-left:3px!important;padding-right:3px!important}
-/* Stable 12.4.50 — Swipe between main tabs + backup/recovery */
+/* Stable 12.4.51 — Goal photo review flow + swipe tabs + backup/recovery */
 .cycleHero{padding:20px!important;background:linear-gradient(145deg,color-mix(in srgb,var(--a) 14%,var(--app-card)),var(--app-card))!important}
 .cycleHeroTop{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
 .cycleDayBig{font-size:44px;font-weight:950;letter-spacing:-.06em;line-height:1;margin:4px 0 6px}
@@ -446,11 +446,37 @@ setTimeout(()=>{
 </div></div>
 
 <section class="feature" id="feature-goal">
-<div class="card"><div class="bigicon">✨</div><h2>My Goal</h2><div class="muted">“I want THIS” → “I'm HERE” → build a plan toward it.</div></div>
-<div class="card"><h3>🌟 My inspiration</h3><div class="photoBox">Add a physique/fitness inspiration photo<input type="file" accept="image/*" id="inspoInput"><img id="inspoPreview" class="preview"></div></div>
-<div class="card"><h3>📸 Where I am now</h3><div class="photoBox">Add a current progress photo<input type="file" accept="image/*" id="currentInput"><img id="currentPreview" class="preview"></div>
-<p class="bottomnote">Photos stay on this device in this prototype. Future AI analysis will focus on trainable goals and visible progress—not attractiveness or body scoring.</p></div>
-<div class="card"><h3>🤖 Goal analysis</h3><div class="quick">Coming with the published AI version: compare your stated goal with your training priorities and suggest muscle groups, exercises, nutrition habits and progress markers to focus on.</div></div>
+<div class="card"><div class="bigicon">✨</div><h2>My Goal</h2><div class="muted">Add one goal/inspiration photo. Millie can help turn it into realistic training priorities before you change your workout plan.</div></div>
+
+<div class="card">
+  <h3>🌟 Goal photo</h3>
+  <div class="photoBox">Add the physique/fitness look you want to work toward
+    <input type="file" accept="image/*" id="inspoInput">
+    <img id="inspoPreview" class="preview" alt="Goal inspiration preview">
+  </div>
+  <p class="bottomnote">Use this as inspiration—not a body score. What is realistically trainable depends on muscle development, body composition, genetics, proportions, and time.</p>
+</div>
+
+<div class="card">
+  <h3>🤖 Millie’s focus notes</h3>
+  <div class="quick" style="margin-bottom:12px">After you upload the photo here, send that same photo to Millie in ChatGPT. I can suggest the muscle groups and training priorities that best match the look, then you can save the useful parts below.</div>
+  <textarea id="goalFocusNotes" rows="5" placeholder="Example: Build glutes and side delts, strengthen upper back, keep 2 lower-body days..." style="width:100%;box-sizing:border-box;border-radius:14px;padding:12px;background:#101216;color:#fff;border:1px solid #353941;font:inherit;resize:vertical"></textarea>
+
+  <div style="margin-top:14px"><b>Training areas to consider</b></div>
+  <div class="buttons" id="goalFocusChips" style="margin-top:10px;flex-wrap:wrap">
+    <button type="button" class="mini goalFocusChip" data-focus="Glutes">Glutes</button>
+    <button type="button" class="mini goalFocusChip" data-focus="Quads">Quads</button>
+    <button type="button" class="mini goalFocusChip" data-focus="Hamstrings">Hamstrings</button>
+    <button type="button" class="mini goalFocusChip" data-focus="Shoulders">Shoulders</button>
+    <button type="button" class="mini goalFocusChip" data-focus="Back">Back</button>
+    <button type="button" class="mini goalFocusChip" data-focus="Arms">Arms</button>
+    <button type="button" class="mini goalFocusChip" data-focus="Core">Core</button>
+    <button type="button" class="mini goalFocusChip" data-focus="Conditioning">Conditioning</button>
+  </div>
+
+  <button type="button" class="finish" id="saveGoalFocus" style="margin-top:14px">Save focus notes</button>
+  <div class="softnote" id="goalFocusStatus" style="margin-top:10px">Saving these notes will NOT change your workout plan yet. We’ll decide that separately.</div>
+</div>
 </section>
 
 <section class="feature" id="feature-cycle">
@@ -542,7 +568,7 @@ setTimeout(()=>{
 </details><details class="card"><summary><b>ℹ️ About</b></summary>
 <div class="muted">Millie’s Muscle Builder</div>
 <div class="quick" style="margin-top:10px">
-  <b id="appVersionUnlock" style="user-select:none;-webkit-user-select:none">Version 12.4.50</b><br>
+  <b id="appVersionUnlock" style="user-select:none;-webkit-user-select:none">Version 12.4.51</b><br>
   Train smarter. Eat better. Track your progress.
 </div>
 <div id="ownerPreviewTools" style="display:none;margin-top:12px">
@@ -1875,8 +1901,39 @@ document.querySelectorAll(".waterAdd").forEach(b=>b.onclick=()=>{let oz=+b.datas
 waterUndo.onclick=()=>{let x=S.waterHistory.pop()||0;S.water=Math.max(0,S.water-x);save();waterUI()};
 renderMeals();nutritionSummary();waterUI();
 
-function preview(input,img){input.onchange=()=>{let f=input.files&&input.files[0];if(!f)return;let r=new FileReader();r.onload=e=>{img.src=e.target.result;img.style.display="block"};r.readAsDataURL(f)}}
-preview(document.getElementById("inspoInput"),document.getElementById("inspoPreview"));preview(document.getElementById("currentInput"),document.getElementById("currentPreview"));
+function preview(input,img){
+  if(!input||!img)return;
+  input.onchange=()=>{let f=input.files&&input.files[0];if(!f)return;let r=new FileReader();r.onload=e=>{img.src=e.target.result;img.style.display="block"};r.readAsDataURL(f)}
+}
+preview(document.getElementById("inspoInput"),document.getElementById("inspoPreview"));
+
+(function setupGoalFocus(){
+  S.goalFocusNotes=S.goalFocusNotes||"";
+  S.goalFocusAreas=Array.isArray(S.goalFocusAreas)?S.goalFocusAreas:[];
+  const notes=document.getElementById("goalFocusNotes");
+  const status=document.getElementById("goalFocusStatus");
+  if(notes)notes.value=S.goalFocusNotes;
+  function paint(){
+    document.querySelectorAll(".goalFocusChip").forEach(b=>{
+      const on=S.goalFocusAreas.includes(b.dataset.focus);
+      b.classList.toggle("on",on);
+      b.style.borderColor=on?"#b56a80":"";
+      b.style.background=on?"rgba(181,106,128,.22)":"";
+    });
+  }
+  document.querySelectorAll(".goalFocusChip").forEach(b=>b.onclick=()=>{
+    const f=b.dataset.focus;
+    S.goalFocusAreas=S.goalFocusAreas.includes(f)?S.goalFocusAreas.filter(x=>x!==f):[...S.goalFocusAreas,f];
+    paint();
+  });
+  const saveBtn=document.getElementById("saveGoalFocus");
+  if(saveBtn)saveBtn.onclick=()=>{
+    S.goalFocusNotes=notes?notes.value.trim():"";
+    save();
+    if(status)status.textContent="Saved. Your current workout plan has NOT been changed.";
+  };
+  paint();
+})();
 document.getElementById("saveCheck").onclick=()=>{let o={date:new Date().toLocaleDateString(),weight:bodyWeight.value,waist:waist.value,hips:hips.value,arm:arm.value};S.checkins.push(o);save();document.getElementById("checkMsg").textContent="Saved check-in • "+o.date};
 function updateStrength(){let rows=[];Object.entries(S.logs).forEach(([k,v])=>{if(v.w){let [d,i]=k.split("-"),p=P[d];if(p&&p.x[i])rows.push(`<b>${p.x[i][0]}</b>: ${v.w} lb${v.r?" × "+v.r:""}`)}});document.getElementById("strengthSummary").innerHTML=rows.length?rows.slice(-10).join("<br>"):"Log weights in Train and your latest numbers will appear here."}
 render();showMain(S.main);
@@ -1896,7 +1953,7 @@ function refreshBackupStatus(){
 }
 function buildBackupPackage(){
  let onboard=null;try{onboard=JSON.parse(localStorage.getItem("MMB_onboarding_v1")||"null")}catch(e){}
- return {app:"Millie's Muscle Builder",version:"12.4.50",schema:1,exportedAt:new Date().toISOString(),data:S,onboarding:onboard};
+ return {app:"Millie's Muscle Builder",version:"12.4.51",schema:1,exportedAt:new Date().toISOString(),data:S,onboarding:onboard};
 }
 function downloadMMBBackup(){
  save();
