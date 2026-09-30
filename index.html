@@ -248,7 +248,7 @@ body.theme-dark .trainQuickNav button.isToday{background:color-mix(in srgb,var(-
   </div>
 </div>
 <main class="app">
-<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.28 • CROSS-BROWSER PROFILE SYNC</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
+<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.29 • ADAPTIVE 3–7 DAY PLANS</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
 <section class="card"><div class="row"><div><b>This week</b><div class="muted" id="weekGoalText" style="font-size:13px">Complete 4 training days this week</div></div><b id="week" style="font-size:22px">0 / 4</b></div>
 <div class="row" style="margin-top:12px"><div><button class="pill on" data-place="gym" id="gymPlaceBtn">🏋️ Gym</button> <button class="pill" data-place="home">🏠 Home</button></div><button class="ghost" id="custom">🎨 Color</button></div></section>
 <section class="card settings" id="settings"><b>Choose your app color</b><div class="swatches">
@@ -414,12 +414,14 @@ body.theme-dark .trainQuickNav button.isToday{background:color-mix(in srgb,var(-
 <details class="card"><summary><b>🔐 Privacy & Friends</b></summary><div class="muted">Future controls for exactly what friends can see. Weight, nutrition details, measurements/photos and cycle information will stay private by default.</div></details>
 
 <details class="card"><summary><b>🏋️ Weekly Training Goal</b></summary>
-<div class="muted">Choose how many days you want to train each week. Any completed workout counts, including a workout you repeat or one you do on a planned rest day.</div>
+<div class="muted">Choose how many days you want to train each week. The app will automatically build a suggested weekly plan to match, and any completed workout still counts toward your goal.</div>
 <div class="onboardField" style="margin-top:12px"><label>Training days per week</label>
 <select id="settingsTrainingDays"><option value="3">3 days</option><option value="4">4 days</option><option value="5">5 days</option><option value="6">6 days</option><option value="7">7 days</option></select></div>
 <div class="softnote" id="trainingDaysNote">Your weekly goal is 4 training days.</div>
 </details><details class="card"><summary><b>📅 Workout Schedule</b></summary>
-<div class="muted">Choose what you normally want on each day. Changing the date in Train will automatically open that workout. You can still tap another workout manually anytime.</div>
+<div class="muted">The app builds a suggested week from your 3–7 day training goal. You can still change any individual day here.</div>
+<div class="softnote" id="adaptiveScheduleNote" style="margin-top:10px"></div>
+<button type="button" class="foodSearchBtn" id="useSuggestedSchedule" style="margin-top:10px">✨ Use suggested schedule for my training days</button>
 <div class="scheduleGrid" id="scheduleGrid"></div>
 </details>
 </section>
@@ -461,6 +463,18 @@ d4:{n:"Day 4 • Upper Body",t:"Upper Body B",s:"Back, shoulders, chest and tric
 ["Triceps Pressdown",3,"10–15","Triceps","High cable with rope or short bar.","Keep elbows tucked near your sides.","Triceps make up a big portion of upper-arm size.","Overhead dumbbell extension.","Overhead dumbbell extension."]]},
 d5:{n:"Bonus • Glutes + Arms",t:"Bonus Pump Day",s:"Optional Day 5 — extra growth volume",x:[
 ["Hip Thrust / Glute Drive",3,"10–12","Glutes","Glute-drive or hip-thrust setup.","Squeeze glutes at top.","Extra quality glute volume.","Dumbbell hip thrust.","Dumbbell hip thrust."],["Hip Abduction",3,"15–20","Side Glutes","Pads outside knees.","Control every rep.","Extra glute volume.","Band abduction.","Band abduction."],["Biceps Curl",3,"10–15","Biceps","Machine or dumbbells.","No swinging.","Extra arm volume.","Dumbbells.","Dumbbells."],["Triceps Pressdown",3,"10–15","Triceps","High cable.","Elbows stay tucked.","Builds back of upper arms.","DB overhead extension.","DB overhead extension."],["Lateral Raise",3,"12–20","Shoulders","Machine or dumbbells.","Control every rep.","Extra shoulder volume.","Dumbbells.","Dumbbells."]]},
+d6:{n:"Day 6 • Chest + Arms",t:"Chest + Arms",s:"Extra upper-body growth without repeating the exact same session",x:[
+["Chest Press Machine",3,"8–12","Chest • Triceps","Seated chest press machine.","Keep shoulders down and control both directions.","Adds another quality chest stimulus.","Dumbbell Bench Press.","Push-Up."],
+["Pec Deck / Chest Fly",3,"10–15","Chest","Pec deck or fly machine.","Keep a soft elbow bend and squeeze your chest together.","Direct chest work with less triceps fatigue.","Cable Fly.","Dumbbell Fly."],
+["Hammer Curl",3,"8–12","Biceps • Brachialis","Dumbbells.","Keep a neutral grip and avoid swinging.","Adds arm thickness and biceps volume.","Rope Hammer Curl.","Band Hammer Curl."],
+["Rope Pressdown",3,"10–15","Triceps","High cable with rope.","Keep elbows tucked and separate the rope slightly at the bottom.","Direct triceps volume.","Triceps Machine.","Band Pressdown."],
+["Rear Delt Fly",3,"12–20","Rear Delts • Upper Back","Reverse pec deck.","Open your arms without shrugging.","Balances pressing volume and builds rear shoulders.","Face Pull.","Bent-Over Rear Delt Raise."]]},
+d7:{n:"Day 7 • Core + Conditioning",t:"Core + Conditioning",s:"A lighter training day so seven-day users still get recovery from heavy lifting",x:[
+["Incline Treadmill Walk",1,"15–30 min","Cardio • Glutes","Treadmill.","Choose a sustainable incline and pace; stay upright.","Keeps you moving without another heavy lifting session.","Stationary Bike.","Outdoor Walk."],
+["Cable Crunch",3,"10–20","Abs","High cable with rope.","Curl ribs toward pelvis instead of just hinging at the hips.","Loadable abdominal work.","Ab Crunch Machine.","Weighted Crunch."],
+["Pallof Press",3,"10–15","Core","Cable at chest height.","Press your hands away while resisting rotation.","Builds anti-rotation core strength.","Cable Hold.","Band Pallof Press."],
+["Farmer Carry",3,"30–60 sec","Grip • Core • Traps","Heavy dumbbells or kettlebells.","Walk tall with ribs stacked and controlled steps.","Core, grip and total-body stability.","Suitcase Carry.","Loaded Carry."],
+["Mobility + Stretching",1,"10–15 min","Mobility","Floor or mat.","Use gentle ranges and don't force painful positions.","Helps keep the seventh day restorative.","Easy Walk.","Gentle Mobility."]]},
 rest:{n:"Active Rest 🌿",t:"Active Recovery",s:"Pick ONE. Finish feeling better, not exhausted.",r:true,x:[
 ["Peloton Easy Ride",1,"20–30 min","Recovery","Your Peloton.","Keep it easy enough to talk.","Movement without making recovery another hard workout.","Easy walk.","Easy Peloton."],["Easy Walk",1,"20–45 min","Recovery","Outside or treadmill.","Comfortable talking pace.","Keeps you active with little fatigue.","Short walk.","Treadmill walk."],["Mobility + Stretching",1,"10–20 min","Mobility","Floor or mat.","Gentle range; don't force pain.","Can help you feel less stiff.","Complete rest.","Complete rest."],["Complete Rest",1,"Rest","Whole Body","Your couch counts.","Recover, hydrate, eat enough protein.","Training is the stimulus; recovery is where adaptation happens.","Rest.","Rest."]]}};
 let trainingCursor=new Date();
@@ -473,10 +487,28 @@ function theme(){document.documentElement.style.setProperty("--a",S.color);docum
 function applySexAccent(sex){S.color=sex==="male"?"#4f7fb3":"#ad6b7f";theme();let p=document.getElementById("picker");if(p)p.value=S.color;save()}
 theme();
 
-const scheduleDefaults={0:"rest",1:"d1",2:"d2",3:"rest",4:"d3",5:"d4",6:"d5"};
-S.workoutSchedule=S.workoutSchedule||scheduleDefaults;
+const scheduleDefaults={0:"rest",1:"d1",2:"d2",3:"rest",4:"d3",5:"d4",6:"rest"};
+S.scheduleMode=S.scheduleMode||"auto";
 S.dateWorkoutOverrides=S.dateWorkoutOverrides||{};
 S.customDayExercises=S.customDayExercises||{};
+
+function suggestedScheduleForDays(days){
+ days=Math.min(7,Math.max(3,+days||4));
+ const schedules={
+   3:{0:"rest",1:"d1",2:"rest",3:"d2",4:"rest",5:"d3",6:"rest"},
+   4:{0:"rest",1:"d1",2:"d2",3:"rest",4:"d3",5:"d4",6:"rest"},
+   5:{0:"rest",1:"d1",2:"d2",3:"d3",4:"rest",5:"d4",6:"d5"},
+   6:{0:"rest",1:"d1",2:"d2",3:"d3",4:"d4",5:"d5",6:"d6"},
+   7:{0:"d7",1:"d1",2:"d2",3:"d3",4:"d4",5:"d5",6:"d6"}
+ };
+ return {...schedules[days]};
+}
+function applySuggestedSchedule(force=false){
+ if(!force&&S.scheduleMode==="manual")return;
+ S.workoutSchedule=suggestedScheduleForDays(S.trainingDaysPerWeek||4);
+ S.scheduleMode="auto";
+}
+if(!S.workoutSchedule||S.scheduleMode==="auto")applySuggestedSchedule(true);
 function localDateKey(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
 function workoutForDate(d){return S.dateWorkoutOverrides[localDateKey(d)]||S.workoutSchedule[d.getDay()]||"rest"}
 function syncWorkoutToDate(){S.day=workoutForDate(trainingCursor)}
@@ -497,8 +529,10 @@ function moveScheduleForwardFrom(d){
 function setTrainingDate(d){trainingCursor=new Date(d.getFullYear(),d.getMonth(),d.getDate());syncWorkoutToDate();save();render();renderTrainingExtras();refreshPersistentUI()}
 function buildScheduleSettings(){
  const names=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"], grid=document.getElementById("scheduleGrid");if(!grid)return;
+ const note=document.getElementById("adaptiveScheduleNote");
+ if(note)note.textContent=(S.scheduleMode==="manual"?"Custom weekly schedule":"Suggested "+(S.trainingDaysPerWeek||4)+"-day schedule")+" • You can change any day below.";
  grid.innerHTML=names.map((n,i)=>`<label>${n}</label><select data-sched="${i}">${Object.entries(P).map(([k,p])=>`<option value="${k}" ${S.workoutSchedule[i]===k?"selected":""}>${p.n}</option>`).join("")}</select>`).join("");
- grid.querySelectorAll("[data-sched]").forEach(x=>x.onchange=()=>{S.workoutSchedule[x.dataset.sched]=x.value;syncWorkoutToDate();save();render();renderMonth()});
+ grid.querySelectorAll("[data-sched]").forEach(x=>x.onchange=()=>{S.scheduleMode="manual";S.workoutSchedule[x.dataset.sched]=x.value;syncWorkoutToDate();save();render();renderMonth()});
 }
 let monthCursor=new Date(trainingCursor.getFullYear(),trainingCursor.getMonth(),1);
 function renderMonth(){
@@ -1611,7 +1645,18 @@ toggleCycle.onclick=()=>{if(S.profile?.sex==="male"||S.nutrition?.nSex==="male")
 const settingsTrainingDays=document.getElementById("settingsTrainingDays");
 if(settingsTrainingDays){
  settingsTrainingDays.value=String(S.trainingDaysPerWeek||4);
- settingsTrainingDays.onchange=()=>{S.trainingDaysPerWeek=Math.min(7,Math.max(3,+settingsTrainingDays.value||4));save();refreshTrainingGoalUI();if(window.MMBSyncProfile)window.MMBSyncProfile();};
+ settingsTrainingDays.onchange=()=>{S.trainingDaysPerWeek=Math.min(7,Math.max(3,+settingsTrainingDays.value||4));applySuggestedSchedule(true);syncWorkoutToDate();save();refreshTrainingGoalUI();buildScheduleSettings();render();renderMonth();if(window.MMBSyncProfile)window.MMBSyncProfile();};
+
+const useSuggestedSchedule=document.getElementById("useSuggestedSchedule");
+if(useSuggestedSchedule)useSuggestedSchedule.onclick=()=>{
+ applySuggestedSchedule(true);
+ syncWorkoutToDate();
+ save();
+ buildScheduleSettings();
+ render();
+ renderMonth();
+ if(window.MMBSyncProfile)window.MMBSyncProfile();
+};
 }
 refreshTrainingGoalUI();
 
@@ -2084,6 +2129,8 @@ function mmbCloudProfilePayload(){
    profile:S.profile||{},
    nutrition:S.nutrition||{},
    trainingDaysPerWeek:S.trainingDaysPerWeek||4,
+   scheduleMode:S.scheduleMode||"auto",
+   workoutSchedule:S.workoutSchedule||suggestedScheduleForDays(S.trainingDaysPerWeek||4),
    location:S.location||"",
    place:S.place||"gym",
    gymName:S.gymName||"",
@@ -2116,6 +2163,9 @@ function applyCloudProfile(cp){
    S.profile={...(S.profile||{}),...(cp.profile||{})};
    S.nutrition={...(S.nutrition||{}),...(cp.nutrition||{})};
    if(cp.trainingDaysPerWeek)S.trainingDaysPerWeek=Math.min(7,Math.max(3,+cp.trainingDaysPerWeek||4));
+   if(cp.scheduleMode)S.scheduleMode=cp.scheduleMode;
+   if(cp.workoutSchedule&&typeof cp.workoutSchedule==="object")S.workoutSchedule={...cp.workoutSchedule};
+   else if(S.scheduleMode!=="manual")applySuggestedSchedule(true);
    if(cp.location!==undefined)S.location=cp.location;
    if(cp.place)S.place=cp.place;
    if(cp.gymName!==undefined)S.gymName=cp.gymName;
@@ -2169,6 +2219,7 @@ function finishOnboard(){
     if(obData.goalWeight){S.profile.goalWeight=+obData.goalWeight;S.nutrition.nGoalWeight=+obData.goalWeight;}
     S.profile.goal=obData.goal; S.nutrition.nGoal=obData.goal==="Build muscle"?"build":obData.goal==="Lose fat + build muscle"?"recomp":"maintain";
     S.trainingDaysPerWeek=Math.min(7,Math.max(3,+obData.trainingDays||4));
+    applySuggestedSchedule(true);
     S.nutrition.nActivity=+obData.activity||1.55;
     if(obData.calories)S.nutrition.calGoal=+obData.calories;
     if(obData.protein)S.nutrition.proGoal=+obData.protein;
