@@ -127,8 +127,23 @@ body.theme-dark .feature h2,body.theme-dark .feature h3,body.theme-dark b{color:
 }
 header{position:relative}
 body.theme-dark .premiumSettingsBtn{background:#17191d!important;border-color:#2b2e34!important;color:#fff!important}
-.mainnav{grid-template-columns:repeat(5,1fr)!important}
-.mainnav button{font-size:12px!important;padding-left:4px!important;padding-right:4px!important}
+.mainnav{grid-template-columns:repeat(6,1fr)!important}
+.mainnav.cycleHidden{grid-template-columns:repeat(5,1fr)!important}
+.mainnav button{font-size:11px!important;padding-left:3px!important;padding-right:3px!important}
+/* Stable 12.4.47 — Cycle tracker */
+.cycleHero{padding:20px!important;background:linear-gradient(145deg,color-mix(in srgb,var(--a) 14%,var(--app-card)),var(--app-card))!important}
+.cycleHeroTop{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
+.cycleDayBig{font-size:44px;font-weight:950;letter-spacing:-.06em;line-height:1;margin:4px 0 6px}
+.cycleRing{width:82px;height:82px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--a) var(--cyclePct,0%),color-mix(in srgb,var(--a) 12%,transparent) 0);position:relative;flex:0 0 auto}
+.cycleRing:after{content:"";position:absolute;inset:8px;border-radius:50%;background:var(--app-card)}
+.cycleRing span{position:relative;z-index:1;font-size:12px;font-weight:900;text-align:center;line-height:1.1}
+.cycleStats{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}.cycleStat{border:1px solid var(--l);border-radius:16px;padding:12px;background:color-mix(in srgb,var(--app-card) 92%,transparent)}.cycleStat b{display:block;font-size:19px;margin-top:3px}
+.cycleCalendarHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.cycleWeek{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;text-align:center;font-size:11px;font-weight:900;color:var(--m);margin-bottom:5px}.cycleCalendar{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}.cycleDate{aspect-ratio:1;border:1px solid var(--l);border-radius:12px;background:var(--app-card);color:var(--app-text);font-weight:850;padding:0;position:relative;min-height:40px}.cycleDate.blank{visibility:hidden}.cycleDate.today{outline:2px solid color-mix(in srgb,var(--a) 55%,transparent)}.cycleDate.selected{background:var(--a)!important;color:#fff!important;border-color:var(--a)!important}.cycleDate.period:after{content:"";position:absolute;bottom:5px;left:50%;width:6px;height:6px;border-radius:50%;background:#d85d78;transform:translateX(-50%)}.cycleDate.fertile:not(.period):after{content:"";position:absolute;bottom:5px;left:50%;width:6px;height:6px;border-radius:50%;background:#79a987;transform:translateX(-50%)}.cycleDate.logged{box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--a) 45%,transparent)}.cycleDate.selected:after{background:#fff!important}
+.cycleLegend{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--m);margin-top:9px}.cycleLegend span:before{content:"";width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px;background:var(--a)}.cycleLegend .periodKey:before{background:#d85d78}.cycleLegend .fertileKey:before{background:#79a987}
+.symptomGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.symptomChip{display:flex;align-items:center;gap:8px;border:1px solid var(--l);border-radius:14px;padding:11px;background:var(--app-card);font-weight:750;font-size:13px}.symptomChip input{width:auto!important;min-height:0!important}
+.cycleFlow{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.cycleFlow button{padding:9px 4px;border-radius:12px;font-size:11px;min-height:48px}.cycleFlow button.on{background:var(--a);color:#fff;border-color:var(--a)}
+.cycleNotice{font-size:11px;line-height:1.4;color:var(--m);margin-top:10px}
+@media(max-width:430px){.mainnav button{font-size:10px!important}.cycleStats{grid-template-columns:1fr 1fr}.cycleDate{border-radius:10px;min-height:38px}}
 
 /* Stable 8 — dark startup */
 .setupOverlay{
@@ -298,6 +313,7 @@ setTimeout(()=>{
 <button class="on" data-main="train">🏋️<br>Train</button>
 <button data-main="nutrition">🥗<br>Nutrition</button>
 <button data-main="goal">✨<br>My Goal</button>
+<button data-main="cycle" id="cycleNavBtn">🌸<br>Cycle</button>
 <button data-main="progress">📈<br>Progress</button>
 <button data-main="settings">⚙️<br>Settings</button>
 </nav>
@@ -432,6 +448,42 @@ setTimeout(()=>{
 <div class="card"><h3>🤖 Goal analysis</h3><div class="quick">Coming with the published AI version: compare your stated goal with your training priorities and suggest muscle groups, exercises, nutrition habits and progress markers to focus on.</div></div>
 </section>
 
+<section class="feature" id="feature-cycle">
+<div class="card cycleHero">
+  <div class="cycleHeroTop"><div><div class="muted" id="cycleHeroPhase">Cycle tracking</div><div class="cycleDayBig" id="cycleHeroDay">—</div><div id="cycleHeroSubtitle" class="muted">Set your last period to start predictions.</div></div><div class="cycleRing" id="cycleRing"><span id="cycleRingText">🌸<br>Cycle</span></div></div>
+  <div class="cycleStats"><div class="cycleStat"><span class="muted">Next period</span><b id="cycleNextPeriod">—</b></div><div class="cycleStat"><span class="muted">Fertile window</span><b id="cycleFertile">—</b></div></div>
+</div>
+
+<div class="card">
+ <div class="cycleCalendarHead"><button class="mini" id="cyclePrevMonth">←</button><h3 id="cycleMonthTitle" style="margin:0">Month</h3><button class="mini" id="cycleNextMonth">→</button></div>
+ <div class="cycleWeek"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div>
+ <div class="cycleCalendar" id="cycleCalendar"></div>
+ <div class="cycleLegend"><span class="periodKey">Period</span><span class="fertileKey">Estimated fertile</span><span>Logged</span></div>
+</div>
+
+<div class="card">
+ <div class="row" style="align-items:center"><div><h3 style="margin:0">Log <span id="cycleLogDateLabel">today</span></h3><div class="muted" id="cycleSelectedPhase">How are you feeling?</div></div><button class="mini" id="cycleTodayBtn">Today</button></div>
+ <div class="recentLabel">Flow</div>
+ <div class="cycleFlow" id="cycleFlowButtons"><button type="button" data-flow="None">None</button><button type="button" data-flow="Spotting">Spot</button><button type="button" data-flow="Light">Light</button><button type="button" data-flow="Medium">Medium</button><button type="button" data-flow="Heavy">Heavy</button></div>
+ <div class="recentLabel">Symptoms + mood</div>
+ <div class="symptomGrid">
+  <label class="symptomChip"><input type="checkbox" data-cycle-sym="cramps"> Cramps</label><label class="symptomChip"><input type="checkbox" data-cycle-sym="bloating"> Bloating</label>
+  <label class="symptomChip"><input type="checkbox" data-cycle-sym="headache"> Headache</label><label class="symptomChip"><input type="checkbox" data-cycle-sym="fatigue"> Fatigue</label>
+  <label class="symptomChip"><input type="checkbox" data-cycle-sym="soreBreasts"> Sore breasts</label><label class="symptomChip"><input type="checkbox" data-cycle-sym="cravings"> Cravings</label>
+  <label class="symptomChip"><input type="checkbox" data-cycle-sym="acne"> Acne</label><label class="symptomChip"><input type="checkbox" data-cycle-sym="moodChanges"> Mood changes</label>
+ </div>
+ <div class="logs" style="margin-top:12px"><label>Energy<select id="cycleLogEnergy"><option>High</option><option selected>Normal</option><option>Low</option><option>Very low</option></select></label><label>Mood<select id="cycleLogMood"><option selected>Okay</option><option>Great</option><option>Happy</option><option>Emotional</option><option>Irritable</option><option>Anxious</option><option>Low</option></select></label></div>
+ <label style="display:block;margin-top:10px">Notes<textarea id="cycleLogNotes" rows="3" placeholder="Anything you want to remember…"></textarea></label>
+ <button class="finish" id="cycleSaveLog">Save day</button><div class="last" id="cycleSaveMsg"></div>
+</div>
+
+<details class="card"><summary><b>⚙️ Cycle settings</b></summary>
+ <div class="logs" style="margin-top:12px"><label>First day of last period<input id="cycleLastPeriodInput" type="date"></label><label>Average cycle length<input id="cycleLengthInput" type="number" inputmode="numeric" min="15" max="60" placeholder="28"></label><label>Average period length<input id="cyclePeriodLengthInput" type="number" inputmode="numeric" min="1" max="12" placeholder="5"></label></div>
+ <button class="foodSearchBtn" id="cycleSaveSettings">Save cycle settings</button>
+ <div class="cycleNotice">Period and fertile-window dates are estimates based on the information you log. They should not be used as birth control or to confirm ovulation.</div>
+</details>
+</section>
+
 <section class="feature" id="feature-progress">
 <div class="card"><div class="bigicon">📈</div><h2>Progress</h2><div class="muted">Strength + body metrics + consistency—not just the scale.</div></div>
 <div class="card"><h3>Body check-in</h3><div class="logs"><label>Weight (lb)<input id="bodyWeight" inputmode="decimal" placeholder="Optional"></label><label>Waist (in)<input id="waist" inputmode="decimal" placeholder="Optional"></label><label>Hips (in)<input id="hips" inputmode="decimal" placeholder="Optional"></label><label>Arm (in)<input id="arm" inputmode="decimal" placeholder="Optional"></label></div><button class="finish" id="saveCheck">Save check-in</button><div id="checkMsg" class="last"></div></div>
@@ -478,7 +530,7 @@ setTimeout(()=>{
 </details><details class="card"><summary><b>ℹ️ About</b></summary>
 <div class="muted">Millie’s Muscle Builder</div>
 <div class="quick" style="margin-top:10px">
-  <b id="appVersionUnlock" style="user-select:none;-webkit-user-select:none">Version 12.4.45</b><br>
+  <b id="appVersionUnlock" style="user-select:none;-webkit-user-select:none">Version 12.4.47</b><br>
   Train smarter. Eat better. Track your progress.
 </div>
 <div id="ownerPreviewTools" style="display:none;margin-top:12px">
@@ -547,7 +599,7 @@ rest:{n:"Active Rest 🌿",t:"Active Recovery",s:"Pick ONE. Finish feeling bette
 ["Peloton Easy Ride",1,"20–30 min","Recovery","Your Peloton.","Keep it easy enough to talk.","Movement without making recovery another hard workout.","Easy walk.","Easy Peloton."],["Easy Walk",1,"20–45 min","Recovery","Outside or treadmill.","Comfortable talking pace.","Keeps you active with little fatigue.","Short walk.","Treadmill walk."],["Mobility + Stretching",1,"10–20 min","Mobility","Floor or mat.","Gentle range; don't force pain.","Can help you feel less stiff.","Complete rest.","Complete rest."],["Complete Rest",1,"Rest","Whole Body","Your couch counts.","Recover, hydrate, eat enough protein.","Training is the stimulus; recovery is where adaptation happens.","Rest.","Rest."]]}};
 let trainingCursor=new Date();
 function trainKey(){let d=trainingCursor,y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,"0"),day=String(d.getDate()).padStart(2,"0");return `${y}-${m}-${day}`}
-let S=JSON.parse(localStorage.getItem("MMBv3")||'{}');S.day=S.day||"d1";S.place=S.place||"gym";S.gymName=S.gymName||"";S.color=S.color||"#8d6e8f";S.logs=S.logs||{};S.sets=S.sets||{};S.days=S.days||{};S.trainingDiary=S.trainingDiary||{};
+let S=JSON.parse(localStorage.getItem("MMBv3")||'{}');S.day=S.day||"d1";S.place=S.place||"gym";S.gymName=S.gymName||"";S.color=S.color||"#8d6e8f";S.logs=S.logs||{};S.sets=S.sets||{};S.days=S.days||{};S.trainingDiary=S.trainingDiary||{};S.profile=S.profile||{};S.cyclePrefs=S.cyclePrefs||{enabled:false,lastPeriod:"",length:28};S.cyclePrefs.periodLength=+S.cyclePrefs.periodLength||5;S.cycleLogs=S.cycleLogs||{};var cycleCalendarCursor=new Date(new Date().getFullYear(),new Date().getMonth(),1),cycleSelectedDate=new Date(),cycleSelectedFlow="None";
 function trainDay(){let k=trainKey();S.trainingDiary[k]=S.trainingDiary[k]||{};let d=S.trainingDiary[k];d.logs=d.logs||{};d.sets=d.sets||{};d.days=d.days||{};d.cardio=Array.isArray(d.cardio)?d.cardio:[];d.cycle=d.cycle||{};return d}
 
 const save=()=>{if(S.diary&&typeof diaryCursor!=="undefined"){let k=localDateKey(diaryCursor);if(S.diary[k]){S.diary[k].foods=S.foods;S.diary[k].water=S.nutrition.water||0}}localStorage.setItem("MMBv3",JSON.stringify(S));};const tabs=document.getElementById("tabs"),panel=document.getElementById("panel"),week=document.getElementById("week");
@@ -797,6 +849,7 @@ function resetTodayToSuggested(){
 
 S.homeEquipment=Array.isArray(S.homeEquipment)?S.homeEquipment:[];
 S.trainingLocationMode=S.trainingLocationMode||((S.location==="Home"||S.place==="home")?"Home":"Gym");
+S.place=S.trainingLocationMode==="Home"?"home":"gym";
 
 const HOME_EQUIPMENT_OPTIONS=[
  "Bodyweight only","Dumbbells","Adjustable dumbbells","Resistance bands","Bench",
@@ -941,7 +994,7 @@ closeMonth.onclick=()=>monthModal.classList.remove("on");
 prevMonth.onclick=()=>{monthCursor.setMonth(monthCursor.getMonth()-1);renderMonth()};
 nextMonth.onclick=()=>{monthCursor.setMonth(monthCursor.getMonth()+1);renderMonth()};
 addCardio.onclick=()=>{let min=+cardioMinutes.value;if(!min){alert("Add the cardio minutes first.");return}let td=trainDay();td.cardio.push({type:cardioType.value,minutes:min,distance:cardioDistance.value,level:cardioLevel.value,calories:cardioCalories.value,effort:cardioEffort.value});cardioMinutes.value=cardioDistance.value=cardioLevel.value=cardioCalories.value="";save();renderTrainingExtras()};
-saveCycle.onclick=()=>{let td=trainDay();td.cycle={phase:cyclePhase.value,day:cycleDay.value,energy:cycleEnergy.value,feel:weightFeel.value,cramps:symCramps.checked,fatigue:symFatigue.checked,headache:symHeadache.checked,sore:symSore.checked};save();renderTrainingExtras()};
+saveCycle.onclick=()=>{let td=trainDay();td.cycle={phase:cyclePhase.value,day:cycleDay.value,energy:cycleEnergy.value,feel:weightFeel.value,cramps:symCramps.checked,fatigue:symFatigue.checked,headache:symHeadache.checked,sore:symSore.checked};let ck=trainKey();S.cycleLogs=S.cycleLogs||{};S.cycleLogs[ck]=Object.assign(S.cycleLogs[ck]||{},{energy:cycleEnergy.value,cramps:symCramps.checked,fatigue:symFatigue.checked,headache:symHeadache.checked});save();renderTrainingExtras();if(S.main==="cycle")renderCycleSection()};
 renderTrainingExtras();
 document.querySelectorAll("[data-place]").forEach(b=>b.classList.toggle("on",b.dataset.place===S.place));
 let gymBtn=document.getElementById("gymPlaceBtn");if(gymBtn)gymBtn.textContent=`🏋️ ${S.gymName||"Gym"}`;
@@ -1129,12 +1182,12 @@ document.querySelectorAll("[data-place]").forEach(b=>b.onclick=()=>{
    if(homeCard)setTimeout(()=>homeCard.scrollIntoView({behavior:"smooth",block:"center"}),50);
    alert("Tell us what equipment you have at home first, then Home workouts can match it.");
  }
- save();render();
+ render();
 });document.getElementById("custom").onclick=()=>{let x=document.getElementById("settings");x.style.display=x.style.display==="block"?"none":"block"};
 document.querySelectorAll("[data-color]").forEach(b=>b.onclick=()=>{S.color=b.dataset.color;document.getElementById("picker").value=S.color;theme();save()});document.getElementById("picker").value=S.color;
 document.getElementById("picker").oninput=e=>{S.color=e.target.value;theme();save()};
 S.main=S.main||"train";S.nutrition=S.nutrition||{};S.checkins=S.checkins||[];
-function showMain(name){S.main=name;save();document.querySelectorAll(".feature").forEach(x=>x.classList.toggle("on",x.id==="feature-"+name));document.querySelectorAll("[data-main]").forEach(x=>x.classList.toggle("on",x.dataset.main===name));if(name==="progress")updateStrength()}
+function showMain(name){S.main=name;save();document.querySelectorAll(".feature").forEach(x=>x.classList.toggle("on",x.id==="feature-"+name));document.querySelectorAll("[data-main]").forEach(x=>x.classList.toggle("on",x.dataset.main===name));if(name==="progress")updateStrength();if(name==="cycle")renderCycleSection()}
 document.querySelectorAll("[data-main]").forEach(b=>b.onclick=()=>showMain(b.dataset.main));const settingsShortcut=document.getElementById("settingsShortcut");if(settingsShortcut)settingsShortcut.onclick=()=>showMain("settings");
 S.nutrition=S.nutrition||{};S.foods=S.foods||{Breakfast:[],Lunch:[],Dinner:[],Snacks:[]};S.water=S.water||0;S.waterHistory=S.waterHistory||[];
 const meals=["Breakfast","Lunch","Dinner","Snacks"], icons={Breakfast:"🍳",Lunch:"🥪",Dinner:"🍽️",Snacks:"🍿"};
@@ -1760,6 +1813,8 @@ if(hc)hc.onclick=()=>{document.getElementById("healthNote").textContent="Apple H
 // ---- V5 setup + persistent settings ----
 S.profile=S.profile||{};
 S.cyclePrefs=S.cyclePrefs||{enabled:false,lastPeriod:"",length:28};
+S.cyclePrefs.periodLength=+S.cyclePrefs.periodLength||5;
+S.cycleLogs=S.cycleLogs||{};
 
 function setupShow(n){document.querySelectorAll(".setupStep").forEach(x=>x.classList.remove("on"));document.getElementById("setup"+n).classList.add("on")}
 function openSetup(){
@@ -1817,9 +1872,57 @@ function phaseInfo(d=new Date()){
  let phase=day<=5?"Period":day<=13?"Follicular":day<=16?"Ovulation":"Luteal";
  return {day,phase};
 }
+function cycleDateKey(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
+function cycleDaysBetween(a,b){const aa=new Date(a.getFullYear(),a.getMonth(),a.getDate()),bb=new Date(b.getFullYear(),b.getMonth(),b.getDate());return Math.round((aa-bb)/86400000)}
+function cyclePrediction(d=new Date()){
+ if(!S.cyclePrefs.enabled||!S.cyclePrefs.lastPeriod)return null;
+ const start=new Date(S.cyclePrefs.lastPeriod+"T12:00:00"),len=Math.max(15,+S.cyclePrefs.length||28),plen=Math.max(1,+S.cyclePrefs.periodLength||5);
+ const diff=cycleDaysBetween(d,start),idx=((diff%len)+len)%len,day=idx+1;
+ const ov=Math.max(1,len-14),fertileStart=Math.max(1,ov-5),fertileEnd=Math.min(len,ov+1);
+ let phase=day<=plen?"Period":day<fertileStart?"Follicular":day<=fertileEnd?"Fertile window":"Luteal";
+ const nextStart=new Date(start);let cycles=Math.floor(diff/len)+1;if(diff<0)cycles=Math.ceil(diff/len);nextStart.setDate(nextStart.getDate()+cycles*len);while(nextStart<=new Date(d.getFullYear(),d.getMonth(),d.getDate()))nextStart.setDate(nextStart.getDate()+len);
+ return {day,phase,len,plen,ov,fertileStart,fertileEnd,isPeriod:day<=plen,isFertile:day>=fertileStart&&day<=fertileEnd,nextStart};
+}
+function formatCycleShort(d){return d.toLocaleDateString(undefined,{month:"short",day:"numeric"})}
+function loadCycleLogForm(){
+ const k=cycleDateKey(cycleSelectedDate),x=S.cycleLogs[k]||{};cycleSelectedFlow=x.flow||"None";
+ document.querySelectorAll("#cycleFlowButtons [data-flow]").forEach(b=>b.classList.toggle("on",b.dataset.flow===cycleSelectedFlow));
+ document.querySelectorAll("[data-cycle-sym]").forEach(c=>c.checked=!!x[c.dataset.cycleSym]);
+ const e=document.getElementById("cycleLogEnergy"),m=document.getElementById("cycleLogMood"),n=document.getElementById("cycleLogNotes");if(e)e.value=x.energy||"Normal";if(m)m.value=x.mood||"Okay";if(n)n.value=x.notes||"";
+ const label=document.getElementById("cycleLogDateLabel");if(label)label.textContent=cycleDateKey(cycleSelectedDate)===cycleDateKey(new Date())?"today":cycleSelectedDate.toLocaleDateString(undefined,{month:"short",day:"numeric"});
+ const ph=document.getElementById("cycleSelectedPhase"),p=cyclePrediction(cycleSelectedDate);if(ph)ph.textContent=p?`${p.phase} • estimated cycle day ${p.day}`:"Set your last period below to see cycle-day estimates.";
+}
+function renderCycleCalendar(){
+ const root=document.getElementById("cycleCalendar"),title=document.getElementById("cycleMonthTitle");if(!root||!title)return;
+ const y=cycleCalendarCursor.getFullYear(),m=cycleCalendarCursor.getMonth(),first=new Date(y,m,1),last=new Date(y,m+1,0),todayK=cycleDateKey(new Date()),selectedK=cycleDateKey(cycleSelectedDate);
+ title.textContent=first.toLocaleDateString(undefined,{month:"long",year:"numeric"});let html="";
+ for(let i=0;i<first.getDay();i++)html+='<button class="cycleDate blank" tabindex="-1"></button>';
+ for(let day=1;day<=last.getDate();day++){const d=new Date(y,m,day),k=cycleDateKey(d),p=cyclePrediction(d),log=S.cycleLogs[k]||{},flow=log.flow||"None",isPeriod=(flow!=="None")||(p&&p.isPeriod),isFertile=p&&p.isFertile;html+=`<button type="button" class="cycleDate${k===todayK?" today":""}${k===selectedK?" selected":""}${isPeriod?" period":""}${isFertile?" fertile":""}${Object.keys(log).length?" logged":""}" data-cycle-date="${k}">${day}</button>`}
+ root.innerHTML=html;root.querySelectorAll("[data-cycle-date]").forEach(b=>b.onclick=()=>{const [yy,mm,dd]=b.dataset.cycleDate.split("-").map(Number);cycleSelectedDate=new Date(yy,mm-1,dd);renderCycleCalendar();loadCycleLogForm()});
+}
+function renderCycleSection(){
+ const nav=document.getElementById("cycleNavBtn");if(!nav)return;
+ const male=S.profile?.sex==="male"||S.nutrition?.nSex==="male";if(male)return;
+ const last=document.getElementById("cycleLastPeriodInput"),len=document.getElementById("cycleLengthInput"),plen=document.getElementById("cyclePeriodLengthInput");if(last)last.value=S.cyclePrefs.lastPeriod||"";if(len)len.value=S.cyclePrefs.length||28;if(plen)plen.value=S.cyclePrefs.periodLength||5;
+ const p=cyclePrediction(new Date()),hero=document.getElementById("cycleHeroDay"),phase=document.getElementById("cycleHeroPhase"),sub=document.getElementById("cycleHeroSubtitle"),np=document.getElementById("cycleNextPeriod"),fert=document.getElementById("cycleFertile"),ring=document.getElementById("cycleRing"),ringText=document.getElementById("cycleRingText");
+ if(p){if(hero)hero.textContent=`Day ${p.day}`;if(phase)phase.textContent=p.phase;if(sub){const n=cycleDaysBetween(p.nextStart,new Date());sub.textContent=n<=1?"Period expected tomorrow":`Period expected in about ${n} days`;}if(np)np.textContent=formatCycleShort(p.nextStart);if(fert){const ovDate=new Date(new Date().getFullYear(),new Date().getMonth(),new Date().getDate());ovDate.setDate(ovDate.getDate()+(p.ov-p.day));const fs=new Date(ovDate);fs.setDate(fs.getDate()-5);const fe=new Date(ovDate);fe.setDate(fe.getDate()+1);fert.textContent=`${formatCycleShort(fs)}–${formatCycleShort(fe)}`;}if(ring)ring.style.setProperty("--cyclePct",`${Math.min(100,Math.max(0,p.day/p.len*100))}%`);if(ringText)ringText.innerHTML=`${p.day}<br><small>of ${p.len}</small>`;}else{if(hero)hero.textContent="Start tracking";if(phase)phase.textContent="Cycle tracking";if(sub)sub.textContent="Add the first day of your last period below.";if(np)np.textContent="—";if(fert)fert.textContent="—";if(ring)ring.style.setProperty("--cyclePct","0%");if(ringText)ringText.innerHTML="🌸<br>Cycle";}
+ renderCycleCalendar();loadCycleLogForm();
+}
+function wireCycleTracker(){
+ const prev=document.getElementById("cyclePrevMonth"),next=document.getElementById("cycleNextMonth"),today=document.getElementById("cycleTodayBtn"),saveSettings=document.getElementById("cycleSaveSettings"),saveLog=document.getElementById("cycleSaveLog");
+ if(prev)prev.onclick=()=>{cycleCalendarCursor.setMonth(cycleCalendarCursor.getMonth()-1);renderCycleCalendar()};if(next)next.onclick=()=>{cycleCalendarCursor.setMonth(cycleCalendarCursor.getMonth()+1);renderCycleCalendar()};if(today)today.onclick=()=>{cycleSelectedDate=new Date();cycleCalendarCursor=new Date(cycleSelectedDate.getFullYear(),cycleSelectedDate.getMonth(),1);renderCycleSection()};
+ document.querySelectorAll("#cycleFlowButtons [data-flow]").forEach(b=>b.onclick=()=>{cycleSelectedFlow=b.dataset.flow;document.querySelectorAll("#cycleFlowButtons [data-flow]").forEach(x=>x.classList.toggle("on",x===b))});
+ if(saveSettings)saveSettings.onclick=()=>{const lp=document.getElementById("cycleLastPeriodInput").value,l=Math.max(15,Math.min(60,+document.getElementById("cycleLengthInput").value||28)),pl=Math.max(1,Math.min(12,+document.getElementById("cyclePeriodLengthInput").value||5));S.cyclePrefs.enabled=!!lp;S.cyclePrefs.lastPeriod=lp;S.cyclePrefs.length=l;S.cyclePrefs.periodLength=pl;save();refreshPersistentUI();renderCycleSection();document.getElementById("cycleSaveMsg").textContent=lp?"Cycle settings saved.":"Add your last period date to turn predictions on.";if(window.MMBSyncProfile)window.MMBSyncProfile()};
+ if(saveLog)saveLog.onclick=()=>{const k=cycleDateKey(cycleSelectedDate),x={flow:cycleSelectedFlow,energy:document.getElementById("cycleLogEnergy").value,mood:document.getElementById("cycleLogMood").value,notes:document.getElementById("cycleLogNotes").value.trim()};document.querySelectorAll("[data-cycle-sym]").forEach(c=>x[c.dataset.cycleSym]=c.checked);S.cycleLogs[k]=x;if(cycleSelectedFlow!=="None"&&!S.cyclePrefs.lastPeriod){S.cyclePrefs.lastPeriod=k;S.cyclePrefs.enabled=true;}save();renderCycleSection();document.getElementById("cycleSaveMsg").textContent="Saved ✓";if(window.MMBSyncProfile)window.MMBSyncProfile()};
+}
+wireCycleTracker();
+
 function refreshPersistentUI(){
  const male=S.profile?.sex==="male" || S.nutrition?.nSex==="male";
  if(male)S.cyclePrefs.enabled=false;
+ const cycleNavBtn=document.getElementById("cycleNavBtn");if(cycleNavBtn)cycleNavBtn.style.display=male?"none":"";
+ const mainnavEl=document.getElementById("mainnav");if(mainnavEl)mainnavEl.classList.toggle("cycleHidden",male);
+ if(male&&S.main==="cycle")showMain("train");
  let p=male?null:phaseInfo(trainingCursor);phaseDisplay.innerHTML=p?`<span class="phaseBadge">🌸 ${p.phase} • estimated Day ${p.day}</span>`:"";
  cycleCard.style.display=(!male&&S.cyclePrefs.enabled)?"block":"none";
  const cycleSettingsCard=document.getElementById("cycleSettingsCard");if(cycleSettingsCard)cycleSettingsCard.style.display=male?"none":"block";
@@ -2135,9 +2238,9 @@ function refreshTrainingLocationSettings(){
 }
 (function(){
  const gb=document.getElementById("settingsGymBtn"),hb=document.getElementById("settingsHomeBtn"),saveBtn=document.getElementById("saveTrainingLocation"),inp=document.getElementById("settingsGymName");
- if(gb)gb.onclick=()=>{S.place="gym";refreshTrainingLocationSettings()};
- if(hb)hb.onclick=()=>{S.place="home";refreshTrainingLocationSettings()};
- if(saveBtn)saveBtn.onclick=()=>{S.gymName=S.place==="gym"?(inp?.value||"").trim():S.gymName;save();render();refreshTrainingLocationSettings();alert(S.place==="gym"?`Training location saved${S.gymName?": "+S.gymName:""}.`:"Training location saved: Home.")};
+ if(gb)gb.onclick=()=>{S.place="gym";S.trainingLocationMode="Gym";refreshTrainingLocationSettings()};
+ if(hb)hb.onclick=()=>{S.place="home";S.trainingLocationMode="Home";refreshTrainingLocationSettings()};
+ if(saveBtn)saveBtn.onclick=()=>{S.trainingLocationMode=S.place==="home"?"Home":"Gym";S.location=S.trainingLocationMode;S.gymName=S.place==="gym"?(inp?.value||"").trim():S.gymName;save();render();refreshTrainingLocationSettings();if(window.MMBSyncProfile)window.MMBSyncProfile();alert(S.place==="gym"?`Training location saved${S.gymName?": "+S.gymName:""}.`:"Training location saved: Home.")};
  refreshTrainingLocationSettings();
 })();
 
@@ -2571,7 +2674,7 @@ function mmbCloudProfilePayload(){
    trainingLocationMode:S.trainingLocationMode||S.location||"Gym",
    homeEquipment:[...(S.homeEquipment||[])],
    homeWorkoutMinutes:Number(S.homeWorkoutMinutes)||30,
-   place:S.place||"gym",
+   place:(S.trainingLocationMode==="Home"?"home":"gym"),
    gymName:S.gymName||"",
    cyclePrefs:S.cyclePrefs||{},
    look:S.look||{},
@@ -2609,7 +2712,7 @@ function applyCloudProfile(cp){
    if(cp.trainingLocationMode)S.trainingLocationMode=cp.trainingLocationMode;
    if(Array.isArray(cp.homeEquipment))S.homeEquipment=[...cp.homeEquipment];
    if([15,30,45,60].includes(Number(cp.homeWorkoutMinutes)))S.homeWorkoutMinutes=Number(cp.homeWorkoutMinutes);
-   if(cp.place)S.place=cp.place;
+   S.place=S.trainingLocationMode==="Home"?"home":"gym";
    if(cp.gymName!==undefined)S.gymName=cp.gymName;
    if(cp.cyclePrefs)S.cyclePrefs={...(S.cyclePrefs||{}),...cp.cyclePrefs};
    if(cp.look)S.look={...(S.look||{}),...cp.look};
