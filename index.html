@@ -200,7 +200,7 @@ body{zoom:var(--app-scale,1)}
 .changeWorkoutBox>button{width:100%;padding:13px}.changeOptions{display:none;margin-top:10px;gap:8px;grid-template-columns:1fr 1fr}.changeOptions.open{display:grid}.changeOptions button{padding:11px 8px}.customActivity{display:none;margin-top:10px}.customActivity.open{display:block}
 
 </style></head><body><main class="app">
-<header><button type="button" class="premiumSettingsBtn" id="settingsShortcut" aria-label="Open settings">⚙️</button><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 11.1</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
+<header><button type="button" class="premiumSettingsBtn" id="settingsShortcut" aria-label="Open settings">⚙️</button><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12 • ACCOUNTS</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
 <section class="card"><div class="row"><div><b>This week</b><div class="muted" style="font-size:13px">Complete all 4 main lifting days</div></div><b id="week" style="font-size:22px">0 / 4</b></div>
 <div class="row" style="margin-top:12px"><div><button class="pill on" data-place="gym">🏋️ Planet Fitness</button> <button class="pill" data-place="home">🏠 Home</button></div><button class="ghost" id="custom">🎨 Color</button></div></section>
 <section class="card settings" id="settings"><b>Choose your app color</b><div class="swatches">
@@ -305,6 +305,7 @@ body{zoom:var(--app-scale,1)}
 <details class="card"><summary><b>🎯 Goals & Nutrition</b></summary><div class="muted">Current targets</div><div id="settingsGoals" class="quick"></div><button class="foodSearchBtn" id="editGoals">Change Goals</button></details>
 <details class="card"><summary><b>🌸 Cycle Tracking</b></summary><div id="cycleSettingsStatus" class="quick"></div><button class="foodSearchBtn" id="toggleCycle">Turn Cycle Tracking On / Off</button></details>
 <details class="card"><summary><b>❤️ Apple Health</b></summary><div class="muted">Apple Health connection becomes available in the iPhone/HealthKit version.</div></details>
+<details class="card" id="accountCard"><summary><b>☁️ Account + Cloud</b></summary><div id="accountStatus" class="softnote">Checking account…</div><div id="accountSignedOut"><label>Email<input id="accountEmail" type="email" autocomplete="email" placeholder="you@example.com"></label><label>Password<input id="accountPassword" type="password" autocomplete="current-password" placeholder="8+ characters"></label><div class="row" style="margin-top:12px"><button type="button" class="foodSearchBtn" id="accountSignIn">Log in</button><button type="button" class="foodSearchBtn" id="accountSignUp">Create account</button></div><div class="muted" style="margin-top:10px">Your current workout data stays on this phone while we connect cloud saving safely.</div></div><div id="accountSignedIn" style="display:none"><button type="button" class="foodSearchBtn" id="accountSignOut">Log out</button></div></details>
 <details class="card"><summary><b>🔐 Privacy & Friends</b></summary><div class="muted">Future controls for exactly what friends can see. Weight, nutrition details, measurements/photos and cycle information will stay private by default.</div></details>
 
 <details class="card"><summary><b>📅 Workout Schedule</b></summary>
@@ -320,6 +321,7 @@ body{zoom:var(--app-scale,1)}
 <div class="setupStep" id="setup2"><button type="button" class="setupBack" id="setupBack1">← Back</button><h2>🎯 What’s your goal?</h2><div class="foodform"><label>Goal<select id="setupGoal"><option value="lose">Lose fat while keeping/building muscle</option><option value="recomp">Recomposition</option><option value="maintain">Maintain</option><option value="build">Build muscle</option></select></label><label>Activity<select id="setupActivity"><option value="1.2">Mostly sedentary</option><option value="1.375">Lightly active</option><option value="1.55" selected>Moderately active</option><option value="1.725">Very active</option></select></label></div><button class="finish" id="setupNext2">Next →</button></div>
 <div class="setupStep" id="setup3"><button type="button" class="setupBack" id="setupBack2">← Back</button><h2>🌸 Cycle tracking</h2><p class="muted">Optional. If you turn it on, the app can estimate your current phase and use symptoms/performance as context for training.</p><div class="choiceGrid"><button class="choiceBtn" id="cycleYes">Yes, use it</button><button class="choiceBtn" id="cycleNo">Not now</button></div><div id="cycleSetupFields" style="display:none;margin-top:12px" class="foodform"><label>Last period started<input type="date" id="lastPeriod"></label><label>Typical cycle length<input inputmode="numeric" id="cycleLength" value="28"></label></div><button class="finish" id="finishSetup">Finish Setup 🔥</button></div>
 </div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const imgs={"Leg Press":"https://p19-lemon8-sign-useast5.tiktokcdn-us.com/tos-useast5-v-3931-tx/o8AFkeqhBICdun3RBgiAJV220BvI0ABEivw16U~tplv-pyavlv3z7u-text-logo%3AQGtpbGxpdHdpdGhrZW56%3Aq75.jpeg","Hip Abduction":"https://s10.localdatacdn.com/on/windsor/6828294/original/P7eCms90RX.jpg","Shoulder Press":"https://cdn.businessyab.com/assets/uploads/57c5849ce2eee52172252ce8df04b61a__united_states_pennsylvania_delaware_county_marple_township_broomall_springfield_road_2920_planet_fitnesshtml.jpg","Seated Hamstring Curl":"https://s3assets.skimble.com/assets/545101/image_iphone.jpg","Calf Raise":"https://i.ebayimg.com/images/g/PikAAOSwiOVl55FO/s-l1200.webp"};
 const P={
@@ -648,4 +650,18 @@ document.querySelectorAll("[data-darkbg]").forEach(b=>b.onclick=()=>{
 });
 
 
-</script></body></html>
+</script>
+<script>
+(function(){
+const U='https://qcewlvswyrndfizjlgas.supabase.co',K='sb_publishable_TVryiWYyr4LaB5-AusYGEQ_vvWIX-Xh',A='https://frankielandman-cmyk.github.io/millies-muscle-builder/';
+const st=document.getElementById('accountStatus'),out=document.getElementById('accountSignedOut'),inside=document.getElementById('accountSignedIn'),em=document.getElementById('accountEmail'),pw=document.getElementById('accountPassword');
+if(!st)return;if(!window.supabase){st.textContent='Account connection could not load. Your workout app still works normally.';return;}
+const cloud=window.supabase.createClient(U,K,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+function show(u){if(u){st.innerHTML='<b>✅ Signed in</b><br>'+String(u.email||'Your account');out.style.display='none';inside.style.display='block';}else{st.innerHTML='<b>Not signed in yet</b><br>Create an account so we can attach your data to you.';out.style.display='block';inside.style.display='none';}}
+async function refresh(){const r=await cloud.auth.getSession();show(r.data.session&&r.data.session.user);}
+document.getElementById('accountSignUp').onclick=async()=>{const e=em.value.trim(),p=pw.value;if(!e||p.length<8){alert('Enter your email and a password with at least 8 characters.');return;}st.textContent='Creating your account…';const r=await cloud.auth.signUp({email:e,password:p,options:{emailRedirectTo:A}});if(r.error){st.textContent='⚠️ '+r.error.message;return;}if(r.data.session){show(r.data.user);alert('Account created! 🎉');}else st.innerHTML='<b>📧 Check your email</b><br>Tap the confirmation link, then come back here and log in.';};
+document.getElementById('accountSignIn').onclick=async()=>{const e=em.value.trim(),p=pw.value;if(!e||!p){alert('Enter your email and password.');return;}st.textContent='Logging in…';const r=await cloud.auth.signInWithPassword({email:e,password:p});if(r.error){st.textContent='⚠️ '+r.error.message;return;}show(r.data.user);};
+document.getElementById('accountSignOut').onclick=async()=>{await cloud.auth.signOut();show(null);};cloud.auth.onAuthStateChange((_e,s)=>show(s&&s.user));refresh();
+})();
+</script>
+</body></html>
