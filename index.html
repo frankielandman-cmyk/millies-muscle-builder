@@ -248,7 +248,7 @@ body.theme-dark .trainQuickNav button.isToday{background:color-mix(in srgb,var(-
   </div>
 </div>
 <main class="app">
-<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.23 • CALORIES REMAINING</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
+<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.24 • EDIT LOGGED FOOD</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
 <section class="card"><div class="row"><div><b>This week</b><div class="muted" style="font-size:13px">Complete all 4 main lifting days</div></div><b id="week" style="font-size:22px">0 / 4</b></div>
 <div class="row" style="margin-top:12px"><div><button class="pill on" data-place="gym" id="gymPlaceBtn">🏋️ Gym</button> <button class="pill" data-place="home">🏠 Home</button></div><button class="ghost" id="custom">🎨 Color</button></div></section>
 <section class="card settings" id="settings"><b>Choose your app color</b><div class="swatches">
@@ -631,6 +631,51 @@ function updateCaloriesRemaining(){
  }catch(e){}
 }
 
+
+function ensureCaloriesRemaining(){
+ try{
+   let total=0;
+   if(S && S.foods){
+     Object.values(S.foods).forEach(arr=>{
+       if(Array.isArray(arr)) total+=arr.reduce((sum,x)=>sum+(Number(x.cal)||0),0);
+     });
+   }
+
+   // Read the actual calorie goal from the visible header first, because that is the value
+   // already being used by the app and avoids relying on an old state key.
+   const all=[...document.querySelectorAll("b,strong,span,div")];
+   const calNode=all.find(n=>{
+     const t=(n.textContent||"").trim();
+     return /^\d[\d,]*\s*\/\s*\d[\d,]*\s*cal$/i.test(t);
+   });
+   if(!calNode)return;
+
+   const match=(calNode.textContent||"").match(/(\d[\d,]*)\s*\/\s*(\d[\d,]*)\s*cal/i);
+   if(!match)return;
+   const goal=Number(match[2].replace(/,/g,""))||0;
+   const left=Math.max(0,Math.round(goal-total));
+
+   let wrap=calNode.parentElement;
+   let el=document.getElementById("caloriesRemaining");
+   if(!el){
+     el=document.createElement("div");
+     el.id="caloriesRemaining";
+     el.style.fontSize="14px";
+     el.style.fontWeight="800";
+     el.style.marginTop="3px";
+     el.style.opacity=".82";
+     el.style.textAlign="right";
+     // Put it directly beneath the calorie fraction.
+     if(wrap){
+       wrap.appendChild(el);
+     }else{
+       calNode.insertAdjacentElement("afterend",el);
+     }
+   }
+   el.textContent=left.toLocaleString()+" cal remaining";
+ }catch(e){}
+}
+
 function nutritionSummary(){
  let t=totals(),n=S.nutrition;
  const items=[["Protein",t.p,+n.proGoal||0,"g"],["Carbs",t.c,+n.carbGoal||0,"g"],["Fat",t.f,+n.fatGoal||0,"g"],["Fiber",t.fi,+n.fiberGoal||0,"g"]];
@@ -638,6 +683,8 @@ function nutritionSummary(){
  nutriSummary.innerHTML=`<div class="macroGrid">${items.map(x=>`<div class="macroBox"><b>${x[1]}${x[3]}</b><small>${x[0]} • goal ${x[2]||"—"}${x[3]}</small><div class="macroBar"><span style="width:${x[2]?Math.min(100,x[1]/x[2]*100):0}%"></span></div></div>`).join("")}</div>`;
 
  updateCaloriesRemaining();
+
+ ensureCaloriesRemaining();
 }
 const mockFoods=[
 {name:"Egg, large",serv:"1 large egg",cal:72,p:6,c:0,f:5,fi:0},
@@ -956,11 +1003,126 @@ barcodePhotoInput.onchange=async e=>{
    barcodePhotoInput.value="";
  }
 }
+
+let editingFoodRef=null;
+
+function inferOriginalFood(x){
+ const qty=Number(x.qty)||1;
+ const baseServ=x.baseServ||x.serv||"1 serving";
+ const div=n=>Math.round(((Number(n)||0)/qty)*10)/10;
+ return {
+   ...x,
+   baseServ,
+   serv:baseServ,
+   cal:Math.round((Number(x.cal)||0)/qty),
+   p:div(x.p),
+   c:div(x.c),
+   f:div(x.f),
+   fi:div(x.fi)
+ };
+}
+
+function openLoggedFoodEditor(meal,index){
+ const x=S.foods[meal] && S.foods[meal][index];
+ if(!x)return;
+ const base=inferOriginalFood(x);
+ const currentQty=Number(x.qty)||1;
+ editingFoodRef={meal,index,base};
+
+ editFoodMealLabel.textContent="Logged in "+meal;
+ editFoodName.textContent=x.name||"Food";
+ editFoodBase.textContent=(x.brand?x.brand+" • ":"")+"Base: "+base.baseServ;
+ editFoodQty.value=currentQty;
+ editFoodUnit.textContent=servingUnitLabel(base);
+ refreshLoggedFoodPreview();
+ editFoodModal.classList.add("on");
+}
+
+function refreshLoggedFoodPreview(){
+ if(!editingFoodRef)return;
+ const q=Math.max(.01,Number(editFoodQty.value)||1);
+ const x=scaleFood(editingFoodRef.base,q);
+ editFoodPreview.textContent=
+   x.cal+" cal • "+x.p+"g protein • "+x.c+"g carbs • "+x.f+"g fat • "+x.fi+"g fiber";
+}
+
+editFoodQty.addEventListener("input",refreshLoggedFoodPreview);
+editFoodQty.addEventListener("change",refreshLoggedFoodPreview);
+document.querySelectorAll(".editQuickQty").forEach(b=>b.onclick=()=>{
+ editFoodQty.value=b.dataset.q;
+ refreshLoggedFoodPreview();
+});
+closeEditFood.onclick=()=>editFoodModal.classList.remove("on");
+editFoodModal.onclick=e=>{if(e.target===editFoodModal)editFoodModal.classList.remove("on")};
+
+saveFoodEdit.onclick=()=>{
+ if(!editingFoodRef)return;
+ const {meal,index,base}=editingFoodRef;
+ const q=Math.max(.01,Number(editFoodQty.value)||1);
+ S.foods[meal][index]=scaleFood(base,q);
+ commitDiary();
+ renderMeals();
+ nutritionSummary();
+ editFoodModal.classList.remove("on");
+};
+
+deleteFoodEdit.onclick=()=>{
+ if(!editingFoodRef)return;
+ const {meal,index}=editingFoodRef;
+ S.foods[meal].splice(index,1);
+ commitDiary();
+ renderMeals();
+ nutritionSummary();
+ editFoodModal.classList.remove("on");
+};
+
 function renderMeals(){
  let root=document.getElementById("mealAccordions");
- root.innerHTML=meals.map((m)=>{let arr=S.foods[m]||[],mt=arr.reduce((z,x)=>z+(+x.cal||0),0),mp=arr.reduce((z,x)=>z+(+x.p||0),0);return `<details class="card"><summary><span class="mealTop"><b>${icons[m]} ${m}</b><span class="mealStats">${mt} cal • ${mp}g protein</span></span></summary><div>${arr.map((x,i)=>`<div class="foodrow"><div class="row"><div><b>${x.name}</b><div class="foodmac">${x.serv?x.serv+" • ":""}${x.cal} cal • P ${x.p}g • C ${x.c}g • F ${x.f}g • Fiber ${x.fi}g</div></div><button class="mini" data-del="${m}|${i}">×</button></div></div>`).join("")||'<div class="muted" style="font-size:13px">Nothing logged yet.</div>'}<button class="foodSearchBtn" data-openfood="${m}">＋ Add Food</button></div></details>`}).join("");
+ root.innerHTML=meals.map((m)=>{
+   let arr=S.foods[m]||[],
+       mt=arr.reduce((z,x)=>z+(+x.cal||0),0),
+       mp=arr.reduce((z,x)=>z+(+x.p||0),0);
+
+   return `<details class="card">
+     <summary>
+       <span class="mealTop">
+         <b>${icons[m]} ${m}</b>
+         <span class="mealStats">${mt} cal • ${mp}g protein</span>
+       </span>
+     </summary>
+     <div>
+       ${arr.map((x,i)=>`
+         <div class="foodrow" data-editfood="${m}|${i}" style="cursor:pointer">
+           <div class="row">
+             <div style="min-width:0;flex:1">
+               <b>${x.name}</b>
+               <div class="foodmac">${x.serv?x.serv+" • ":""}${x.cal} cal • P ${x.p}g • C ${x.c}g • F ${x.f}g • Fiber ${x.fi}g</div>
+               <div class="muted" style="font-size:12px;margin-top:4px">Tap to edit amount</div>
+             </div>
+             <button class="mini" data-del="${m}|${i}" aria-label="Delete ${x.name}">×</button>
+           </div>
+         </div>`).join("")||'<div class="muted" style="font-size:13px">Nothing logged yet.</div>'}
+       <button class="foodSearchBtn" data-openfood="${m}">＋ Add Food</button>
+     </div>
+   </details>`;
+ }).join("");
+
  root.querySelectorAll("[data-openfood]").forEach(b=>b.onclick=()=>openFood(b.dataset.openfood));
- root.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{let [m,i]=b.dataset.del.split("|");S.foods[m].splice(+i,1);commitDiary();renderMeals();nutritionSummary()})
+
+ root.querySelectorAll("[data-editfood]").forEach(row=>row.onclick=e=>{
+   if(e.target.closest("[data-del]"))return;
+   let [m,i]=row.dataset.editfood.split("|");
+   openLoggedFoodEditor(m,+i);
+ });
+
+ root.querySelectorAll("[data-del]").forEach(b=>b.onclick=e=>{
+   e.stopPropagation();
+   let [m,i]=b.dataset.del.split("|");
+   S.foods[m].splice(+i,1);
+   commitDiary();
+   renderMeals();
+   nutritionSummary();
+ });
 }
 closeFood.onclick=()=>{clearFoodPhoto();foodModal.classList.remove("on")};foodModal.onclick=e=>{if(e.target===foodModal){clearFoodPhoto();foodModal.classList.remove("on")}};
 foodSearch.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();liveFoodSearch()}};
@@ -1687,4 +1849,46 @@ document.getElementById('accountSignIn').onclick=async()=>{const e=em.value.trim
 document.getElementById('accountSignOut').onclick=async()=>{await cloud.auth.signOut();show(null);};cloud.auth.onAuthStateChange((_e,s)=>show(s&&s.user));refresh();
 })();
 </script>
+
+<div class="modal" id="editFoodModal">
+  <div class="modalBox" style="max-width:620px">
+    <div class="row">
+      <div>
+        <h2 style="margin:0">Edit Food</h2>
+        <div class="muted" id="editFoodMealLabel"></div>
+      </div>
+      <button class="mini" id="closeEditFood">×</button>
+    </div>
+
+    <div class="foodChoice" style="margin-top:14px">
+      <div class="name" id="editFoodName"></div>
+      <div class="sub" id="editFoodBase"></div>
+
+      <div style="margin-top:14px">
+        <label class="muted" style="font-size:13px">How much did you have?</label>
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end;margin-top:6px">
+          <input id="editFoodQty" type="number" inputmode="decimal" min="0.01" step="0.25" value="1" style="min-height:48px">
+          <div id="editFoodUnit" style="padding:0 0 12px;font-weight:800;min-width:70px">serving</div>
+        </div>
+
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:7px">
+          <button type="button" class="mini editQuickQty" data-q="0.25">¼</button>
+          <button type="button" class="mini editQuickQty" data-q="0.5">½</button>
+          <button type="button" class="mini editQuickQty" data-q="0.75">¾</button>
+          <button type="button" class="mini editQuickQty" data-q="1">1</button>
+          <button type="button" class="mini editQuickQty" data-q="1.5">1½</button>
+          <button type="button" class="mini editQuickQty" data-q="2">2</button>
+          <button type="button" class="mini editQuickQty" data-q="3">3</button>
+          <button type="button" class="mini editQuickQty" data-q="4">4</button>
+        </div>
+      </div>
+
+      <div id="editFoodPreview" class="sub" style="font-size:15px;margin-top:14px"></div>
+
+      <button id="saveFoodEdit" style="width:100%;min-height:50px;margin-top:14px">Save changes</button>
+      <button id="deleteFoodEdit" class="ghost" style="width:100%;min-height:48px;margin-top:8px">Delete food</button>
+    </div>
+  </div>
+</div>
+
 </body></html>
