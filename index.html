@@ -231,7 +231,7 @@ body{zoom:var(--app-scale,1)}
   </div>
 </div>
 <main class="app">
-<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.2 • BUTTON FIX</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
+<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.3 • NUTRITION SETUP</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
 <section class="card"><div class="row"><div><b>This week</b><div class="muted" style="font-size:13px">Complete all 4 main lifting days</div></div><b id="week" style="font-size:22px">0 / 4</b></div>
 <div class="row" style="margin-top:12px"><div><button class="pill on" data-place="gym">🏋️ Planet Fitness</button> <button class="pill" data-place="home">🏠 Home</button></div><button class="ghost" id="custom">🎨 Color</button></div></section>
 <section class="card settings" id="settings"><b>Choose your app color</b><div class="swatches">
@@ -264,7 +264,7 @@ body{zoom:var(--app-scale,1)}
 <div class="nutritionHero"><div class="row" style="align-items:center"><button class="mini" id="prevDiary">←</button><div style="text-align:center;flex:1"><h2 id="diaryTitle" style="margin:4px 0">🥗 Today</h2><div class="muted" id="diaryDate"></div></div><button class="mini" id="nextDiary">→</button></div><button class="foodSearchBtn" id="todayDiary" style="margin-top:8px">Today</button></div>
 <div class="card"><div class="row"><h3 style="margin:0">Daily nutrition</h3><b id="calHeadline">0 cal</b></div><div id="nutriSummary"></div></div>
 
-<details class="card goalSettingsCard"><summary><b>⚙️ Set / Change My Goals</b><span class="muted" style="font-size:12px">optional</span></summary>
+<details class="card goalSettingsCard"><summary><b>⚙️ Set / Change My Goals</b><span class="muted" style="font-size:12px">optional</span></summary><button type="button" class="foodSearchBtn" id="openNutritionSetup" style="margin-top:12px">✨ Set My Nutrition Goals</button>
 <div class="logs" style="margin-top:12px">
 <label>Current weight (lb)<input id="nWeight" inputmode="decimal" placeholder="e.g. 180"></label><label>Goal weight (lb)<input id="nGoalWeight" inputmode="decimal" placeholder="e.g. 150"></label>
 <label>Height — feet<input id="nFeet" inputmode="numeric" placeholder="5"></label><label>Height — inches<input id="nInches" inputmode="numeric" placeholder="0"></label>
@@ -294,6 +294,60 @@ body{zoom:var(--app-scale,1)}
 <details class="card"><summary><b>📷 Scan / Search Food</b></summary><p class="muted">Coming in the connected version: barcode scanning and food-database search. Manual meal logging works now.</p></details>
 </section>
 
+
+
+<div class="modal" id="nutritionSetupModal">
+  <div class="modalCard">
+    <h2>🍓 Set My Nutrition Goals</h2>
+    <p class="muted">Tell me your goal and how quickly you want to lose. I’ll suggest a starting calorie and macro target.</p>
+
+    <label>Current weight (lb)</label>
+    <input id="nsWeight" inputmode="decimal" placeholder="Current weight">
+
+    <label>Goal weight (lb)</label>
+    <input id="nsGoalWeight" inputmode="decimal" placeholder="Goal weight">
+
+    <label>Height</label>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <input id="nsFeet" inputmode="numeric" placeholder="Feet">
+      <input id="nsInches" inputmode="numeric" placeholder="Inches">
+    </div>
+
+    <label>Age</label>
+    <input id="nsAge" inputmode="numeric" placeholder="Age">
+
+    <label>Activity level</label>
+    <select id="nsActivity">
+      <option value="1.2">Mostly sedentary</option>
+      <option value="1.375">Lightly active</option>
+      <option value="1.55" selected>Train 3–5 days/week</option>
+      <option value="1.725">Very active</option>
+    </select>
+
+    <label>Goal</label>
+    <select id="nsGoal">
+      <option value="lose">Lose fat</option>
+      <option value="recomp">Lose fat + build muscle</option>
+      <option value="maintain">Maintain</option>
+      <option value="build">Build muscle</option>
+    </select>
+
+    <div id="nsRateWrap">
+      <label>How much do you want to lose per week?</label>
+      <select id="nsRate">
+        <option value=".5">0.5 lb/week</option>
+        <option value="1" selected>1 lb/week</option>
+        <option value="1.5">1.5 lb/week</option>
+        <option value="2">2 lb/week</option>
+      </select>
+    </div>
+
+    <button type="button" class="finish" id="nsCalculate">Calculate my targets</button>
+    <div class="softnote" id="nsResult" style="display:none;margin-top:12px"></div>
+    <button type="button" class="finish" id="nsUse" style="display:none">Use these targets</button>
+    <button type="button" class="foodSearchBtn" id="nsClose">Close</button>
+  </div>
+</div>
 
 <div class="modal" id="monthModal"><div class="sheet">
 <div class="sheetHead"><div><h2 style="margin:0">Training Calendar</h2><div class="muted">Tap any date to open its scheduled workout.</div></div><button class="mini" id="closeMonth">✕</button></div>
@@ -681,6 +735,149 @@ document.querySelectorAll("[data-darkbg]").forEach(b=>b.onclick=()=>{
 });
 
 
+
+
+// Stable 12.4.3 Nutrition Setup
+(function(){
+  const el = id => document.getElementById(id);
+  let suggested = null;
+
+  function savedOnboarding(){
+    try { return JSON.parse(localStorage.getItem("MMB_onboarding_v1")||"{}").data || {}; }
+    catch(e){ return {}; }
+  }
+
+  function openNutritionSetup(){
+    const p = S.profile || {};
+    const n = S.nutrition || {};
+    const ob = savedOnboarding();
+
+    el("nsWeight").value = n.nWeight || p.weight || ob.weight || "";
+    el("nsGoalWeight").value = n.nGoalWeight || p.goalWeight || ob.goalWeight || "";
+    el("nsFeet").value = n.nFeet || p.feet || "";
+    el("nsInches").value = n.nInches || p.inches || "";
+    el("nsAge").value = n.nAge || p.age || ob.age || "";
+    el("nsActivity").value = String(n.nActivity || p.activity || 1.55);
+
+    const oldGoal = String(n.nGoal || p.goal || ob.goal || "").toLowerCase();
+    el("nsGoal").value = oldGoal.includes("build muscle") && !oldGoal.includes("lose") ? "build"
+      : oldGoal.includes("maintain") ? "maintain"
+      : oldGoal.includes("lose") && oldGoal.includes("muscle") ? "recomp"
+      : "lose";
+
+    el("nsRate").value = String(n.weeklyRate || 1);
+    el("nsRateWrap").style.display = (el("nsGoal").value==="lose" || el("nsGoal").value==="recomp") ? "block" : "none";
+    el("nsResult").style.display = "none";
+    el("nsUse").style.display = "none";
+    suggested = null;
+    el("nutritionSetupModal").classList.add("show");
+  }
+
+  el("openNutritionSetup").addEventListener("click", openNutritionSetup);
+  el("nsClose").addEventListener("click", ()=>el("nutritionSetupModal").classList.remove("show"));
+  el("nsGoal").addEventListener("change", ()=>{
+    el("nsRateWrap").style.display = (el("nsGoal").value==="lose" || el("nsGoal").value==="recomp") ? "block" : "none";
+  });
+
+  el("nsCalculate").addEventListener("click", ()=>{
+    const w = +el("nsWeight").value;
+    const gw = +el("nsGoalWeight").value;
+    const ft = +el("nsFeet").value;
+    const inch = +el("nsInches").value;
+    const age = +el("nsAge").value;
+    const act = +el("nsActivity").value;
+    const goal = el("nsGoal").value;
+    const rate = +el("nsRate").value || 1;
+    const heightIn = ft*12 + inch;
+
+    if(!w || !gw || !heightIn || !age){
+      el("nsResult").innerHTML = "<b>Add your current weight, goal weight, height, and age first.</b>";
+      el("nsResult").style.display = "block";
+      return;
+    }
+
+    const kg = w * 0.453592;
+    const cm = heightIn * 2.54;
+    const bmr = 10*kg + 6.25*cm - 5*age - 161;
+    const maintenance = bmr * act;
+
+    let calories = maintenance;
+    let note = "";
+
+    if(goal==="lose" || goal==="recomp"){
+      const requestedDeficit = rate * 3500 / 7;
+      const maxDeficit = maintenance * 0.25;
+      const deficit = Math.min(requestedDeficit, maxDeficit);
+      calories = maintenance - deficit;
+      note = deficit < requestedDeficit
+        ? `You chose ${rate} lb/week. That pace would require a larger estimated deficit, so I used a more moderate starting target.`
+        : `This is built around about ${rate} lb/week.`;
+    } else if(goal==="build"){
+      calories = maintenance * 1.08;
+      note = "This uses a modest calorie surplus for muscle gain.";
+    } else {
+      note = "This is around your estimated maintenance calories.";
+    }
+
+    calories = Math.max(1200, Math.round(calories/10)*10);
+    const protein = Math.round(Math.min(w,gw) * 0.85);
+    const fat = Math.round(calories * 0.28 / 9);
+    const carbs = Math.max(0, Math.round((calories - protein*4 - fat*9)/4));
+    const fiber = Math.max(25, Math.round(calories/1000*14));
+    const water = Math.round(w*0.5/5)*5;
+
+    suggested = {
+      calGoal: calories,
+      proGoal: protein,
+      carbGoal: carbs,
+      fatGoal: fat,
+      fiberGoal: fiber,
+      waterGoal: water,
+      nWeight: w,
+      nGoalWeight: gw,
+      nFeet: ft,
+      nInches: inch,
+      nAge: age,
+      nActivity: act,
+      nGoal: goal,
+      weeklyRate: rate
+    };
+
+    el("nsResult").innerHTML =
+      `<b style="font-size:21px">${calories} calories/day</b><br>` +
+      `${protein}g protein • ${carbs}g carbs • ${fat}g fat<br>` +
+      `${fiber}g fiber • ${water} oz water<br>` +
+      `<span class="muted">${note}<br>Estimated maintenance: ~${Math.round(maintenance/10)*10} calories/day.</span>`;
+
+    el("nsResult").style.display = "block";
+    el("nsUse").style.display = "block";
+  });
+
+  el("nsUse").addEventListener("click", ()=>{
+    if(!suggested) return;
+    Object.assign(S.nutrition, suggested);
+    S.nutritionCoachComplete = true;
+
+    ["calGoal","proGoal","carbGoal","fatGoal","fiberGoal","waterGoal",
+     "nWeight","nGoalWeight","nFeet","nInches","nAge","nGoal","nActivity"].forEach(id=>{
+      const target = document.getElementById(id);
+      if(target && S.nutrition[id] != null) target.value = S.nutrition[id];
+    });
+
+    save();
+    try { nutritionSummary(); waterUI(); refreshPersistentUI(); } catch(e){}
+    el("nutritionSetupModal").classList.remove("show");
+  });
+
+  // First visit to Nutrition: offer setup automatically if it hasn't been completed.
+  const originalShowMain = showMain;
+  showMain = function(name){
+    originalShowMain(name);
+    if(name==="nutrition" && !S.nutritionCoachComplete){
+      setTimeout(openNutritionSetup, 120);
+    }
+  };
+})();
 
 // Stable 12.1 onboarding — additive only; existing app state/storage remains MMBv3.
 const ONBOARD_KEY="MMB_onboarding_v1";
