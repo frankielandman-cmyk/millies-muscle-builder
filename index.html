@@ -457,7 +457,7 @@ body.theme-dark .trainQuickNav button.isToday{background:color-mix(in srgb,var(-
 <div class="softnote" id="trainingDaysNote">Your weekly goal is 4 training days.</div>
 </details><details class="card"><summary><b>ℹ️ About</b></summary>
 <div class="muted">Millie’s Muscle Builder</div>
-<div class="quick" style="margin-top:10px"><b>Version 12.4.34</b><br>Train smarter. Eat better. Track your progress.</div>
+<div class="quick" style="margin-top:10px"><b>Version 12.4.35</b><br>Train smarter. Eat better. Track your progress.</div>
 </details>
 <details class="card"><summary><b>📅 Workout Schedule</b></summary>
 <div class="muted">The app builds a suggested week from your 3–7 day training goal. You can still change any individual day here.</div>
@@ -787,58 +787,92 @@ function homeEquipmentSummary(){
  const a=S.homeEquipment||[];
  return a.length?a.join(", "):"No home equipment selected yet";
 }
-function chooseHomeAlternative(e){
- const name=String(e?.[0]||"").toLowerCase();
- const muscle=String(e?.[3]||"").toLowerCase();
+function homeExerciseFor(e){
+ const n=String(e?.[0]||"").toLowerCase();
+ const m=String(e?.[3]||"").toLowerCase();
+ const has=(...x)=>hasHomeEquipment(...x);
+ const out=(name,use,how)=>({name,use,how});
 
- // Prefer close matches based on saved equipment.
- if(hasHomeEquipment("Smith machine")){
-   if(name.includes("squat"))return "Smith Machine Squat";
-   if(name.includes("romanian")||name.includes("rdl"))return "Smith Machine Romanian Deadlift";
-   if(name.includes("hip thrust")||name.includes("glute"))return "Smith Machine Hip Thrust";
-   if(name.includes("shoulder press"))return "Smith Machine Shoulder Press";
+ // Lower body
+ if(n.includes("hip abduction")||m.includes("side glute")){
+   if(has("Resistance bands"))return out("Banded Hip Abduction","Resistance band","Place the band just above your knees. Sit on a bench/chair or stand supported, press your knees apart under control, pause, then return slowly.");
+   if(has("Cable machine"))return out("Cable Hip Abduction","Cable machine + ankle strap","Set the cable low, attach the ankle strap, stand tall holding the machine, and sweep the working leg out to the side without leaning.");
+   return out("Side-Lying Leg Raise","Bodyweight","Lie on your side with your bottom knee slightly bent. Keep the top leg straight and lift it up and slightly back, then lower slowly.");
  }
- if(hasHomeEquipment("Cable machine")){
-   if(name.includes("pulldown")||name.includes("pull-up"))return "Lat Pulldown";
-   if(name.includes("row"))return "Seated Cable Row";
-   if(name.includes("triceps"))return "Triceps Pressdown";
-   if(name.includes("curl"))return "Cable Curl";
-   if(name.includes("lateral"))return "Cable Lateral Raise";
-   if(name.includes("ab"))return "Cable Crunch";
+ if(n.includes("leg press")){
+   if(has("Smith machine"))return out("Smith Machine Squat","Smith machine","Set the bar around shoulder height. Stand slightly forward under it, brace, squat to a comfortable depth, then drive through your feet to stand.");
+   if(has("Barbell + plates","Squat rack"))return out("Back Squat","Barbell + squat rack","Brace your core, sit your hips down between your knees, keep your whole foot planted, then drive up under control.");
+   if(has("Dumbbells","Adjustable dumbbells"))return out("Goblet Squat","One dumbbell","Hold one dumbbell at your chest, sit down between your knees, keep your chest tall, then push through your feet to stand.");
+   if(has("Resistance bands"))return out("Banded Squat","Resistance band","Stand on a long band and hold it at shoulder height. Squat under control, then stand against the band resistance.");
+   return out("Bodyweight Squat","Bodyweight","Stand about shoulder-width apart, sit your hips down between your knees, then drive through your feet to stand.");
  }
- if(hasHomeEquipment("Leg press") && (muscle.includes("quad")||muscle.includes("glute")))return "Leg Press";
- if(hasHomeEquipment("Hamstring curl") && muscle.includes("hamstring"))return "Seated Hamstring Curl";
- if(hasHomeEquipment("Leg extension") && muscle.includes("quad"))return "Leg Extension";
- if(hasHomeEquipment("Hip abduction") && muscle.includes("glute"))return "Hip Abduction";
- if(hasHomeEquipment("Glute drive / hip thrust") && muscle.includes("glute"))return "Glute Drive Machine";
- if(hasHomeEquipment("Barbell + plates","Squat rack")){
-   if(name.includes("bench")||muscle.includes("chest"))return "Barbell Bench Press";
-   if(muscle.includes("quad")||name.includes("squat"))return "Back Squat";
-   if(muscle.includes("hamstring")||name.includes("rdl"))return "Romanian Deadlift";
-   if(muscle.includes("back")||name.includes("row"))return "Barbell Row";
+ if(n.includes("leg extension")||m==="quads"){
+   if(has("Leg extension"))return out("Leg Extension","Leg extension machine","Line your knees up with the machine pivot, place the pad above your ankles, extend your knees without locking hard, then lower slowly.");
+   if(has("Resistance bands"))return out("Banded Leg Extension","Resistance band + chair/bench","Anchor the band behind you and loop it around your ankle. Sit tall, straighten your knee, squeeze your quad, then return slowly.");
+   if(has("Dumbbells","Adjustable dumbbells"))return out("Heel-Elevated Goblet Squat","Dumbbell + small heel support","Hold a dumbbell at your chest with heels slightly elevated. Keep your torso tall and let your knees travel forward as you squat.");
+   return out("Wall Sit","Wall","Slide down the wall until your thighs are near parallel, keep your back supported, and hold while keeping tension in your quads.");
  }
- if(hasHomeEquipment("Dumbbells","Adjustable dumbbells")){
-   if(muscle.includes("chest"))return "Dumbbell Bench Press";
-   if(muscle.includes("back"))return "One-Arm Dumbbell Row";
-   if(muscle.includes("shoulder"))return "Dumbbell Shoulder Press";
-   if(muscle.includes("biceps"))return "Dumbbell Curl";
-   if(muscle.includes("triceps"))return "Overhead Dumbbell Extension";
-   if(muscle.includes("quad")||muscle.includes("glute"))return "Goblet Squat";
-   if(muscle.includes("hamstring"))return "Romanian Deadlift";
+ if(n.includes("hamstring curl")||m.includes("hamstring")){
+   if(has("Hamstring curl"))return out("Hamstring Curl","Hamstring curl machine","Set the pad just above your heels, keep your hips down, curl your heels toward you, squeeze, then lower slowly.");
+   if(has("Resistance bands"))return out("Banded Hamstring Curl","Resistance band","Anchor the band low, loop it around your ankle, curl your heel toward your glute, then return slowly.");
+   if(has("Dumbbells","Adjustable dumbbells"))return out("Dumbbell Romanian Deadlift","Dumbbells","Keep a soft knee bend, push your hips back with the weights close to your legs, feel the hamstrings stretch, then squeeze your glutes to stand.");
+   return out("Hamstring Walkout","Bodyweight","Start in a glute bridge. Take small heel steps away from your hips, then walk them back in while keeping your hips lifted.");
  }
- if(hasHomeEquipment("Resistance bands")){
-   if(muscle.includes("back"))return "Band Row / Pulldown";
-   if(muscle.includes("glute"))return "Banded Glute Bridge / Abduction";
-   if(muscle.includes("shoulder"))return "Band Lateral Raise";
-   if(muscle.includes("biceps"))return "Band Curl";
-   if(muscle.includes("triceps"))return "Band Pressdown / Extension";
+ if(n.includes("hip thrust")||n.includes("glute drive")||m.includes("glute")){
+   if(has("Glute drive / hip thrust"))return out("Glute Drive / Hip Thrust","Glute drive or hip-thrust machine","Set the pad across your hips, brace, drive through your heels, squeeze your glutes at the top, then lower under control.");
+   if(has("Smith machine","Bench"))return out("Smith Machine Hip Thrust","Smith machine + bench","Place your upper back on the bench and the padded bar across your hips. Drive through your heels until your hips are fully extended, squeeze, then lower.");
+   if(has("Barbell + plates","Bench"))return out("Barbell Hip Thrust","Barbell + bench","Rest your upper back on the bench, pad the bar across your hips, drive through your heels, squeeze your glutes, then lower slowly.");
+   if(has("Dumbbells","Adjustable dumbbells","Bench"))return out("Dumbbell Hip Thrust","Dumbbell + bench","Place your upper back on the bench and a dumbbell across your hips. Drive your hips up, squeeze your glutes, then lower under control.");
+   if(has("Resistance bands"))return out("Banded Glute Bridge","Resistance band","Place the band above your knees. Lie on your back, keep your knees gently pressing out, drive through your heels, squeeze, then lower.");
+   return out("Glute Bridge","Bodyweight","Lie on your back with knees bent. Drive through your heels, squeeze your glutes at the top, then lower slowly.");
  }
- // Final fallback stays bodyweight-friendly.
- if(muscle.includes("chest"))return "Push-Up";
- if(muscle.includes("quad")||muscle.includes("glute"))return "Bodyweight Squat / Reverse Lunge";
- if(muscle.includes("hamstring"))return "Single-Leg Hip Hinge / Glute Bridge";
- if(muscle.includes("core")||muscle.includes("abs"))return "Plank / Reverse Crunch";
- return e?.[8]||"Bodyweight version";
+
+ // Upper body
+ if(m.includes("chest")||n.includes("chest press")||n.includes("bench press")){
+   if(has("Smith machine","Bench"))return out("Smith Machine Bench Press","Smith machine + bench","Set the bench under the bar, lower the bar toward mid-chest with control, then press up while keeping your shoulders set.");
+   if(has("Barbell + plates","Bench"))return out("Barbell Bench Press","Barbell + bench","Keep your shoulder blades set, lower the bar toward mid-chest, then press up without bouncing.");
+   if(has("Dumbbells","Adjustable dumbbells","Bench"))return out("Dumbbell Bench Press","Dumbbells + bench","Lower the dumbbells beside your chest with control, then press them up while keeping your shoulders down and back.");
+   return out("Push-Up","Bodyweight","Keep your body in one straight line, lower your chest between your hands, then press the floor away.");
+ }
+ if(m.includes("back")||n.includes("row")||n.includes("pulldown")){
+   if(has("Cable machine")){
+     if(n.includes("pulldown"))return out("Lat Pulldown","Cable machine + pulldown attachment","Pull the bar toward your upper chest while driving your elbows down, then return slowly without shrugging.");
+     return out("Seated Cable Row","Cable machine + row handle","Sit tall, pull the handle toward your lower ribs, squeeze your shoulder blades, then return with control.");
+   }
+   if(has("Dumbbells","Adjustable dumbbells"))return out("One-Arm Dumbbell Row","Dumbbell + bench/support","Brace one hand on a bench or sturdy surface, pull the dumbbell toward your hip, squeeze your back, then lower slowly.");
+   if(has("Resistance bands"))return out("Band Row","Resistance band + secure anchor","Anchor the band around chest height, pull your elbows back toward your ribs, squeeze your shoulder blades, then return slowly.");
+   if(has("Pull-up bar"))return out("Assisted Pull-Up / Hang","Pull-up bar","Use assistance if needed. Pull your chest toward the bar by driving your elbows down, then lower under control.");
+ }
+ if(m.includes("shoulder")||n.includes("shoulder press")){
+   if(has("Dumbbells","Adjustable dumbbells"))return out("Dumbbell Shoulder Press","Dumbbells","Start with dumbbells near shoulder height, brace your core, press overhead, then lower under control.");
+   if(has("Resistance bands"))return out("Band Shoulder Press","Resistance band","Stand on the band, start at shoulder height, press overhead while keeping your ribs down, then lower slowly.");
+   if(has("Smith machine"))return out("Smith Machine Shoulder Press","Smith machine + bench","Set an upright bench under the bar, press overhead without over-arching your back, then lower to about chin level.");
+ }
+ if(m.includes("biceps")||n.includes("curl")){
+   if(has("Dumbbells","Adjustable dumbbells"))return out("Dumbbell Curl","Dumbbells","Keep your elbows close to your sides, curl the weights up without swinging, squeeze, then lower slowly.");
+   if(has("Resistance bands"))return out("Band Curl","Resistance band","Stand on the band, keep your elbows tucked, curl your hands toward your shoulders, then return slowly.");
+   if(has("Cable machine"))return out("Cable Curl","Cable machine + handle/bar","Keep your elbows still, curl the handle toward you, squeeze your biceps, then lower under control.");
+ }
+ if(m.includes("triceps")||n.includes("tricep")){
+   if(has("Cable machine"))return out("Triceps Pressdown","Cable machine + rope/bar","Keep your elbows pinned to your sides, press the attachment down until your arms straighten, then return slowly.");
+   if(has("Dumbbells","Adjustable dumbbells"))return out("Overhead Dumbbell Triceps Extension","One dumbbell","Hold the dumbbell overhead, bend only at the elbows to lower it behind your head, then extend your arms.");
+   if(has("Resistance bands"))return out("Band Triceps Pressdown","Resistance band + high anchor","Anchor the band overhead, keep your elbows tucked, press your hands down until your arms straighten, then return slowly.");
+ }
+ if(m.includes("core")||m.includes("abs")||n.includes("crunch")){
+   if(has("Cable machine"))return out("Cable Crunch","Cable machine + rope","Kneel facing the cable, keep your hips mostly still, curl your ribs toward your pelvis, then return with control.");
+   return out("Reverse Crunch","Bodyweight","Lie on your back, bring your knees toward your chest by curling your pelvis up slightly, then lower slowly.");
+ }
+ if(n.includes("treadmill")||m.includes("cardio")){
+   if(has("Treadmill"))return out("Incline Treadmill Walk","Treadmill","Choose a brisk pace and manageable incline. Stay tall and avoid hanging on the rails.");
+   if(has("Bike / Peloton"))return out("Bike / Peloton","Bike / Peloton","Use steady resistance at a pace you can sustain while keeping your posture tall.");
+   return out("Brisk Walk / March","Bodyweight","Walk outside or march briskly in place, keeping a steady pace and relaxed shoulders.");
+ }
+
+ return out(e?.[8]||e?.[0]||"Home Exercise", "Your saved home equipment", e?.[5]||"Move slowly and with control.");
+}
+function chooseHomeAlternative(e){
+ const h=homeExerciseFor(e);
+ return `<b>${h.name}</b><br><b>Use:</b> ${h.use}<br>${h.how}`;
 }
 
 function render(){
@@ -896,9 +930,9 @@ panel.innerHTML=`<div class="card" style="margin:8px 0 12px;padding:14px 16px">
     ${Object.entries(P).filter(([k,v])=>!v.r).map(([k,v])=>`<button type="button" data-switchworkout="${k}">🏋️ ${v.n}</button>`).join("")}
   </div>
 </div>
-</div>`+restFlex+exList.map((e,i)=>{let k=S.day+"-"+i,L=TD.logs[k]||{},sets=TD.sets[k]||[],pic=S.place==="gym"&&imgs[e[0]]?`<button class="mini" data-pic="pic-${i}">📸 Machine</button><img id="pic-${i}" class="pic" src="${imgs[e[0]]}" alt="${e[0]} reference" style="display:none" onerror="this.style.display='none'">`:"";return `<article class="card ex"><div class="row"><div><h3>${i+1}. ${e[0]}</h3><b>${e[1]} × ${e[2]}</b></div><div style="display:flex;gap:6px;align-items:center"><span class="tag">🎯 ${e[3]}</span><button type="button" class="mini" data-removeexercise="${i}" aria-label="Remove ${e[0]}">×</button></div></div>
+</div>`+restFlex+exList.map((e,i)=>{let k=S.day+"-"+i,L=TD.logs[k]||{},sets=TD.sets[k]||[],pic=S.place==="gym"&&imgs[e[0]]?`<button class="mini" data-pic="pic-${i}">📸 Machine</button><img id="pic-${i}" class="pic" src="${imgs[e[0]]}" alt="${e[0]} reference" style="display:none" onerror="this.style.display='none'">`:"";return `<article class="card ex"><div class="row"><div>${S.place==="home"?(()=>{const h=homeExerciseFor(e);return `<h3>${i+1}. ${h.name}</h3><b>${e[1]}</b><div class="muted" style="font-size:12px;margin-top:4px">🏠 Use: ${h.use}</div>`})():`<h3>${i+1}. ${e[0]}</h3><b>${e[1]}</b>`}</div><div style="display:flex;gap:6px;align-items:center"><span class="tag">🎯 ${e[3]}</span><button type="button" class="mini" data-removeexercise="${i}" aria-label="Remove ${e[0]}">×</button></div></div>
 <div class="buttons exerciseActions">${pic}<button class="mini" data-toggle="setup-${i}">👀 Setup</button><button class="mini" data-demo="${i}">▶️ Demo</button><button class="mini" data-toggle="why-${i}">💡 Why</button><button class="mini" data-toggle="alt-${i}">🔄 Alt</button></div>
-<div class="info" id="setup-${i}"><b>${S.place==="gym"?"What to look for":"Home setup"}</b><br>${S.place==="gym"?e[4]:("Use your saved home equipment: "+homeEquipmentSummary()+".")}<br><br><b>How to do it</b><br>${e[5]}</div><div class="info" id="why-${i}">${e[6]}</div><div class="info" id="alt-${i}">${S.place==="gym"?e[7]:chooseHomeAlternative(e)}</div>
+<div class="info" id="setup-${i}">${S.place==="gym"?`<b>What to look for</b><br>${e[4]}<br><br><b>How to do it</b><br>${e[5]}`:(()=>{const h=homeExerciseFor(e);return `<b>🏠 Home version: ${h.name}</b><br><b>Use:</b> ${h.use}<br><br><b>How to do it</b><br>${h.how}`})()}</div><div class="info" id="why-${i}">${e[6]}</div><div class="info" id="alt-${i}">${S.place==="gym"?e[7]:chooseHomeAlternative(e)}</div>
 ${p.r?"":(()=>{let hist=latestExercise(e[0]),suggest=suggestedWeight(e[0],e[2]),sets=TD.sets[S.day+"-"+i]||[],last=hist&&hist.sets&&hist.sets.length?hist.sets[hist.sets.length-1]:null;return `<div class="logs"><label>Weight (lb)<input data-w="${i}" inputmode="decimal" value="${L.w||suggest||""}" placeholder="e.g. 70"></label><label>Reps<input data-r="${i}" inputmode="numeric" value="${L.r||""}" placeholder="e.g. 10"></label></div><div class="sets">${Array.from({length:e[1]},(_,n)=>`<button class="set ${sets[n]?"done":""}" data-set="${i}-${n}">Set ${n+1}${sets[n]?" ✓":""}</button>`).join("")}</div><div class="last"><b>Last:</b> ${last?`${last.weight} lb × ${last.reps}`:"Nothing yet"}${suggest?` &nbsp;•&nbsp; <b>Suggested:</b> ${suggest} lb`:""}</div>`})()}</article>`}).join("")+(p.r?"" : `<div class="card" id="exerciseBuilderCard" style="display:none">
 <div class="row"><div><h3 style="margin:0">➕ Customize Today’s Exercises</h3><div class="muted" style="font-size:13px;margin-top:3px">Search the full library or make your own.</div></div><button type="button" class="mini" id="toggleExerciseBuilder">Close</button></div>
 <div id="exerciseBuilderBody" style="display:none;margin-top:12px">
