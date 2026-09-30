@@ -231,7 +231,7 @@ body{zoom:var(--app-scale,1)}
   </div>
 </div>
 <main class="app">
-<header><button type="button" class="premiumSettingsBtn" id="settingsShortcut" aria-label="Open settings">⚙️</button><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.5 • NUTRITION COACH</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
+<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.7 • CLEAN SETTINGS</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
 <section class="card"><div class="row"><div><b>This week</b><div class="muted" style="font-size:13px">Complete all 4 main lifting days</div></div><b id="week" style="font-size:22px">0 / 4</b></div>
 <div class="row" style="margin-top:12px"><div><button class="pill on" data-place="gym">🏋️ Planet Fitness</button> <button class="pill" data-place="home">🏠 Home</button></div><button class="ghost" id="custom">🎨 Color</button></div></section>
 <section class="card settings" id="settings"><b>Choose your app color</b><div class="swatches">
@@ -698,46 +698,110 @@ document.querySelectorAll("[data-darkbg]").forEach(b=>b.onclick=()=>{
 
 
 
-// Stable 12.5 Nutrition Coach
+// Stable 12.6 Nutrition Coach — robust iPhone-safe mini onboarding.
 let ncSuggested=null;
-function openNutritionCoach(){
-  const p=S.profile||{}, n=S.nutrition||{};
-  ncWeight.value=n.nWeight||p.weight||"";
-  ncGoalWeight.value=n.nGoalWeight||p.goalWeight||"";
-  ncHeight.value=n.nHeight||((+p.feet||0)*12+(+p.inches||0))||"";
-  ncAge.value=n.nAge||p.age||"";
-  nutritionCoachModal.style.display="flex";
+const $nc=id=>document.getElementById(id);
+
+function ncStoredOnboarding(){
+  try{return JSON.parse(localStorage.getItem("MMB_onboarding_v1")||"{}").data||{}}catch(e){return{}}
 }
-document.getElementById("openNutritionCoach").onclick=openNutritionCoach;
-ncClose.onclick=()=>nutritionCoachModal.style.display="none";
-ncCalc.onclick=()=>{
-  const w=+ncWeight.value, gw=+ncGoalWeight.value, ht=+ncHeight.value, age=+ncAge.value;
-  if(!w||!gw||!ht||!age){alert("Add current weight, goal weight, height and age first.");return}
-  const kg=w*.453592, cm=ht*2.54, act=+ncActivity.value, goal=ncGoal.value, rate=+ncRate.value||1;
-  const bmr=10*kg+6.25*cm-5*age-161; // female default for current app
+function openNutritionCoach(){
+  const p=S.profile||{}, n=S.nutrition||{}, ob=ncStoredOnboarding();
+  $nc("ncWeight").value=n.nWeight||p.weight||ob.weight||"";
+  $nc("ncGoalWeight").value=n.nGoalWeight||p.goalWeight||ob.goalWeight||"";
+  $nc("ncHeight").value=n.nHeight||((+n.nFeet||+p.feet||0)*12+(+n.nInches||+p.inches||0))||"";
+  $nc("ncAge").value=n.nAge||p.age||ob.age||"";
+  $nc("ncActivity").value=String(n.nActivity||p.activity||1.55);
+  $nc("ncGoal").value=n.nGoal||p.goal||((ob.goal||"").toLowerCase().includes("muscle")?"recomp":"lose");
+  $nc("ncRate").value=String(n.weeklyRate||1);
+  $nc("ncResult").style.display="none";
+  $nc("ncUse").style.display="none";
+  ncSuggested=null;
+  $nc("nutritionCoachModal").style.display="flex";
+}
+
+$nc("openNutritionCoach").onclick=openNutritionCoach;
+$nc("ncClose").onclick=()=>{$nc("nutritionCoachModal").style.display="none"};
+
+$nc("ncCalc").onclick=()=>{
+  const w=+$nc("ncWeight").value;
+  const gw=+$nc("ncGoalWeight").value;
+  const ht=+$nc("ncHeight").value;
+  const age=+$nc("ncAge").value;
+  const act=+$nc("ncActivity").value;
+  const goal=$nc("ncGoal").value;
+  const rate=+$nc("ncRate").value||1;
+
+  if(!w||!gw||!ht||!age){
+    $nc("ncResult").innerHTML="<b>Almost there.</b><br>Add current weight, goal weight, height, and age so I can calculate your targets.";
+    $nc("ncResult").style.display="block";
+    return;
+  }
+
+  const kg=w*.453592, cm=ht*2.54;
+  const bmr=10*kg+6.25*cm-5*age-161;
   const tdee=bmr*act;
+
   let raw=tdee, note="";
   if(goal==="lose"||goal==="recomp"){
-    const requested=rate*3500/7, cap=tdee*.25, deficit=Math.min(requested,cap);
+    const requested=rate*3500/7;
+    const safeCap=tdee*.25;
+    const deficit=Math.min(requested,safeCap);
     raw=tdee-deficit;
-    note=deficit<requested?`Your selected pace would require a larger deficit, so I capped the starting suggestion at about 25% below estimated maintenance.`:`Built around about ${rate} lb/week.`;
-  } else if(goal==="build"){ raw=tdee*1.08; note="Built around a modest surplus for muscle gain."; }
-  else { note="Built around estimated maintenance."; }
+    note=deficit<requested
+      ?`You selected ${rate} lb/week. That would require a larger estimated deficit, so I used a more moderate starting target instead.`
+      :`This starting target is built around about ${rate} lb/week.`;
+  } else if(goal==="build"){
+    raw=tdee*1.08;
+    note="This starting target uses a modest surplus for muscle gain.";
+  } else {
+    note="This starting target is around estimated maintenance.";
+  }
+
   const cal=Math.max(1200,Math.round(raw/10)*10);
   const protein=Math.round(Math.min(w,gw)*.85);
   const fat=Math.round(cal*.28/9);
   const carbs=Math.max(0,Math.round((cal-protein*4-fat*9)/4));
-  ncSuggested={calGoal:cal,proGoal:protein,fatGoal:fat,carbGoal:carbs,nWeight:w,nGoalWeight:gw,nHeight:ht,nAge:age,weeklyRate:rate,nGoal:goal,nActivity:act};
-  ncResult.innerHTML=`<b>${cal} calories/day</b><br>${protein}g protein • ${carbs}g carbs • ${fat}g fat<br><span class="muted">${note} Estimated maintenance: ~${Math.round(tdee/10)*10} cal/day.</span>`;
-  ncResult.style.display="block"; ncUse.style.display="block";
+  const fiber=Math.max(25,Math.round(cal/1000*14));
+  const water=Math.round(w*.5/5)*5;
+
+  ncSuggested={
+    calGoal:cal,proGoal:protein,carbGoal:carbs,fatGoal:fat,
+    fiberGoal:fiber,waterGoal:water,
+    nWeight:w,nGoalWeight:gw,nHeight:ht,nAge:age,
+    nActivity:act,nGoal:goal,weeklyRate:rate
+  };
+
+  $nc("ncResult").innerHTML=
+    `<b style="font-size:22px">${cal} calories/day</b><br>`+
+    `${protein}g protein • ${carbs}g carbs • ${fat}g fat<br>`+
+    `${fiber}g fiber • ${water} oz water<br>`+
+    `<span class="muted">${note}<br>Estimated maintenance: about ${Math.round(tdee/10)*10} calories/day.</span>`;
+  $nc("ncResult").style.display="block";
+  $nc("ncUse").style.display="block";
 };
-ncUse.onclick=()=>{
+
+$nc("ncUse").onclick=()=>{
   if(!ncSuggested)return;
   Object.assign(S.nutrition,ncSuggested);
   S.nutritionCoachComplete=true;
+
+  // Keep the regular Nutrition goal fields in sync too.
+  const ht=ncSuggested.nHeight;
+  S.nutrition.nFeet=Math.floor(ht/12);
+  S.nutrition.nInches=ht%12;
+  ["calGoal","proGoal","carbGoal","fatGoal","fiberGoal","waterGoal",
+   "nWeight","nGoalWeight","nAge","nGoal","nActivity"].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el && S.nutrition[id]!=null) el.value=S.nutrition[id];
+   });
+  const ft=document.getElementById("nFeet"), inch=document.getElementById("nInches");
+  if(ft)ft.value=S.nutrition.nFeet;
+  if(inch)inch.value=S.nutrition.nInches;
+
   save();
   try{nutritionSummary();waterUI();refreshPersistentUI()}catch(e){}
-  nutritionCoachModal.style.display="none";
+  $nc("nutritionCoachModal").style.display="none";
 };
 
 // Stable 12.1 onboarding — additive only; existing app state/storage remains MMBv3.
@@ -837,6 +901,13 @@ function finishOnboard(){
   try{
     // Only merge fields we can safely identify in the existing state.
     if(obData.location) S.location=obData.location;
+    S.profile=S.profile||{};
+    S.nutrition=S.nutrition||{};
+    if(obData.name) S.profile.name=obData.name;
+    if(obData.age){S.profile.age=obData.age;S.nutrition.nAge=obData.age}
+    if(obData.weight){S.profile.weight=obData.weight;S.nutrition.nWeight=obData.weight}
+    if(obData.goalWeight){S.profile.goalWeight=obData.goalWeight;S.nutrition.nGoalWeight=obData.goalWeight}
+    if(obData.goal) S.profile.goal=obData.goal;
     localStorage.setItem(ONBOARD_KEY,JSON.stringify({done:true,data:obData,at:new Date().toISOString()}));
     save();
   }catch(e){}
