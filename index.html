@@ -248,7 +248,7 @@ body.theme-dark .trainQuickNav button.isToday{background:color-mix(in srgb,var(-
   </div>
 </div>
 <main class="app">
-<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.13 • CALORIE DEFICIT FIX</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
+<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.14 • QUICK GOAL EDIT</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
 <section class="card"><div class="row"><div><b>This week</b><div class="muted" style="font-size:13px">Complete all 4 main lifting days</div></div><b id="week" style="font-size:22px">0 / 4</b></div>
 <div class="row" style="margin-top:12px"><div><button class="pill on" data-place="gym" id="gymPlaceBtn">🏋️ Gym</button> <button class="pill" data-place="home">🏠 Home</button></div><button class="ghost" id="custom">🎨 Color</button></div></section>
 <section class="card settings" id="settings"><b>Choose your app color</b><div class="swatches">
@@ -711,10 +711,45 @@ S.cyclePrefs=S.cyclePrefs||{enabled:false,lastPeriod:"",length:28};
 
 function setupShow(n){document.querySelectorAll(".setupStep").forEach(x=>x.classList.remove("on"));document.getElementById("setup"+n).classList.add("on")}
 function openSetup(){
-  // The legacy 3-step setup is retired. Always use the full account onboarding
-  // so goal amount + nutrition targets are never skipped.
+  // Existing users editing goals should not have to re-enter name, age, sex,
+  // height, activity, cycle settings, or training location.
   try{ setupOverlay.classList.remove("on"); }catch(e){}
-  previewOnboarding();
+  const p=S.profile||{}, n=S.nutrition||{};
+  const current=+(p.weight||n.nWeight||0);
+  const goalWeight=+(p.goalWeight||n.nGoalWeight||0);
+  const rawGoal=String(p.goal||n.nGoal||"").toLowerCase();
+  let uiGoal="General fitness";
+  if(rawGoal.includes("lose") && rawGoal.includes("muscle")) uiGoal="Lose fat + build muscle";
+  else if(rawGoal==="lose") uiGoal="Lose fat + build muscle";
+  else if(rawGoal.includes("build")) uiGoal="Build muscle";
+  else if(rawGoal.includes("strong")) uiGoal="Get stronger";
+
+  obEditGoals=true;
+  obStep=2;
+  obData={
+    cycleOptIn:!!S.cyclePrefs?.enabled,
+    sex:p.sex||n.nSex||"female",
+    location:S.place==="home"?"Home":"Gym",
+    gymName:S.gymName||"",
+    name:p.name||"",
+    age:String(p.age||n.nAge||""),
+    activity:String(p.activity||n.nActivity||1.55),
+    feet:String(p.feet||n.nFeet||""),
+    inches:String(p.inches||n.nInches||""),
+    weight:current?String(current):"",
+    goalWeight:goalWeight?String(goalWeight):"",
+    loseAmount:(current&&goalWeight&&goalWeight<current)?String(Math.max(0,current-goalWeight)):"",
+    lossRate:String(n.lossRate||1),
+    goal:uiGoal,
+    calories:String(n.calGoal||""),
+    protein:String(n.proGoal||""),
+    carbs:String(n.carbGoal||""),
+    fat:String(n.fatGoal||""),
+    fiber:String(n.fiberGoal||""),
+    water:String(n.waterGoal||"")
+  };
+  onboardOverlay.style.display="block";
+  renderOnboard();
 }
 function calcSetupTargets(){
  let p=S.profile,w=+p.weight,gw=+p.goalWeight,h=(+p.feet*12)+(+p.inches),a=+p.age,act=+p.activity||1.55;
@@ -966,6 +1001,7 @@ function refreshTrainingLocationSettings(){
 // Stable 12.1 onboarding — additive only; existing app state/storage remains MMBv3.
 const ONBOARD_KEY="MMB_onboarding_v1";
 let obStep=0;
+let obEditGoals=false;
 let obData={cycleOptIn:null,sex:(S.profile?.sex||S.nutrition?.nSex||null),location:"Gym",gymName:"",goal:"Build muscle",activity:"1.55",feet:"",inches:"",weight:"",goalWeight:"",loseAmount:"",lossRate:"1"};
 const obSteps=["account","profile","goals","cycle","equipment","nutrition"];
 
@@ -974,6 +1010,11 @@ function obProgress(){
   onboardProgress.innerHTML=obSteps.map((_,i)=>`<span class="${i<=obStep?'on':''}"></span>`).join("");
 }
 function obNext(){
+  if(obEditGoals && obStep===2){
+    obStep=5;
+    renderOnboard();
+    return;
+  }
   if(obStep<obSteps.length-1){
     obStep++;
     if(obStep===3 && (obData.sex==="male" || S.profile?.sex==="male")){
@@ -982,11 +1023,15 @@ function obNext(){
       obStep=4;
       save();
     }
-    // Step 5 is always the nutrition-goals review for every user.
     renderOnboard();
   } else finishOnboard()
 }
 function obBack(){
+  if(obEditGoals && obStep===5){
+    obStep=2;
+    renderOnboard();
+    return;
+  }
   if(obStep>0){
     obStep--;
     if(obStep===3 && (obData.sex==="male" || S.profile?.sex==="male"))obStep=2;
@@ -1111,7 +1156,7 @@ function renderOnboard(){
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div class="onboardField"><label>Carbs (g)</label><input id="obCarbs" inputmode="numeric" value="${obEsc(obData.carbs||"")}"></div><div class="onboardField"><label>Fat (g)</label><input id="obFat" inputmode="numeric" value="${obEsc(obData.fat||"")}"></div></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div class="onboardField"><label>Fiber (g)</label><input id="obFiber" inputmode="numeric" value="${obEsc(obData.fiber||"")}"></div><div class="onboardField"><label>Water (oz)</label><input id="obWater" inputmode="numeric" value="${obEsc(obData.water||"")}"></div></div>
       <div class="onboardTiny">These are editable starting estimates, not medical nutrition advice.</div>
-      ${obNav(true,"Start my app 💪")}
+      ${obNav(true,obEditGoals?"Save my goals ✓":"Start my app 💪")}
     </div>`;
   }
   onboardBody.innerHTML=x;
@@ -1202,9 +1247,11 @@ function finishOnboard(){
     save();
   }catch(e){}
   onboardOverlay.style.display="none";
+  obEditGoals=false;
   try{renderAll()}catch(e){}
 }
 function previewOnboarding(){
+  obEditGoals=false;
   obStep=0;
   obData={cycleOptIn:null,sex:(S.profile?.sex||S.nutrition?.nSex||null),location:"Gym",gymName:"",goal:"Build muscle",activity:"1.55",feet:"",inches:"",weight:"",goalWeight:"",loseAmount:"",lossRate:"1"};
   onboardOverlay.style.display="block";
