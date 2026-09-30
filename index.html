@@ -248,7 +248,7 @@ body.theme-dark .trainQuickNav button.isToday{background:color-mix(in srgb,var(-
   </div>
 </div>
 <main class="app">
-<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.17 • PHOTO LABEL SCAN</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
+<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.18 • FOOD SEARCH FIX</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
 <section class="card"><div class="row"><div><b>This week</b><div class="muted" style="font-size:13px">Complete all 4 main lifting days</div></div><b id="week" style="font-size:22px">0 / 4</b></div>
 <div class="row" style="margin-top:12px"><div><button class="pill on" data-place="gym" id="gymPlaceBtn">🏋️ Gym</button> <button class="pill" data-place="home">🏠 Home</button></div><button class="ghost" id="custom">🎨 Color</button></div></section>
 <section class="card settings" id="settings"><b>Choose your app color</b><div class="swatches">
@@ -622,6 +622,33 @@ function offToFood(p){
  let val=(key)=>Math.round(((n[key+"_serving"] ?? (n[key+"_100g"]!=null?n[key+"_100g"]*factor:0))||0)*10)/10;
  return {name:p.product_name||p.generic_name||"Food",serv:p.serving_size||((servingG||100)+" g"),cal:Math.round(kcal||0),p:val("proteins"),c:val("carbohydrates"),f:val("fat"),fi:val("fiber"),brand:p.brands||""}
 }
+function usdaToFood(p){
+ const ns=Array.isArray(p.foodNutrients)?p.foodNutrients:[];
+ const find=(names)=>{
+   for(const n of ns){
+     const name=String(n.nutrientName||n.nutrient?.name||"").toLowerCase();
+     if(names.some(x=>name.includes(x))){
+       const v=Number(n.value ?? n.amount);
+       if(Number.isFinite(v))return v;
+     }
+   }
+   return 0;
+ };
+ let serving="";
+ if(p.servingSize) serving=`${p.servingSize} ${p.servingSizeUnit||"g"}`;
+ else if(p.householdServingFullText) serving=p.householdServingFullText;
+ else serving="1 serving";
+ return {
+   name:p.description||"Food",
+   serv:serving,
+   cal:Math.round(find(["energy"])),
+   p:Math.round(find(["protein"])*10)/10,
+   c:Math.round(find(["carbohydrate"])*10)/10,
+   f:Math.round(find(["total lipid","fat"])*10)/10,
+   fi:Math.round(find(["fiber"])*10)/10,
+   brand:p.brandName||p.brandOwner||""
+ };
+}
 function drawFoods(arr,label="Results"){
  foodResults.innerHTML=arr.map((x,i)=>`<div class="foodChoice"><div class="name">${x.name}</div><div class="sub">${x.brand?x.brand+" • ":""}${x.serv} • ${x.cal} cal • ${x.p}g protein</div><button class="mini" data-livepick="${i}">+ Add</button></div>`).join("")||'<div class="muted">No foods found. Try another search or add a custom food.</div>';
  foodResults.querySelectorAll("[data-livepick]").forEach(b=>b.onclick=()=>{let x=window._foodResults[+b.dataset.livepick];S.foods[activeMeal].push({...x});rememberFood(x);commitDiary();foodModal.classList.remove("on");renderMeals();nutritionSummary()})
@@ -643,12 +670,42 @@ function renderFoodResults(q){
  q=(q||"").toLowerCase();let arr=mockFoods.filter(x=>(x.name+" "+x.serv).toLowerCase().includes(q));window._foodResults=arr;drawFoods(arr)
 }
 async function liveFoodSearch(){
- let q=foodSearch.value.trim();if(!q)return;liveStatus.textContent="Searching food database…";
+ let q=foodSearch.value.trim();if(!q)return;
+ liveStatus.textContent="Searching food databases…";
+ let arr=[];
+ // Primary search: USDA FoodData Central. DEMO_KEY is fine for testing but has low limits.
  try{
-  let u="https://world.openfoodfacts.org/cgi/search.pl?search_terms="+encodeURIComponent(q)+"&search_simple=1&action=process&json=1&page_size=20&fields=product_name,generic_name,brands,serving_size,serving_quantity,nutriments";
-  let r=await fetch(u),j=await r.json(),arr=(j.products||[]).filter(p=>p.product_name&&p.nutriments).map(offToFood);
-  window._foodResults=arr;drawFoods(arr);liveStatus.textContent=arr.length?"Live food results":"No live results found";
- }catch(e){liveStatus.textContent="Live search couldn't connect. Showing built-in foods instead.";renderFoodResults(q)}
+   const u="https://api.nal.usda.gov/fdc/v1/foods/search?api_key=DEMO_KEY&query="+encodeURIComponent(q)+"&pageSize=20";
+   const r=await fetch(u);
+   if(r.ok){
+     const j=await r.json();
+     arr=(j.foods||[]).map(usdaToFood).filter(x=>x.name&&x.cal>=0);
+   }
+ }catch(e){}
+ // Fallback: Open Food Facts legacy full-text search.
+ if(!arr.length){
+   try{
+     const u="https://world.openfoodfacts.org/cgi/search.pl?search_terms="+encodeURIComponent(q)+"&search_simple=1&action=process&json=1&page_size=20&fields=product_name,generic_name,brands,serving_size,serving_quantity,nutriments";
+     const r=await fetch(u);
+     if(r.ok){
+       const j=await r.json();
+       arr=(j.products||[]).filter(p=>p.product_name&&p.nutriments).map(offToFood);
+     }
+   }catch(e){}
+ }
+ if(arr.length){
+   window._foodResults=arr;
+   drawFoods(arr);
+   liveStatus.textContent="Food results";
+   return;
+ }
+ // Last fallback: local built-in foods.
+ renderFoodResults(q);
+ if((window._foodResults||[]).length){
+   liveStatus.textContent="Showing built-in foods";
+ }else{
+   liveStatus.textContent="No match found. Try a more specific product name or add it manually.";
+ }
 }
 async function barcodeLookup(){
  let code=prompt("Scan support is being prepared for the camera. For now, enter the UPC/barcode number:");
