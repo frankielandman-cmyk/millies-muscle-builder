@@ -203,6 +203,19 @@ body{zoom:var(--app-scale,1)}
 .changeWorkoutBox{margin-top:16px;padding:14px;border:1px solid var(--l);border-radius:16px;background:var(--app-card)}
 .changeWorkoutBox>button{width:100%;padding:13px}.changeOptions{display:none;margin-top:10px;gap:8px;grid-template-columns:1fr 1fr}.changeOptions.open{display:grid}.changeOptions button{padding:11px 8px}.customActivity{display:none;margin-top:10px}.customActivity.open{display:block}
 
+/* Stable 12.4.5 — cleaner training navigation */
+.trainQuickNav{display:grid;grid-template-columns:1fr 1fr;gap:0;width:min(230px,72%);margin:4px auto 10px;border:1px solid var(--l);border-radius:13px;overflow:hidden;background:var(--app-card)}
+.trainQuickNav button{min-height:38px;border:0;border-radius:0;background:transparent;color:var(--app-text);font-weight:850;padding:8px 12px}
+.trainQuickNav button+button{border-left:1px solid var(--l)}
+.trainQuickNav button.isToday{background:color-mix(in srgb,var(--a) 18%,transparent);color:var(--app-text)}
+.trainQuickNav button:disabled{opacity:1;cursor:default}
+.trainTabs{margin:0 0 5px!important;padding:2px 0 8px!important;gap:7px!important}
+.trainTabs .tab{min-height:38px!important;padding:8px 12px!important;font-size:14px!important}
+body.theme-dark .trainQuickNav{background:#17191d!important;border-color:#34383e!important}
+body.theme-dark .trainQuickNav button{background:transparent!important;color:#f7f5f2!important}
+body.theme-dark .trainQuickNav button+button{border-left-color:#34383e!important}
+body.theme-dark .trainQuickNav button.isToday{background:color-mix(in srgb,var(--a) 24%,#17191d)!important;color:#fff!important}
+
 
 /* Stable 12.1 — first-time onboarding shell. Core app remains unchanged. */
 .onboardOverlay{position:fixed;inset:0;z-index:9999;background:#0b0d0f;overflow:auto;padding:24px 18px 40px}
@@ -235,7 +248,7 @@ body{zoom:var(--app-scale,1)}
   </div>
 </div>
 <main class="app">
-<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.4 • FLEXIBLE REST DAYS</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
+<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.5 • CLEAN TRAIN NAV</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
 <section class="card"><div class="row"><div><b>This week</b><div class="muted" style="font-size:13px">Complete all 4 main lifting days</div></div><b id="week" style="font-size:22px">0 / 4</b></div>
 <div class="row" style="margin-top:12px"><div><button class="pill on" data-place="gym">🏋️ Planet Fitness</button> <button class="pill" data-place="home">🏠 Home</button></div><button class="ghost" id="custom">🎨 Color</button></div></section>
 <section class="card settings" id="settings"><b>Choose your app color</b><div class="swatches">
@@ -252,8 +265,9 @@ body{zoom:var(--app-scale,1)}
 
 <section class="feature on" id="feature-train">
 <div class="trainDateNav"><button class="mini" id="prevTrain">←</button><div class="center"><h3 id="trainDateTitle">Today</h3><div class="muted" id="trainDateText"></div></div><button class="mini" id="nextTrain">→</button></div>
-<div id="phaseDisplay" style="text-align:center"></div><div class="buttons" style="margin:0 0 8px"><button class="foodSearchBtn" id="todayTrain">Jump to Today</button><button class="foodSearchBtn" id="openMonth">📅 Month</button></div>
-<nav id="tabs" class="tabs"></nav><section id="panel"></section>
+<div id="phaseDisplay" style="text-align:center"></div>
+<div class="trainQuickNav" aria-label="Training date views"><button id="todayTrain">Today</button><button id="openMonth">📅 Month</button></div>
+<nav id="tabs" class="tabs trainTabs"></nav><section id="panel"></section>
 <details class="card"><summary><b>🏃 Add Cardio</b> <span class="muted" id="cardioSummary"></span></summary>
 <div class="logs" style="margin-top:12px"><label>Type<select id="cardioType"><option>Walking</option><option>Treadmill</option><option>Peloton / Bike</option><option>Stair Climber</option><option>Elliptical</option><option>Running</option><option>Other</option></select></label><label>Minutes<input id="cardioMinutes" inputmode="numeric" placeholder="30"></label><label>Distance (optional)<input id="cardioDistance" inputmode="decimal" placeholder="miles"></label><label>Incline / resistance<input id="cardioLevel" placeholder="optional"></label><label>Calories (optional)<input id="cardioCalories" inputmode="numeric" placeholder="optional"></label><label>Effort<select id="cardioEffort"><option>Easy</option><option selected>Moderate</option><option>Hard</option></select></label></div>
 <button class="finish" id="addCardio">Save cardio to this day</button><div id="cardioList"></div></details>
@@ -496,7 +510,7 @@ function saveExerciseSession(n,sets){let g=sets.filter(s=>+s.weight>0||+s.reps>0
 function render(){
 let TD=trainDay();week.textContent=["d1","d2","d3","d4"].filter(k=>TD.days[k]).length+" / 4";tabs.innerHTML="";
 let now=new Date(),isToday=trainKey()===`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
-trainDateTitle.textContent=isToday?"Today":"Training Diary";trainDateText.textContent=trainingCursor.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric",year:"numeric"});
+trainDateTitle.textContent=isToday?"Today":"Training Diary";trainDateText.textContent=trainingCursor.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric",year:"numeric"});todayTrain.textContent=isToday?"Today":"↩ Today";todayTrain.classList.toggle("isToday",isToday);todayTrain.disabled=isToday;
 Object.entries(P).forEach(([k,p])=>{let b=document.createElement("button");b.className="tab"+(S.day===k?" on":"");b.textContent=p.n;b.onclick=()=>{S.day=k;S.dateWorkoutOverrides[trainKey()]=k;save();render()};tabs.appendChild(b)});
 
 function renderTrainingExtras(){
