@@ -238,7 +238,7 @@ body.theme-dark .trainQuickNav button.isToday{background:color-mix(in srgb,var(-
 .onboardTiny{font-size:14px;color:#8f9299;line-height:1.4;margin-top:14px}
 .onboardError{color:#ffb4b4;min-height:20px;margin-top:10px}
 
-</style></head><body>
+</style><script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script></head><body>
 
 <div class="onboardOverlay" id="onboardOverlay" style="display:none">
   <div class="onboardWrap">
@@ -248,7 +248,7 @@ body.theme-dark .trainQuickNav button.isToday{background:color-mix(in srgb,var(-
   </div>
 </div>
 <main class="app">
-<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.16 • AUTO-FILL NUTRITION</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
+<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.17 • PHOTO LABEL SCAN</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
 <section class="card"><div class="row"><div><b>This week</b><div class="muted" style="font-size:13px">Complete all 4 main lifting days</div></div><b id="week" style="font-size:22px">0 / 4</b></div>
 <div class="row" style="margin-top:12px"><div><button class="pill on" data-place="gym" id="gymPlaceBtn">🏋️ Gym</button> <button class="pill" data-place="home">🏠 Home</button></div><button class="ghost" id="custom">🎨 Color</button></div></section>
 <section class="card settings" id="settings"><b>Choose your app color</b><div class="swatches">
@@ -675,14 +675,72 @@ function clearFoodPhoto(){
  foodPhotoPreview.innerHTML="";
  foodPhotoPreview.style.display="none";
 }
+function nutritionNumber(text,patterns){
+ for(const re of patterns){
+   const m=text.match(re);
+   if(m&&m[1]!=null){
+     const n=parseFloat(String(m[1]).replace(/,/g,""));
+     if(Number.isFinite(n))return n;
+   }
+ }
+ return null;
+}
+function parseNutritionLabel(text){
+ const clean=String(text||"").replace(/\r/g,"\n").replace(/[|]/g,"I");
+ const cal=nutritionNumber(clean,[/Calories?\s*[:\-]?\s*(\d{1,4})/i,/Calories?[^\d]{0,12}(\d{1,4})/i]);
+ const fat=nutritionNumber(clean,[/Total\s+Fat\s*[:\-]?\s*(\d+(?:\.\d+)?)\s*g/i,/\bFat\s*[:\-]?\s*(\d+(?:\.\d+)?)\s*g/i]);
+ const carbs=nutritionNumber(clean,[/Total\s+Carbohydrate\s*[:\-]?\s*(\d+(?:\.\d+)?)\s*g/i,/Total\s+Carb(?:ohydrate)?s?\s*[:\-]?\s*(\d+(?:\.\d+)?)\s*g/i]);
+ const fiber=nutritionNumber(clean,[/Dietary\s+Fiber\s*[:\-]?\s*(\d+(?:\.\d+)?)\s*g/i,/\bFiber\s*[:\-]?\s*(\d+(?:\.\d+)?)\s*g/i]);
+ const protein=nutritionNumber(clean,[/Protein\s*[:\-]?\s*(\d+(?:\.\d+)?)\s*g/i]);
+ let serving="Scanned serving";
+ const sm=clean.match(/Serving\s+Size\s*[:\-]?\s*([^\n]{2,45})/i);
+ if(sm&&sm[1]) serving=sm[1].replace(/\s{2,}/g," ").trim();
+ return {cal,fat,carbs,fiber,protein,serving,raw:clean};
+}
+async function readFoodLabel(file){
+ const status=document.getElementById("photoScanStatus");
+ const scanBtn=document.getElementById("photoScan");
+ if(!file)return;
+ if(!window.Tesseract){
+   if(status)status.textContent="Label reader couldn't load. Check your connection and try again.";
+   return;
+ }
+ try{
+   if(scanBtn){scanBtn.disabled=true;scanBtn.textContent="Reading label…";}
+   if(status)status.textContent="Reading the Nutrition Facts label… this can take 10–30 seconds the first time.";
+   const result=await Tesseract.recognize(file,"eng",{logger:m=>{
+     if(!status||m.status!=="recognizing text")return;
+     status.textContent="Reading label… "+Math.round((m.progress||0)*100)+"%";
+   }});
+   const parsed=parseNutritionLabel(result?.data?.text||"");
+   const found=[parsed.cal,parsed.protein,parsed.carbs,parsed.fat,parsed.fiber].filter(v=>v!=null).length;
+   if(found<2){
+     if(status)status.textContent="I couldn't read enough of that label. Retake it closer, straight-on, with the Nutrition Facts panel filling most of the photo.";
+     return;
+   }
+   if(parsed.cal!=null)customCal.value=Math.round(parsed.cal);
+   if(parsed.protein!=null)customP.value=parsed.protein;
+   if(parsed.carbs!=null)customC.value=parsed.carbs;
+   if(parsed.fat!=null)customF.value=parsed.fat;
+   if(parsed.fiber!=null)customFi.value=parsed.fiber;
+   if(!customName.value)customName.value="Scanned food";
+   if(status)status.textContent="✓ Nutrition filled in below. Add the food name, check the numbers against the label, then tap Add custom food.";
+   customName.scrollIntoView({behavior:"smooth",block:"center"});
+   setTimeout(()=>customName.focus(),450);
+ }catch(err){
+   if(status)status.textContent="I couldn't read that photo. Try retaking the Nutrition Facts panel closer and with less glare.";
+ }finally{
+   if(scanBtn){scanBtn.disabled=false;scanBtn.textContent="✨ Read label & fill nutrition";}
+ }
+}
 foodPhotoInput.onchange=e=>{
  const f=e.target.files&&e.target.files[0]; if(!f)return;
  if(activeFoodPhotoUrl){try{URL.revokeObjectURL(activeFoodPhotoUrl)}catch(e){}}
  const url=URL.createObjectURL(f); activeFoodPhotoUrl=url;
  foodPhotoPreview.style.display="block";
- foodPhotoPreview.innerHTML=`<div class="foodChoice"><div class="name">📸 Photo ready</div><div class="sub">For best results, photograph the Nutrition Facts panel straight-on with good lighting. Automatic label reading will activate when the vision backend is connected.</div><img src="${url}" alt="Food package preview" style="width:100%;max-height:230px;object-fit:contain;border-radius:12px;margin-top:9px"><div class="buttons" style="margin-top:10px"><button class="mini" id="photoRetake">↻ Retake Photo</button><button class="mini" id="photoRemove">🗑 Remove Photo</button></div><button class="mini" id="photoManual" style="margin-top:8px">Enter nutrition from this label</button></div>`;
+ foodPhotoPreview.innerHTML=`<div class="foodChoice"><div class="name">📸 Photo ready</div><div class="sub">Make sure the Nutrition Facts panel is straight-on, close, sharp, and has as little glare as possible.</div><img src="${url}" alt="Food package preview" style="width:100%;max-height:230px;object-fit:contain;border-radius:12px;margin-top:9px"><div class="buttons" style="margin-top:10px"><button class="mini" id="photoRetake">↻ Retake Photo</button><button class="mini" id="photoRemove">🗑 Remove Photo</button></div><button class="mini" id="photoScan" style="margin-top:8px">✨ Read label & fill nutrition</button><div class="sub" id="photoScanStatus" style="margin-top:8px">The app will read calories, protein, carbs, fat and fiber from the photo and fill them in below.</div></div>`;
  setTimeout(()=>{
-   let b=document.getElementById("photoManual");if(b)b.onclick=()=>customName.focus();
+   let b=document.getElementById("photoScan");if(b)b.onclick=()=>readFoodLabel(f);
    let r=document.getElementById("photoRetake");if(r)r.onclick=()=>foodPhotoInput.click();
    let d=document.getElementById("photoRemove");if(d)d.onclick=clearFoodPhoto;
  },0);
