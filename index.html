@@ -75,8 +75,92 @@ body.theme-dark .muted,body.theme-dark label{color:#aaa6a2!important}
 .modeBtn{display:block!important;min-height:48px!important;border:1px solid var(--l)!important;border-radius:14px!important;background:var(--app-card)!important;color:var(--app-text)!important;font-weight:850!important}
 .modeBtn.active{background:var(--a)!important;color:#fff!important}
 .darkToneRow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0 14px}.darkTone{height:48px;border-radius:14px;border:2px solid #444}.darkTone.active{border-color:var(--a)}
+
+/* Stable 7 — premium presentation only */
+#settings{display:none!important}
+#custom{display:none!important}
+body.theme-dark{
+  background:#090a0c!important;
+  background-image:radial-gradient(circle at 50% -10%,rgba(255,255,255,.055),transparent 34%)!important;
+}
+body.theme-dark header{padding:26px 4px 18px!important}
+body.theme-dark header h1{font-size:34px!important;letter-spacing:-1.25px!important;color:#fff!important}
+body.theme-dark header .muted:first-child{letter-spacing:1.15px!important;color:#8f9198!important}
+body.theme-dark .card,
+body.theme-dark .exercise,
+body.theme-dark .ex,
+body.theme-dark details.card,
+body.theme-dark .trainDateNav,
+body.theme-dark .nutritionHero{
+  background:#15171a!important;
+  border:1px solid #25282d!important;
+  box-shadow:0 12px 34px rgba(0,0,0,.24)!important;
+}
+body.theme-dark .quick,
+body.theme-dark .softnote,
+body.theme-dark .info,
+body.theme-dark .tag{
+  background:#202328!important;color:#f4f4f5!important;border-color:#30343a!important;
+}
+body.theme-dark .pill,body.theme-dark .ghost,body.theme-dark .mini,
+body.theme-dark .foodSearchBtn,body.theme-dark .set{
+  background:#1d2024!important;color:#f4f4f5!important;border-color:#30343a!important;
+}
+body.theme-dark .pill.on,body.theme-dark .set.done{background:var(--a)!important;color:#fff!important}
+body.theme-dark input,body.theme-dark select,body.theme-dark textarea{
+  background:#111316!important;color:#fff!important;border:1px solid #30343a!important;
+}
+body.theme-dark .mainnav{
+  background:#101215!important;border:1px solid #24272c!important;
+  box-shadow:0 14px 42px rgba(0,0,0,.35)!important;
+}
+body.theme-dark .mainnav button{color:#aeb1b7!important}
+body.theme-dark .mainnav button.on{background:var(--a)!important;color:#fff!important}
+body.theme-dark .topnav{background:rgba(16,18,21,.96)!important}
+body.theme-dark .muted,body.theme-dark .last{color:#9fa2a9!important}
+body.theme-dark summary{color:#f7f7f8!important}
+body.theme-dark .feature h2,body.theme-dark .feature h3,body.theme-dark b{color:#f7f7f8}
+.premiumSettingsBtn{
+ position:absolute;right:0;top:17px;width:44px;height:44px;border-radius:15px;
+ border:1px solid var(--l);background:var(--app-card);color:var(--app-text);
+ font-size:19px;font-weight:900;display:grid;place-items:center;padding:0;z-index:3
+}
+header{position:relative}
+body.theme-dark .premiumSettingsBtn{background:#17191d!important;border-color:#2b2e34!important;color:#fff!important}
+.mainnav{grid-template-columns:repeat(5,1fr)!important}
+.mainnav button{font-size:12px!important;padding-left:4px!important;padding-right:4px!important}
+
+/* Stable 8 — dark startup */
+.setupOverlay{
+  background:#090a0c!important;
+  background-image:
+    radial-gradient(circle at 50% 0%,rgba(255,255,255,.075),transparent 32%),
+    linear-gradient(180deg,#0b0c0e 0%,#090a0c 100%)!important;
+  color:#f7f7f8!important;
+}
+.setupCard{
+  background:#15171a!important;
+  color:#f7f7f8!important;
+  border:1px solid #292c31!important;
+  box-shadow:0 24px 70px rgba(0,0,0,.48)!important;
+}
+.setupCard input,.setupCard select,.setupCard textarea{
+  background:#101215!important;
+  color:#fff!important;
+  border:1px solid #30343a!important;
+}
+.setupCard .muted{color:#a0a3aa!important}
+.setupCard label{color:#d7d8dc!important}
+.setupCard h1,.setupCard h2,.setupCard h3,.setupCard b{color:#fff!important}
+.setupCard .pill,.setupCard .choiceBtn{
+  background:#1d2024!important;color:#f5f5f6!important;border-color:#30343a!important;
+}
+.setupCard .pill.on,.setupCard .choiceBtn.on{background:var(--a)!important;color:#fff!important}
+.setupProgress{background:#24272c!important}
+.setupProgress>div{background:var(--a)!important}
+.setupBrand{color:#fff!important}
 </style></head><body><main class="app">
-<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 6</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
+<header><button type="button" class="premiumSettingsBtn" id="settingsShortcut" aria-label="Open settings">⚙️</button><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 8</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
 <section class="card"><div class="row"><div><b>This week</b><div class="muted" style="font-size:13px">Complete all 4 main lifting days</div></div><b id="week" style="font-size:22px">0 / 4</b></div>
 <div class="row" style="margin-top:12px"><div><button class="pill on" data-place="gym">🏋️ Planet Fitness</button> <button class="pill" data-place="home">🏠 Home</button></div><button class="ghost" id="custom">🎨 Color</button></div></section>
 <section class="card settings" id="settings"><b>Choose your app color</b><div class="swatches">
@@ -88,6 +172,7 @@ body.theme-dark .muted,body.theme-dark label{color:#aaa6a2!important}
 <button data-main="nutrition">🥗<br>Nutrition</button>
 <button data-main="goal">✨<br>My Goal</button>
 <button data-main="progress">📈<br>Progress</button>
+<button data-main="settings">⚙️<br>Settings</button>
 </nav>
 
 <section class="feature on" id="feature-train">
@@ -261,7 +346,7 @@ document.querySelectorAll("[data-color]").forEach(b=>b.onclick=()=>{S.color=b.da
 document.getElementById("picker").oninput=e=>{S.color=e.target.value;theme();save()};
 S.main=S.main||"train";S.nutrition=S.nutrition||{};S.checkins=S.checkins||[];
 function showMain(name){S.main=name;save();document.querySelectorAll(".feature").forEach(x=>x.classList.toggle("on",x.id==="feature-"+name));document.querySelectorAll("[data-main]").forEach(x=>x.classList.toggle("on",x.dataset.main===name));if(name==="progress")updateStrength()}
-document.querySelectorAll("[data-main]").forEach(b=>b.onclick=()=>showMain(b.dataset.main));
+document.querySelectorAll("[data-main]").forEach(b=>b.onclick=()=>showMain(b.dataset.main));document.getElementById("settingsShortcut").onclick=()=>showMain("settings");
 S.nutrition=S.nutrition||{};S.foods=S.foods||{Breakfast:[],Lunch:[],Dinner:[],Snacks:[]};S.water=S.water||0;S.waterHistory=S.waterHistory||[];
 const meals=["Breakfast","Lunch","Dinner","Snacks"], icons={Breakfast:"🍳",Lunch:"🥪",Dinner:"🍽️",Snacks:"🍿"};
 
@@ -428,7 +513,7 @@ if(!S.setupComplete)openSetup();
 refreshPersistentUI();
 
 S.look=S.look||{bg:"#f7f4f0",card:"#ffffff",accent:"#8d6f64",text:"#272321"};
-S.look.mode=S.look.mode||"light";S.look.darkBg=S.look.darkBg||"#0b0c0e";S.look.darkCard=S.look.darkCard||"#181a1d";S.look.darkText=S.look.darkText||"#f4f1ee";
+S.look.mode=S.look.mode||"dark";S.look.darkBg=S.look.darkBg||"#0b0c0e";S.look.darkCard=S.look.darkCard||"#181a1d";S.look.darkText=S.look.darkText||"#f4f1ee";
 function applyLook(){
  let mode=S.look.mode||"light";
  let systemDark=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;
