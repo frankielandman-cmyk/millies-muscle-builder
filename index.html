@@ -203,7 +203,7 @@ body{zoom:var(--app-scale,1)}
 .changeWorkoutBox{margin-top:16px;padding:14px;border:1px solid var(--l);border-radius:16px;background:var(--app-card)}
 .changeWorkoutBox>button{width:100%;padding:13px}.changeOptions{display:none;margin-top:10px;gap:8px;grid-template-columns:1fr 1fr}.changeOptions.open{display:grid}.changeOptions button{padding:11px 8px}.customActivity{display:none;margin-top:10px}.customActivity.open{display:block}
 
-/* Stable 12.4.5 — cleaner training navigation */
+/* Stable 12.4.6 — automatic profile accent colors */
 .trainQuickNav{display:grid;grid-template-columns:1fr 1fr;gap:0;width:min(230px,72%);margin:4px auto 10px;border:1px solid var(--l);border-radius:13px;overflow:hidden;background:var(--app-card)}
 .trainQuickNav button{min-height:38px;border:0;border-radius:0;background:transparent;color:var(--app-text);font-weight:850;padding:8px 12px}
 .trainQuickNav button+button{border-left:1px solid var(--l)}
@@ -248,9 +248,9 @@ body.theme-dark .trainQuickNav button.isToday{background:color-mix(in srgb,var(-
   </div>
 </div>
 <main class="app">
-<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.5 • CLEAN TRAIN NAV</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
+<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.7 • CHOOSE YOUR GYM</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
 <section class="card"><div class="row"><div><b>This week</b><div class="muted" style="font-size:13px">Complete all 4 main lifting days</div></div><b id="week" style="font-size:22px">0 / 4</b></div>
-<div class="row" style="margin-top:12px"><div><button class="pill on" data-place="gym">🏋️ Planet Fitness</button> <button class="pill" data-place="home">🏠 Home</button></div><button class="ghost" id="custom">🎨 Color</button></div></section>
+<div class="row" style="margin-top:12px"><div><button class="pill on" data-place="gym" id="gymPlaceBtn">🏋️ Gym</button> <button class="pill" data-place="home">🏠 Home</button></div><button class="ghost" id="custom">🎨 Color</button></div></section>
 <section class="card settings" id="settings"><b>Choose your app color</b><div class="swatches">
 <button class="sw" style="background:#8d6e8f" data-color="#8d6e8f"></button><button class="sw" style="background:#b36b86" data-color="#b36b86"></button><button class="sw" style="background:#657c68" data-color="#657c68"></button><button class="sw" style="background:#55758c" data-color="#55758c"></button><button class="sw" style="background:#222" data-color="#222222"></button>
 <label style="width:100%">Pick any color<input id="picker" type="color" style="height:48px;padding:5px"></label></div></section>
@@ -405,6 +405,7 @@ body.theme-dark .trainQuickNav button.isToday{background:color-mix(in srgb,var(-
 <div class="card"><div class="bigicon">⚙️</div><h2>Settings</h2><div class="muted">The things you set once — not things you should have to see every day.</div></div>
 
 <details class="card"><summary><b>🎨 Appearance</b></summary><div class="muted">Change the whole app background, cards, buttons and text.</div><div class="muted" style="margin-top:12px"><b>App size</b></div><div class="scaleRow"><button type="button" class="scaleBtn" data-scale=".85">85%</button><button type="button" class="scaleBtn" data-scale=".90">90%</button><button type="button" class="scaleBtn" data-scale="1">100%</button></div><div class="modeRow"><button type="button" class="modeBtn" data-mode="light">☀️ Light</button><button type="button" class="modeBtn" data-mode="dark">🌙 Dark</button><button type="button" class="modeBtn" data-mode="system">◐ System</button></div><div class="muted" style="margin-top:12px"><b>Dark background</b></div><div class="darkToneRow"><button type="button" class="darkTone" data-darkbg="#08090a" style="background:#08090a" aria-label="Near black"></button><button type="button" class="darkTone" data-darkbg="#0b0c0e" style="background:#0b0c0e" aria-label="Charcoal"></button><button type="button" class="darkTone" data-darkbg="#171412" style="background:#171412" aria-label="Warm black"></button></div><div class="presetRow"><button type="button" data-look="warm">Warm</button><button type="button" data-look="clean">Clean</button><button type="button" data-look="rose">Rose</button><button type="button" data-look="dark">Dark</button></div><div class="appearanceGrid"><label class="appearanceField"><span>Background</span><input type="color" id="lookBg"></label><label class="appearanceField"><span>Cards</span><input type="color" id="lookCard"></label><label class="appearanceField"><span>Buttons</span><input type="color" id="lookAccent"></label><label class="appearanceField"><span>Text</span><input type="color" id="lookText"></label></div><button type="button" class="foodSearchBtn" id="resetLook">Reset appearance</button></details><details class="card"><summary><b>👤 Profile</b></summary><div class="softnote">Update your basic profile and preferences through Setup.</div><button class="foodSearchBtn" id="rerunSetup">Edit Profile / Setup</button></details>
+<details class="card"><summary><b>🏋️ Training Location</b></summary><div class="muted">Choose Gym or Home. If you use a gym, add its name so the app feels like yours.</div><div class="onboardChoice" style="margin-top:12px"><button type="button" id="settingsGymBtn">🏋️ Gym</button><button type="button" id="settingsHomeBtn">🏠 Home</button></div><div class="onboardField" id="settingsGymNameWrap"><label>Gym name <span class="muted">(optional)</span></label><input id="settingsGymName" placeholder="Planet Fitness, Anytime Fitness, YMCA…"></div><button type="button" class="foodSearchBtn" id="saveTrainingLocation">Save Training Location</button></details>
 <details class="card"><summary><b>🎯 Goals & Nutrition</b></summary><div class="muted">Current targets</div><div id="settingsGoals" class="quick"></div><button class="foodSearchBtn" id="editGoals">Change Goals</button></details>
 <details class="card"><summary><b>🌸 Cycle Tracking</b></summary><div id="cycleSettingsStatus" class="quick"></div><button class="foodSearchBtn" id="toggleCycle">Turn Cycle Tracking On / Off</button></details>
 <details class="card"><summary><b>❤️ Apple Health</b></summary><div class="muted">Apple Health connection becomes available in the iPhone/HealthKit version.</div></details>
@@ -458,11 +459,13 @@ rest:{n:"Active Rest 🌿",t:"Active Recovery",s:"Pick ONE. Finish feeling bette
 ["Peloton Easy Ride",1,"20–30 min","Recovery","Your Peloton.","Keep it easy enough to talk.","Movement without making recovery another hard workout.","Easy walk.","Easy Peloton."],["Easy Walk",1,"20–45 min","Recovery","Outside or treadmill.","Comfortable talking pace.","Keeps you active with little fatigue.","Short walk.","Treadmill walk."],["Mobility + Stretching",1,"10–20 min","Mobility","Floor or mat.","Gentle range; don't force pain.","Can help you feel less stiff.","Complete rest.","Complete rest."],["Complete Rest",1,"Rest","Whole Body","Your couch counts.","Recover, hydrate, eat enough protein.","Training is the stimulus; recovery is where adaptation happens.","Rest.","Rest."]]}};
 let trainingCursor=new Date();
 function trainKey(){let d=trainingCursor,y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,"0"),day=String(d.getDate()).padStart(2,"0");return `${y}-${m}-${day}`}
-let S=JSON.parse(localStorage.getItem("MMBv3")||'{}');S.day=S.day||"d1";S.place=S.place||"gym";S.color=S.color||"#8d6e8f";S.logs=S.logs||{};S.sets=S.sets||{};S.days=S.days||{};S.trainingDiary=S.trainingDiary||{};
+let S=JSON.parse(localStorage.getItem("MMBv3")||'{}');S.day=S.day||"d1";S.place=S.place||"gym";S.gymName=S.gymName||"";S.color=S.color||"#8d6e8f";S.logs=S.logs||{};S.sets=S.sets||{};S.days=S.days||{};S.trainingDiary=S.trainingDiary||{};
 function trainDay(){let k=trainKey();S.trainingDiary[k]=S.trainingDiary[k]||{};let d=S.trainingDiary[k];d.logs=d.logs||{};d.sets=d.sets||{};d.days=d.days||{};d.cardio=Array.isArray(d.cardio)?d.cardio:[];d.cycle=d.cycle||{};return d}
 
 const save=()=>{if(S.diary&&typeof diaryCursor!=="undefined"){let k=localDateKey(diaryCursor);if(S.diary[k]){S.diary[k].foods=S.foods;S.diary[k].water=S.nutrition.water||0}}localStorage.setItem("MMBv3",JSON.stringify(S));};const tabs=document.getElementById("tabs"),panel=document.getElementById("panel"),week=document.getElementById("week");
-function theme(){document.documentElement.style.setProperty("--a",S.color);document.querySelector('meta[name="theme-color"]').content=S.color}theme();
+function theme(){document.documentElement.style.setProperty("--a",S.color);document.querySelector('meta[name="theme-color"]').content=S.color}
+function applySexAccent(sex){S.color=sex==="male"?"#4f7fb3":"#ad6b7f";theme();let p=document.getElementById("picker");if(p)p.value=S.color;save()}
+theme();
 
 const scheduleDefaults={0:"rest",1:"d1",2:"d2",3:"rest",4:"d3",5:"d4",6:"d5"};
 S.workoutSchedule=S.workoutSchedule||scheduleDefaults;
@@ -534,6 +537,7 @@ addCardio.onclick=()=>{let min=+cardioMinutes.value;if(!min){alert("Add the card
 saveCycle.onclick=()=>{let td=trainDay();td.cycle={phase:cyclePhase.value,day:cycleDay.value,energy:cycleEnergy.value,feel:weightFeel.value,cramps:symCramps.checked,fatigue:symFatigue.checked,headache:symHeadache.checked,sore:symSore.checked};save();renderTrainingExtras()};
 renderTrainingExtras();
 document.querySelectorAll("[data-place]").forEach(b=>b.classList.toggle("on",b.dataset.place===S.place));
+let gymBtn=document.getElementById("gymPlaceBtn");if(gymBtn)gymBtn.textContent=`🏋️ ${S.gymName||"Gym"}`;
 let p=P[S.day];
 let nextStrength=nextScheduledStrength(trainingCursor);
 let restFlex=p.r?`<div class="restCoachBox"><div class="restCoachBadge">✨ Millie’s suggestion</div><h3>Recovery is suggested today</h3><p class="muted">You’re not locked into a rest day. If you feel good and want to train, choose what fits your plan.</p><button class="finish" id="trainInstead">🏋️ I Want to Train Today</button><div class="restSwitchOptions" id="restSwitchOptions"><div class="restMiniTitle">Best fit with your schedule</div><div class="restNextNote">Next up: <b>${P[nextStrength].n}</b></div><div class="restChoiceGrid"><button data-rest-next="keep">▶ Do ${P[nextStrength].n} today — keep schedule the same</button><button data-rest-next="advance">⏩ Do ${P[nextStrength].n} + move my schedule forward</button></div><div class="restDivider"></div><div class="restMiniTitle">Or choose a different strength workout</div><div class="restNextNote">This changes only today. Your normal schedule stays the same.</div><div class="restChoiceGrid">${["d1","d2","d3","d4","d5"].map(k=>`<button data-rest-strength="${k}">🏋️ ${P[k].n}</button>`).join("")}</div></div></div>`:"";
@@ -717,7 +721,8 @@ function refreshPersistentUI(){
  settingsGoals.innerHTML=`Goal weight: <b>${S.profile.goalWeight||"—"} lb</b><br>Calories: <b>${S.nutrition.calGoal||"—"}</b> • Protein: <b>${S.nutrition.proGoal||"—"}g</b><br>Carbs: ${S.nutrition.carbGoal||"—"}g • Fat: ${S.nutrition.fatGoal||"—"}g • Fiber: ${S.nutrition.fiberGoal||"—"}g`;
  cycleSettingsStatus.innerHTML=S.cyclePrefs.enabled?`On • ${S.cyclePrefs.length||28}-day cycle • phase shown as an estimate`:"Cycle tracking is off.";
 }
-setupNext1.onclick=()=>{if(!setupAge.value||!setupFeet.value||!setupWeight.value||!setupGoalWeight.value)return alert("Add age, height, current weight and goal weight.");Object.assign(S.profile,{name:setupName.value,sex:setupSex.value,age:+setupAge.value,feet:+setupFeet.value,inches:+setupInches.value||0,weight:+setupWeight.value,goalWeight:+setupGoalWeight.value});setupShow(2)};
+setupSex.onchange=()=>applySexAccent(setupSex.value);
+setupNext1.onclick=()=>{if(!setupAge.value||!setupFeet.value||!setupWeight.value||!setupGoalWeight.value)return alert("Add age, height, current weight and goal weight.");applySexAccent(setupSex.value);Object.assign(S.profile,{name:setupName.value,sex:setupSex.value,age:+setupAge.value,feet:+setupFeet.value,inches:+setupInches.value||0,weight:+setupWeight.value,goalWeight:+setupGoalWeight.value});setupShow(2)};
 setupNext2.onclick=()=>{S.profile.goal=setupGoal.value;S.profile.activity=+setupActivity.value;setupShow(3)};
 cycleYes.onclick=()=>{S.cyclePrefs.enabled=true;cycleSetupFields.style.display="block"};
 cycleNo.onclick=()=>{S.cyclePrefs.enabled=false;cycleSetupFields.style.display="none"};
@@ -916,10 +921,25 @@ document.querySelectorAll("[data-darkbg]").forEach(b=>b.onclick=()=>{
   };
 })();
 
+
+function refreshTrainingLocationSettings(){
+ const gb=document.getElementById("settingsGymBtn"),hb=document.getElementById("settingsHomeBtn"),wrap=document.getElementById("settingsGymNameWrap"),inp=document.getElementById("settingsGymName");
+ if(!gb||!hb)return;
+ gb.classList.toggle("selected",S.place==="gym");hb.classList.toggle("selected",S.place==="home");
+ if(wrap)wrap.style.display=S.place==="gym"?"block":"none";if(inp)inp.value=S.gymName||"";
+}
+(function(){
+ const gb=document.getElementById("settingsGymBtn"),hb=document.getElementById("settingsHomeBtn"),saveBtn=document.getElementById("saveTrainingLocation"),inp=document.getElementById("settingsGymName");
+ if(gb)gb.onclick=()=>{S.place="gym";refreshTrainingLocationSettings()};
+ if(hb)hb.onclick=()=>{S.place="home";refreshTrainingLocationSettings()};
+ if(saveBtn)saveBtn.onclick=()=>{S.gymName=S.place==="gym"?(inp?.value||"").trim():S.gymName;save();render();refreshTrainingLocationSettings();alert(S.place==="gym"?`Training location saved${S.gymName?": "+S.gymName:""}.`:"Training location saved: Home.")};
+ refreshTrainingLocationSettings();
+})();
+
 // Stable 12.1 onboarding — additive only; existing app state/storage remains MMBv3.
 const ONBOARD_KEY="MMB_onboarding_v1";
 let obStep=0;
-let obData={cycleOptIn:null,location:"Planet Fitness",goal:"Build muscle"};
+let obData={cycleOptIn:null,location:"Gym",gymName:"",goal:"Build muscle"};
 const obSteps=["account","profile","goals","cycle","equipment","nutrition"];
 
 function obEsc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
@@ -972,9 +992,9 @@ function renderOnboard(){
   } else if(obStep===4){
     x=`<div class="onboardTitle">Where are you training? 🏋️</div><div class="onboardSub">You can switch this anytime.</div>
     <div class="onboardCard"><div class="onboardChoice">
-      <button type="button" class="${obData.location==="Planet Fitness"?'selected':''}" onclick="obData.location='Planet Fitness';renderOnboard()">🏋️ Planet Fitness</button>
+      <button type="button" class="${obData.location==="Gym"?'selected':''}" onclick="obData.location='Gym';renderOnboard()">🏋️ Gym</button>
       <button type="button" class="${obData.location==="Home"?'selected':''}" onclick="obData.location='Home';renderOnboard()">🏠 Home</button>
-    </div>${obNav()}</div>`;
+    </div>${obData.location==="Gym"?`<div class="onboardField"><label>Which gym? <span class="muted">(optional)</span></label><input id="obGymName" value="${obEsc(obData.gymName||'')}" placeholder="Planet Fitness, Anytime Fitness, YMCA…"></div>`:""}${obNav()}</div>`;
   } else {
     x=`<div class="onboardTitle">Nutrition 🍓</div><div class="onboardSub">Set targets now, or skip them and change everything later in Settings.</div>
     <div class="onboardCard">
@@ -990,6 +1010,7 @@ function captureOnboard(){
   if(obStep===1){obData.name=get("obName")||obData.name;obData.age=get("obAge")||obData.age}
   if(obStep===2){obData.weight=get("obWeight")||obData.weight;obData.goalWeight=get("obGoalWeight")||obData.goalWeight}
   if(obStep===3 && obData.cycleOptIn){obData.period=get("obPeriod")||obData.period;obData.cycleLen=get("obCycleLen")||obData.cycleLen}
+  if(obStep===4 && obData.location==="Gym"){obData.gymName=get("obGymName")??obData.gymName}
   if(obStep===5){obData.calories=get("obCalories")||obData.calories;obData.protein=get("obProtein")||obData.protein}
 }
 const _obNext=obNext;
@@ -1012,7 +1033,8 @@ function finishOnboard(){
   captureOnboard();
   try{
     // Only merge fields we can safely identify in the existing state.
-    if(obData.location) S.location=obData.location;
+    if(obData.location){ S.location=obData.location; S.place=obData.location==="Home"?"home":"gym"; }
+    if(obData.gymName!==undefined) S.gymName=(obData.gymName||"").trim();
     localStorage.setItem(ONBOARD_KEY,JSON.stringify({done:true,data:obData,at:new Date().toISOString()}));
     save();
   }catch(e){}
@@ -1021,7 +1043,7 @@ function finishOnboard(){
 }
 function previewOnboarding(){
   obStep=0;
-  obData={cycleOptIn:null,location:"Planet Fitness",goal:"Build muscle"};
+  obData={cycleOptIn:null,location:"Gym",gymName:"",goal:"Build muscle"};
   onboardOverlay.style.display="block";
   renderOnboard();
 }
