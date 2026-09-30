@@ -248,7 +248,7 @@ body.theme-dark .trainQuickNav button.isToday{background:color-mix(in srgb,var(-
   </div>
 </div>
 <main class="app">
-<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.26 • FULL EXERCISE LIBRARY</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
+<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.28 • CROSS-BROWSER PROFILE SYNC</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
 <section class="card"><div class="row"><div><b>This week</b><div class="muted" id="weekGoalText" style="font-size:13px">Complete 4 training days this week</div></div><b id="week" style="font-size:22px">0 / 4</b></div>
 <div class="row" style="margin-top:12px"><div><button class="pill on" data-place="gym" id="gymPlaceBtn">🏋️ Gym</button> <button class="pill" data-place="home">🏠 Home</button></div><button class="ghost" id="custom">🎨 Color</button></div></section>
 <section class="card settings" id="settings"><b>Choose your app color</b><div class="swatches">
@@ -476,6 +476,7 @@ theme();
 const scheduleDefaults={0:"rest",1:"d1",2:"d2",3:"rest",4:"d3",5:"d4",6:"d5"};
 S.workoutSchedule=S.workoutSchedule||scheduleDefaults;
 S.dateWorkoutOverrides=S.dateWorkoutOverrides||{};
+S.customDayExercises=S.customDayExercises||{};
 function localDateKey(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
 function workoutForDate(d){return S.dateWorkoutOverrides[localDateKey(d)]||S.workoutSchedule[d.getDay()]||"rest"}
 function syncWorkoutToDate(){S.day=workoutForDate(trainingCursor)}
@@ -671,11 +672,31 @@ function exerciseLibraryMatches(query,category){
  }).slice(0,60);
 }
 
+
+function dateExerciseKey(){return trainKey()}
+function getSuggestedExercisesForDay(){
+ const pp=P[S.day];
+ return pp&&Array.isArray(pp.x)?pp.x:[];
+}
+function getDayExerciseList(){
+ const key=dateExerciseKey();
+ return Array.isArray(S.customDayExercises[key])?S.customDayExercises[key]:[...getSuggestedExercisesForDay()];
+}
+function ensureCustomDayExercises(){
+ const key=dateExerciseKey();
+ if(!Array.isArray(S.customDayExercises[key]))S.customDayExercises[key]=[...getSuggestedExercisesForDay()];
+ return S.customDayExercises[key];
+}
+function resetTodayToSuggested(){
+ delete S.customDayExercises[dateExerciseKey()];
+ save();render();
+}
+
 function render(){
 let TD=trainDay();refreshTrainingGoalUI();tabs.innerHTML="";
 let now=new Date(),isToday=trainKey()===`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
 trainDateTitle.textContent=isToday?"Today":"Training Diary";trainDateText.textContent=trainingCursor.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric",year:"numeric"});todayTrain.textContent=isToday?"Today":"↩ Today";todayTrain.classList.toggle("isToday",isToday);todayTrain.disabled=isToday;
-Object.entries(P).forEach(([k,p])=>{let b=document.createElement("button");b.className="tab"+(S.day===k?" on":"");b.textContent=p.n;b.onclick=()=>{S.day=k;S.dateWorkoutOverrides[trainKey()]=k;save();render()};tabs.appendChild(b)});
+/* Today automatically opens the scheduled workout; workout tabs intentionally hidden. */
 
 function renderTrainingExtras(){
  let td=trainDay(), mins=td.cardio.reduce((a,x)=>a+(+x.minutes||0),0);
@@ -700,15 +721,35 @@ renderTrainingExtras();
 document.querySelectorAll("[data-place]").forEach(b=>b.classList.toggle("on",b.dataset.place===S.place));
 let gymBtn=document.getElementById("gymPlaceBtn");if(gymBtn)gymBtn.textContent=`🏋️ ${S.gymName||"Gym"}`;
 let p=P[S.day];
-let baseExerciseCount=p.x.length;
-let exList=[...p.x,...addedExercisesForDay(S.day)];
+let suggestedExercises=getSuggestedExercisesForDay();
+let exList=getDayExerciseList();
 let nextStrength=nextScheduledStrength(trainingCursor);
 let restFlex=p.r?`<div class="restCoachBox"><div class="restCoachBadge">✨ Millie’s suggestion</div><h3>Recovery is suggested today</h3><p class="muted">You’re not locked into a rest day. If you feel good and want to train, choose what fits your plan.</p><button class="finish" id="trainInstead">🏋️ I Want to Train Today</button><div class="restSwitchOptions" id="restSwitchOptions"><div class="restMiniTitle">Best fit with your schedule</div><div class="restNextNote">Next up: <b>${P[nextStrength].n}</b></div><div class="restChoiceGrid"><button data-rest-next="keep">▶ Do ${P[nextStrength].n} today — keep schedule the same</button><button data-rest-next="advance">⏩ Do ${P[nextStrength].n} + move my schedule forward</button></div><div class="restDivider"></div><div class="restMiniTitle">Or choose a different strength workout</div><div class="restNextNote">This changes only today. Your normal schedule stays the same.</div><div class="restChoiceGrid">${["d1","d2","d3","d4","d5"].map(k=>`<button data-rest-strength="${k}">🏋️ ${P[k].n}</button>`).join("")}</div></div></div>`:"";
-panel.innerHTML=`<div style="margin:10px 2px 14px"><h2 style="margin:0;font-size:25px">${p.t}</h2><div class="muted">${p.s}</div></div>`+restFlex+exList.map((e,i)=>{let k=S.day+"-"+i,L=TD.logs[k]||{},sets=TD.sets[k]||[],pic=S.place==="gym"&&imgs[e[0]]?`<button class="mini" data-pic="pic-${i}">📸 Show machine</button><img id="pic-${i}" class="pic" src="${imgs[e[0]]}" alt="${e[0]} reference" style="display:none" onerror="this.style.display='none'">`:"";return `<article class="card ex"><div class="row"><div><h3>${i+1}. ${e[0]}</h3><b>${e[1]} × ${e[2]}</b></div><div style="display:flex;gap:6px;align-items:center"><span class="tag">🎯 ${e[3]}</span>${i>=baseExerciseCount?`<button type="button" class="mini" data-removeadded="${i-baseExerciseCount}" aria-label="Remove ${e[0]}">×</button>`:""}</div></div>
+panel.innerHTML=`<div class="card" style="margin:10px 0 14px">
+<div class="row" style="align-items:flex-start">
+  <div style="min-width:0;flex:1">
+    <div class="muted" style="font-size:12px;font-weight:900;letter-spacing:.05em">TODAY’S SUGGESTED WORKOUT</div>
+    <h2 style="margin:5px 0 4px;font-size:25px">${p.t}</h2>
+    <div class="muted">${p.s}</div>
+  </div>
+  <button type="button" class="mini" id="customizeTodayWorkout">Customize</button>
+</div>
+<div id="todayCustomizePanel" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid #30343a">
+  <div class="muted" style="font-size:13px;margin-bottom:8px">Changes apply only to this date. Your normal suggested plan stays intact.</div>
+  <div class="buttons">
+    <button type="button" class="foodSearchBtn" id="openExerciseLibraryToday">＋ Add / replace exercises</button>
+    <button type="button" class="foodSearchBtn" id="switchWholeWorkout">↔ Switch today’s workout</button>
+    ${Array.isArray(S.customDayExercises[dateExerciseKey()])?`<button type="button" class="foodSearchBtn" id="resetSuggestedWorkout">↩ Reset suggested workout</button>`:""}
+  </div>
+  <div id="switchWorkoutOptions" style="display:none;margin-top:10px" class="restChoiceGrid">
+    ${Object.entries(P).filter(([k,v])=>!v.r).map(([k,v])=>`<button type="button" data-switchworkout="${k}">🏋️ ${v.n}</button>`).join("")}
+  </div>
+</div>
+</div>`+restFlex+exList.map((e,i)=>{let k=S.day+"-"+i,L=TD.logs[k]||{},sets=TD.sets[k]||[],pic=S.place==="gym"&&imgs[e[0]]?`<button class="mini" data-pic="pic-${i}">📸 Show machine</button><img id="pic-${i}" class="pic" src="${imgs[e[0]]}" alt="${e[0]} reference" style="display:none" onerror="this.style.display='none'">`:"";return `<article class="card ex"><div class="row"><div><h3>${i+1}. ${e[0]}</h3><b>${e[1]} × ${e[2]}</b></div><div style="display:flex;gap:6px;align-items:center"><span class="tag">🎯 ${e[3]}</span><button type="button" class="mini" data-removeexercise="${i}" aria-label="Remove ${e[0]}">×</button></div></div>
 <div class="quick"><b>${S.place==="gym"?"👀 What to look for":"🏠 Home version"}</b><br>${S.place==="gym"?e[4]:e[8]}</div><div class="buttons">${pic}<button class="mini" data-demo="${i}">▶️ Watch demo</button><button class="mini" data-toggle="why-${i}">💡 Why?</button><button class="mini" data-toggle="how-${i}">⚙️ How?</button><button class="mini" data-toggle="alt-${i}">🔄 Can't find it?</button></div>
 <div class="info" id="why-${i}">${e[6]}</div><div class="info" id="how-${i}">${e[5]}</div><div class="info" id="alt-${i}">${S.place==="gym"?e[7]:e[8]}</div>
-${p.r?"":(()=>{let hist=latestExercise(e[0]),suggest=suggestedWeight(e[0],e[2]),sets=TD.sets[S.day+"-"+i]||[],last=hist&&hist.sets&&hist.sets.length?hist.sets[hist.sets.length-1]:null;return `<div class="logs"><label>Weight (lb)<input data-w="${i}" inputmode="decimal" value="${L.w||suggest||""}" placeholder="e.g. 70"></label><label>Reps<input data-r="${i}" inputmode="numeric" value="${L.r||""}" placeholder="e.g. 10"></label></div><div class="sets">${Array.from({length:e[1]},(_,n)=>`<button class="set ${sets[n]?"done":""}" data-set="${i}-${n}">Set ${n+1}${sets[n]?" ✓":""}</button>`).join("")}</div><div class="last"><b>Last:</b> ${last?`${last.weight} lb × ${last.reps}`:"Nothing yet"}${suggest?` &nbsp;•&nbsp; <b>Suggested:</b> ${suggest} lb`:""}</div>`})()}</article>`}).join("")+(p.r?"" : `<div class="card" id="exerciseBuilderCard">
-<div class="row"><div><h3 style="margin:0">➕ Add Exercise</h3><div class="muted" style="font-size:13px;margin-top:3px">Search the full library or make your own.</div></div><button type="button" class="mini" id="toggleExerciseBuilder">Open</button></div>
+${p.r?"":(()=>{let hist=latestExercise(e[0]),suggest=suggestedWeight(e[0],e[2]),sets=TD.sets[S.day+"-"+i]||[],last=hist&&hist.sets&&hist.sets.length?hist.sets[hist.sets.length-1]:null;return `<div class="logs"><label>Weight (lb)<input data-w="${i}" inputmode="decimal" value="${L.w||suggest||""}" placeholder="e.g. 70"></label><label>Reps<input data-r="${i}" inputmode="numeric" value="${L.r||""}" placeholder="e.g. 10"></label></div><div class="sets">${Array.from({length:e[1]},(_,n)=>`<button class="set ${sets[n]?"done":""}" data-set="${i}-${n}">Set ${n+1}${sets[n]?" ✓":""}</button>`).join("")}</div><div class="last"><b>Last:</b> ${last?`${last.weight} lb × ${last.reps}`:"Nothing yet"}${suggest?` &nbsp;•&nbsp; <b>Suggested:</b> ${suggest} lb`:""}</div>`})()}</article>`}).join("")+(p.r?"" : `<div class="card" id="exerciseBuilderCard" style="display:none">
+<div class="row"><div><h3 style="margin:0">➕ Customize Today’s Exercises</h3><div class="muted" style="font-size:13px;margin-top:3px">Search the full library or make your own.</div></div><button type="button" class="mini" id="toggleExerciseBuilder">Close</button></div>
 <div id="exerciseBuilderBody" style="display:none;margin-top:12px">
   <input id="exerciseSearch" class="searchbox" placeholder="Search bench press, curls, hack squat…">
   <select id="exerciseCategory" style="margin-top:8px">
@@ -734,11 +775,49 @@ let ti=document.getElementById("trainInstead"),rso=document.getElementById("rest
 panel.querySelectorAll("[data-rest-next]").forEach(b=>b.onclick=()=>{let chosen=nextScheduledStrength(trainingCursor);S.dateWorkoutOverrides[trainKey()]=chosen;if(b.dataset.restNext==="advance")moveScheduleForwardFrom(trainingCursor);S.day=chosen;save();render();renderMonth()});
 panel.querySelectorAll("[data-rest-strength]").forEach(b=>b.onclick=()=>{let chosen=b.dataset.restStrength;S.dateWorkoutOverrides[trainKey()]=chosen;S.day=chosen;save();render();renderMonth()});
 
-panel.querySelectorAll("[data-removeadded]").forEach(b=>b.onclick=()=>{
- const idx=+b.dataset.removeadded;
- addedExercisesForDay(S.day).splice(idx,1);
+panel.querySelectorAll("[data-removeexercise]").forEach(b=>b.onclick=()=>{
+ const idx=+b.dataset.removeexercise;
+ const arr=ensureCustomDayExercises();
+ arr.splice(idx,1);
  save();render();
 });
+
+
+let customizeTodayWorkout=document.getElementById("customizeTodayWorkout");
+let todayCustomizePanel=document.getElementById("todayCustomizePanel");
+if(customizeTodayWorkout)customizeTodayWorkout.onclick=()=>{
+ let open=todayCustomizePanel.style.display==="block";
+ todayCustomizePanel.style.display=open?"none":"block";
+ customizeTodayWorkout.textContent=open?"Customize":"Done";
+};
+
+let switchWholeWorkout=document.getElementById("switchWholeWorkout");
+let switchWorkoutOptions=document.getElementById("switchWorkoutOptions");
+if(switchWholeWorkout)switchWholeWorkout.onclick=()=>{
+ switchWorkoutOptions.style.display=switchWorkoutOptions.style.display==="grid"?"none":"grid";
+};
+
+panel.querySelectorAll("[data-switchworkout]").forEach(btn=>btn.onclick=()=>{
+ const choice=btn.dataset.switchworkout;
+ S.dateWorkoutOverrides[trainKey()]=choice;
+ S.day=choice;
+ delete S.customDayExercises[dateExerciseKey()];
+ save();render();renderMonth();
+});
+
+let resetSuggestedWorkout=document.getElementById("resetSuggestedWorkout");
+if(resetSuggestedWorkout)resetSuggestedWorkout.onclick=resetTodayToSuggested;
+
+let openExerciseLibraryToday=document.getElementById("openExerciseLibraryToday");
+if(openExerciseLibraryToday)openExerciseLibraryToday.onclick=()=>{
+ ensureCustomDayExercises();
+ const card=document.getElementById("exerciseBuilderCard");
+ const body=document.getElementById("exerciseBuilderBody");
+ if(card)card.style.display="block";
+ if(body)body.style.display="block";
+ renderExerciseLibraryResults();
+ if(card)card.scrollIntoView({behavior:"smooth",block:"start"});
+};
 
 let toggleExerciseBuilder=document.getElementById("toggleExerciseBuilder");
 let exerciseBuilderBody=document.getElementById("exerciseBuilderBody");
@@ -765,7 +844,7 @@ function renderExerciseLibraryResults(){
    if(!e)return;
    let exists=exList.some(x=>String(x[0]).toLowerCase()===String(e[0]).toLowerCase());
    if(exists){alert(e[0]+" is already in this workout.");return;}
-   addedExercisesForDay(S.day).push(libraryTuple(e));
+   ensureCustomDayExercises().push(libraryTuple(e));
    save();render();
  });
 }
@@ -795,7 +874,7 @@ if(saveCustomExercise)saveCustomExercise.onclick=()=>{
  if(!name){alert("Add an exercise name first.");return;}
  let exists=exList.some(x=>String(x[0]).toLowerCase()===name.toLowerCase());
  if(exists){alert(name+" is already in this workout.");return;}
- addedExercisesForDay(S.day).push([
+ ensureCustomDayExercises().push([
    name,sets,reps,muscle,
    "Custom exercise — use the equipment/setup you prefer.",
    "Use controlled form and a comfortable range of motion.",
@@ -1527,12 +1606,12 @@ finishSetup.onclick=()=>{
   previewOnboarding();
 };
 rerunSetup.onclick=openSetup;editGoals.onclick=openSetup;
-toggleCycle.onclick=()=>{if(S.profile?.sex==="male"||S.nutrition?.nSex==="male"){S.cyclePrefs.enabled=false;save();refreshPersistentUI();return}S.cyclePrefs.enabled=!S.cyclePrefs.enabled;save();refreshPersistentUI()};
+toggleCycle.onclick=()=>{if(S.profile?.sex==="male"||S.nutrition?.nSex==="male"){S.cyclePrefs.enabled=false;save();refreshPersistentUI();return}S.cyclePrefs.enabled=!S.cyclePrefs.enabled;save();refreshPersistentUI();if(window.MMBSyncProfile)window.MMBSyncProfile()};
 
 const settingsTrainingDays=document.getElementById("settingsTrainingDays");
 if(settingsTrainingDays){
  settingsTrainingDays.value=String(S.trainingDaysPerWeek||4);
- settingsTrainingDays.onchange=()=>{S.trainingDaysPerWeek=Math.min(7,Math.max(3,+settingsTrainingDays.value||4));save();refreshTrainingGoalUI();};
+ settingsTrainingDays.onchange=()=>{S.trainingDaysPerWeek=Math.min(7,Math.max(3,+settingsTrainingDays.value||4));save();refreshTrainingGoalUI();if(window.MMBSyncProfile)window.MMBSyncProfile();};
 }
 refreshTrainingGoalUI();
 
@@ -1972,6 +2051,14 @@ async function obAuth(mode){
       if(er)er.textContent="Account created! Check your email for the confirmation link, then come back and log in.";
       return;
     }
+    if(mode==="login" && window.MMBRestoreCloudProfile){
+      const restored=await window.MMBRestoreCloudProfile();
+      if(restored){
+        onboardOverlay.style.display="none";
+        try{renderAll()}catch(e){}
+        return;
+      }
+    }
     obNext();
   }catch(err){
     const msg=String(err?.message||"");
@@ -1989,6 +2076,86 @@ async function obAuth(mode){
     buttons.forEach(b=>b.disabled=false);
   }
 }
+
+function mmbCloudProfilePayload(){
+ return {
+   schema:1,
+   setupComplete:true,
+   profile:S.profile||{},
+   nutrition:S.nutrition||{},
+   trainingDaysPerWeek:S.trainingDaysPerWeek||4,
+   location:S.location||"",
+   place:S.place||"gym",
+   gymName:S.gymName||"",
+   cyclePrefs:S.cyclePrefs||{},
+   look:S.look||{},
+   color:S.color||"#8d6e8f",
+   savedAt:new Date().toISOString()
+ };
+}
+async function syncProfileToCloud(){
+ try{
+   if(!window.MMBCloud)return false;
+   const {data}=await window.MMBCloud.auth.getSession();
+   if(!data?.session?.user)return false;
+   const existing=data.session.user.user_metadata||{};
+   const {data:updated,error}=await window.MMBCloud.auth.updateUser({
+     data:{...existing,mmbProfile:mmbCloudProfilePayload()}
+   });
+   if(error)throw error;
+   window.MMBAccountUser=updated?.user||data.session.user;
+   return true;
+ }catch(e){
+   console.warn("Profile cloud sync failed",e);
+   return false;
+ }
+}
+function applyCloudProfile(cp){
+ if(!cp||typeof cp!=="object")return false;
+ try{
+   S.profile={...(S.profile||{}),...(cp.profile||{})};
+   S.nutrition={...(S.nutrition||{}),...(cp.nutrition||{})};
+   if(cp.trainingDaysPerWeek)S.trainingDaysPerWeek=Math.min(7,Math.max(3,+cp.trainingDaysPerWeek||4));
+   if(cp.location!==undefined)S.location=cp.location;
+   if(cp.place)S.place=cp.place;
+   if(cp.gymName!==undefined)S.gymName=cp.gymName;
+   if(cp.cyclePrefs)S.cyclePrefs={...(S.cyclePrefs||{}),...cp.cyclePrefs};
+   if(cp.look)S.look={...(S.look||{}),...cp.look};
+   if(cp.color)S.color=cp.color;
+   S.setupComplete=true;
+   S.nutritionCoachComplete=true;
+   localStorage.setItem(ONBOARD_KEY,JSON.stringify({done:true,cloud:true,at:new Date().toISOString()}));
+   save();
+   try{theme()}catch(e){}
+   try{applyLook()}catch(e){}
+   try{refreshPersistentUI()}catch(e){}
+   try{refreshTrainingGoalUI()}catch(e){}
+   try{renderAll()}catch(e){}
+   return true;
+ }catch(e){
+   console.warn("Could not apply cloud profile",e);
+   return false;
+ }
+}
+async function restoreProfileFromCloud(){
+ try{
+   if(!window.MMBCloud)return false;
+   const {data,error}=await window.MMBCloud.auth.getSession();
+   if(error)throw error;
+   const user=data?.session?.user;
+   if(!user)return false;
+   window.MMBAccountUser=user;
+   const cp=user.user_metadata?.mmbProfile;
+   if(!cp)return false;
+   return applyCloudProfile(cp);
+ }catch(e){
+   console.warn("Cloud profile restore failed",e);
+   return false;
+ }
+}
+window.MMBSyncProfile=syncProfileToCloud;
+window.MMBRestoreCloudProfile=restoreProfileFromCloud;
+
 function finishOnboard(){
   captureOnboard();
   try{
@@ -2015,6 +2182,7 @@ function finishOnboard(){
     if(obData.gymName!==undefined) S.gymName=(obData.gymName||"").trim();
     localStorage.setItem(ONBOARD_KEY,JSON.stringify({done:true,data:obData,at:new Date().toISOString()}));
     save();
+    syncProfileToCloud();
   }catch(e){}
   onboardOverlay.style.display="none";
   obEditGoals=false;
@@ -2030,15 +2198,22 @@ function previewOnboarding(){
 async function maybeStartOnboarding(){
   let done=false;
   try{done=!!JSON.parse(localStorage.getItem(ONBOARD_KEY)||"{}").done}catch(e){}
-  // Wait briefly for Supabase to restore a persisted session.
+
+  // First try to restore the signed-in user's profile from Supabase.
+  // This is what makes Safari, Chrome, and a fresh browser share setup.
+  let restored=false;
   try{
-    if(window.MMBCloud){
-      const {data}=await window.MMBCloud.auth.getSession();
-      if(data?.session?.user) window.MMBAccountUser=data.session.user;
-    }
+    // Give the account script a moment to initialize Supabase.
+    for(let i=0;i<10 && !window.MMBCloud;i++) await new Promise(r=>setTimeout(r,120));
+    if(window.MMBRestoreCloudProfile) restored=await window.MMBRestoreCloudProfile();
   }catch(e){}
-  // Anyone who has not completed onboarding should finish it, even if their account
-  // session has already been restored after email confirmation/login.
+
+  if(restored){
+    onboardOverlay.style.display="none";
+    return;
+  }
+
+  // Local completion still works offline/on the original browser.
   if(!done){
     onboardOverlay.style.display="block";
     renderOnboard();
@@ -2056,8 +2231,8 @@ const cloud=window.supabase.createClient(U,K,{auth:{persistSession:true,autoRefr
 function show(u){window.MMBAccountUser=u||null;if(u){st.innerHTML='<b>✅ Signed in</b><br>'+String(u.email||'Your account');out.style.display='none';inside.style.display='block';}else{st.innerHTML='<b>Not signed in yet</b><br>Create an account so we can attach your data to you.';out.style.display='block';inside.style.display='none';}}
 async function refresh(){const r=await cloud.auth.getSession();show(r.data.session&&r.data.session.user);}
 document.getElementById('accountSignUp').onclick=async()=>{const e=em.value.trim(),p=pw.value;if(!e||p.length<8){alert('Enter your email and a password with at least 8 characters.');return;}st.textContent='Creating your account…';const r=await cloud.auth.signUp({email:e,password:p,options:{emailRedirectTo:A}});if(r.error){st.textContent='⚠️ '+r.error.message;return;}if(r.data.session){show(r.data.user);alert('Account created! 🎉');}else st.innerHTML='<b>📧 Check your email</b><br>Tap the confirmation link, then come back here and log in.';};
-document.getElementById('accountSignIn').onclick=async()=>{const e=em.value.trim(),p=pw.value;if(!e||!p){alert('Enter your email and password.');return;}st.textContent='Logging in…';const r=await cloud.auth.signInWithPassword({email:e,password:p});if(r.error){st.textContent='⚠️ '+r.error.message;return;}show(r.data.user);};
-document.getElementById('accountSignOut').onclick=async()=>{await cloud.auth.signOut();show(null);};cloud.auth.onAuthStateChange((_e,s)=>show(s&&s.user));refresh();
+document.getElementById('accountSignIn').onclick=async()=>{const e=em.value.trim(),p=pw.value;if(!e||!p){alert('Enter your email and password.');return;}st.textContent='Logging in…';const r=await cloud.auth.signInWithPassword({email:e,password:p});if(r.error){st.textContent='⚠️ '+r.error.message;return;}show(r.data.user);if(window.MMBRestoreCloudProfile)await window.MMBRestoreCloudProfile();};
+document.getElementById('accountSignOut').onclick=async()=>{await cloud.auth.signOut();show(null);};cloud.auth.onAuthStateChange((evt,s)=>{show(s&&s.user);if(evt==="SIGNED_IN"&&window.MMBRestoreCloudProfile)setTimeout(()=>window.MMBRestoreCloudProfile(),0);});refresh().then(()=>{if(window.MMBRestoreCloudProfile)window.MMBRestoreCloudProfile();});
 })();
 </script>
 </body></html>
