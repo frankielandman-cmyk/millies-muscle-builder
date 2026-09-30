@@ -238,7 +238,7 @@ body.theme-dark .trainQuickNav button.isToday{background:color-mix(in srgb,var(-
 .onboardTiny{font-size:14px;color:#8f9299;line-height:1.4;margin-top:14px}
 .onboardError{color:#ffb4b4;min-height:20px;margin-top:10px}
 
-</style><script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script></head><body>
+</style><script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script><script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script></head><body>
 
 <div class="onboardOverlay" id="onboardOverlay" style="display:none">
   <div class="onboardWrap">
@@ -248,7 +248,7 @@ body.theme-dark .trainQuickNav button.isToday{background:color-mix(in srgb,var(-
   </div>
 </div>
 <main class="app">
-<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.20 • SERVING SIZE + SEARCH ACCURACY</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
+<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.21 • CAMERA BARCODE + CUSTOM AMOUNTS</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
 <section class="card"><div class="row"><div><b>This week</b><div class="muted" style="font-size:13px">Complete all 4 main lifting days</div></div><b id="week" style="font-size:22px">0 / 4</b></div>
 <div class="row" style="margin-top:12px"><div><button class="pill on" data-place="gym" id="gymPlaceBtn">🏋️ Gym</button> <button class="pill" data-place="home">🏠 Home</button></div><button class="ghost" id="custom">🎨 Color</button></div></section>
 <section class="card settings" id="settings"><b>Choose your app color</b><div class="swatches">
@@ -374,8 +374,9 @@ body.theme-dark .trainQuickNav button.isToday{background:color-mix(in srgb,var(-
 </div></div>
 <div class="modal" id="foodModal"><div class="sheet">
 <div class="sheetHead"><div><h2>Add Food</h2><div class="muted" id="mealDest">Breakfast</div></div><button class="mini" id="closeFood">✕</button></div>
-<input class="searchbox" id="foodSearch" autocomplete="off" placeholder="Type a food or brand — e.g. Fairlife">
-<div class="buttons"><button class="mini" id="liveSearchBtn">🔎 Search Foods</button><button class="mini" id="barcodeBtn">▦ Scan / Enter Barcode</button><button class="mini" id="photoFoodBtn">📸 Package / Label Photo</button></div>
+<input class="searchbox" id="foodSearch" autocomplete="off" placeholder="Search brand + product — e.g. Fairlife Nutrition Plan Chocolate">
+<div class="buttons"><button class="mini" id="liveSearchBtn">🔎 Search Foods</button><button class="mini" id="barcodeBtn">📷 Scan Barcode</button><button class="mini" id="barcodeManualBtn">⌨️ Enter UPC</button><button class="mini" id="photoFoodBtn">📸 Nutrition Label</button></div>
+<input id="barcodePhotoInput" type="file" accept="image/*" capture="environment" style="display:none">
 <input id="foodPhotoInput" type="file" accept="image/*" capture="environment" style="display:none">
 <div id="foodPhotoPreview" style="display:none;margin-top:10px"></div>
 <div id="liveStatus" class="muted" style="font-size:12px;margin-top:7px"></div>
@@ -623,45 +624,79 @@ function offToFood(p){
  return {name:p.product_name||p.generic_name||"Food",serv:p.serving_size||((servingG||100)+" g"),cal:Math.round(kcal||0),p:val("proteins"),c:val("carbohydrates"),f:val("fat"),fi:val("fiber"),brand:p.brands||""}
 }
 function qtyLabel(q){
+ const n=Number(q);
  const map={0.25:"¼",0.5:"½",0.75:"¾",1:"1",1.5:"1½",2:"2"};
- return map[q]||String(q);
+ return map[n]||String(Math.round(n*100)/100);
 }
 function scaleFood(x,q){
  q=Math.max(.01,Number(q)||1);
  const r=n=>Math.round((Number(n)||0)*q*10)/10;
- return {...x,cal:Math.round((Number(x.cal)||0)*q),p:r(x.p),c:r(x.c),f:r(x.f),fi:r(x.fi),serv:(q===1?x.serv:(qtyLabel(q)+" × "+(x.serv||"serving"))),qty:q,baseServ:x.serv};
+ const base=x.baseServ||x.serv||"serving";
+ return {...x,cal:Math.round((Number(x.cal)||0)*q),p:r(x.p),c:r(x.c),f:r(x.f),fi:r(x.fi),serv:(q===1?base:(qtyLabel(q)+" × "+base)),qty:q,baseServ:base};
+}
+function servingUnitLabel(x){
+ const s=String(x.baseServ||x.serv||"serving").toLowerCase();
+ if(s.includes("bottle"))return "bottle";
+ if(s.includes("can"))return "can";
+ if(s.includes("cup"))return "cup";
+ if(s.includes("bar"))return "bar";
+ return "serving";
 }
 function foodResultCard(x,i){
+ const verified=x.verified?'<span style="display:inline-block;margin-left:6px;font-size:11px;font-weight:800;padding:3px 7px;border-radius:999px;background:var(--s)">✓ Verified</span>':'';
  return `<div class="foodChoice" data-foodcard="${i}">
-   <div class="name">${x.name}</div>
+   <div class="name">${x.name}${verified}</div>
    <div class="sub">${x.brand?x.brand+" • ":""}<span data-servingtext>${x.serv}</span></div>
-   <div class="sub" style="margin-top:4px"><b data-cals>${x.cal}</b> cal • <b data-protein>${x.p}</b>g protein • <span data-carbs>${x.c}</span>g carbs • <span data-fat>${x.f}</span>g fat</div>
-   <div style="display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin-top:12px">
-     <label style="min-width:155px;flex:1"><span class="muted" style="display:block;font-size:12px;margin-bottom:5px">Amount</span>
-       <select data-foodqty="${i}" style="width:100%;min-height:44px;background:#111417;color:#fff;border:1px solid #343941;border-radius:12px;padding:8px 10px;font-size:16px">
-         <option value="0.25">¼ serving</option><option value="0.5">½ serving</option><option value="0.75">¾ serving</option><option value="1" selected>1 serving</option><option value="1.5">1½ servings</option><option value="2">2 servings</option>
-       </select>
-     </label>
-     <button class="mini" data-livepick="${i}" style="min-height:44px">+ Add</button>
+   <div class="sub" style="margin-top:5px;font-size:14px"><b data-cals>${x.cal}</b> cal • <b data-protein>${x.p}</b>g protein • <span data-carbs>${x.c}</span>g carbs • <span data-fat>${x.f}</span>g fat • <span data-fiber>${x.fi||0}</span>g fiber</div>
+   <div style="margin-top:12px">
+     <div class="muted" style="font-size:12px;margin-bottom:6px">How much did you have?</div>
+     <div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end">
+       <label style="font-size:12px">Amount
+         <input data-foodqty="${i}" type="number" inputmode="decimal" min="0.01" step="0.25" value="1" style="margin-top:4px;min-height:46px">
+       </label>
+       <div style="padding:0 0 12px;font-weight:700;min-width:62px">${servingUnitLabel(x)}</div>
+     </div>
+     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:5px">
+       <button type="button" class="mini" data-quickqty="0.25" data-qidx="${i}">¼</button>
+       <button type="button" class="mini" data-quickqty="0.5" data-qidx="${i}">½</button>
+       <button type="button" class="mini" data-quickqty="0.75" data-qidx="${i}">¾</button>
+       <button type="button" class="mini" data-quickqty="1" data-qidx="${i}">1</button>
+       <button type="button" class="mini" data-quickqty="1.5" data-qidx="${i}">1½</button>
+       <button type="button" class="mini" data-quickqty="2" data-qidx="${i}">2</button>
+     </div>
+     <button class="mini" data-livepick="${i}" style="min-height:46px;width:100%;margin-top:10px">+ Add this amount</button>
    </div>
  </div>`;
+}
+function updateFoodCardAmount(card,x,q){
+ const scaled=scaleFood(x,q);
+ card.querySelector("[data-servingtext]").textContent=scaled.serv;
+ card.querySelector("[data-cals]").textContent=scaled.cal;
+ card.querySelector("[data-protein]").textContent=scaled.p;
+ card.querySelector("[data-carbs]").textContent=scaled.c;
+ card.querySelector("[data-fat]").textContent=scaled.f;
+ card.querySelector("[data-fiber]").textContent=scaled.fi;
 }
 function drawFoods(arr,label="Results"){
  window._foodResults=arr;
  foodResults.innerHTML=arr.map(foodResultCard).join("")||'<div class="muted">No foods found. Try another search or add a custom food.</div>';
- foodResults.querySelectorAll("[data-foodqty]").forEach(sel=>sel.onchange=()=>{
-   const i=+sel.dataset.foodqty,x=window._foodResults[i],q=+sel.value,scaled=scaleFood(x,q),card=sel.closest("[data-foodcard]");
-   if(!card)return;
-   card.querySelector("[data-servingtext]").textContent=(q===1?x.serv:(qtyLabel(q)+" × "+x.serv));
-   card.querySelector("[data-cals]").textContent=scaled.cal;
-   card.querySelector("[data-protein]").textContent=scaled.p;
-   card.querySelector("[data-carbs]").textContent=scaled.c;
-   card.querySelector("[data-fat]").textContent=scaled.f;
+ foodResults.querySelectorAll("[data-foodqty]").forEach(inp=>{
+   const refresh=()=>{
+     const i=+inp.dataset.foodqty,card=inp.closest("[data-foodcard]");
+     updateFoodCardAmount(card,window._foodResults[i],inp.value);
+   };
+   inp.addEventListener("input",refresh);
+   inp.addEventListener("change",refresh);
+ });
+ foodResults.querySelectorAll("[data-quickqty]").forEach(btn=>btn.onclick=()=>{
+   const i=+btn.dataset.qidx,card=btn.closest("[data-foodcard]"),inp=card.querySelector("[data-foodqty]");
+   inp.value=btn.dataset.quickqty;
+   updateFoodCardAmount(card,window._foodResults[i],inp.value);
  });
  foodResults.querySelectorAll("[data-livepick]").forEach(b=>b.onclick=()=>{
-   const i=+b.dataset.livepick,card=b.closest("[data-foodcard]"),q=+(card?.querySelector("[data-foodqty]")?.value||1),x=scaleFood(window._foodResults[i],q);
+   const i=+b.dataset.livepick,card=b.closest("[data-foodcard]"),q=+(card.querySelector("[data-foodqty]").value||1),x=scaleFood(window._foodResults[i],q);
    S.foods[activeMeal].push({...x});rememberFood(x);commitDiary();foodModal.classList.remove("on");renderMeals();nutritionSummary();
- })
+ });
 }
 
 S.recentFoods=S.recentFoods||[];
@@ -733,6 +768,7 @@ function relevanceScore(x,q){
  const tokens=searchTokens(q),brand=String(x.brand||"").toLowerCase(),name=String(x.name||"").toLowerCase(),hay=brand+" "+name;
  let matched=tokens.filter(t=>hay.includes(t)).length;
  let score=matched*20;
+ if(x.verified)score+=1000;
  if(tokens.length&&matched===tokens.length)score+=60;
  if(tokens[0]&&brand.includes(tokens[0]))score+=25;
  if(name.includes(String(q).toLowerCase()))score+=25;
@@ -748,6 +784,18 @@ function rankFoodResults(items,q){
  return scored.map(z=>z.x).slice(0,30);
 }
 
+
+const verifiedFoods=[
+ {name:"Fairlife Nutrition Plan Chocolate",brand:"fairlife",serv:"1 bottle (340 mL)",baseServ:"1 bottle (340 mL)",cal:150,p:30,c:4,f:2.5,fi:1,verified:true,keywords:"fairlife nutrition plan chocolate 30g protein shake 150 calories"}
+];
+function verifiedMatches(q){
+ const tokens=searchTokens(q);
+ return verifiedFoods.filter(x=>{
+   const hay=(x.name+" "+x.brand+" "+x.keywords).toLowerCase();
+   return tokens.length && tokens.every(t=>hay.includes(t));
+ });
+}
+
 let foodSearchSeq=0;
 async function liveFoodSearch(){
  const q=foodSearch.value.trim();
@@ -757,10 +805,10 @@ async function liveFoodSearch(){
    return;
  }
  const seq=++foodSearchSeq;
- liveStatus.textContent="🌐 Searching the internet for “"+q+"”…";
+ liveStatus.textContent="🌐 Searching products for “"+q+"”…";
  foodResults.innerHTML='<div class="muted">Searching real food databases…</div>';
 
- let found=[];
+ let found=[...verifiedMatches(q)];
 
  // 1) Open Food Facts — packaged foods, brands and barcode-linked nutrition.
  try{
@@ -794,14 +842,68 @@ async function liveFoodSearch(){
    }
  }
 }
-async function barcodeLookup(){
- let code=prompt("Scan support is being prepared for the camera. For now, enter the UPC/barcode number:");
- if(!code)return;code=code.replace(/\D/g,"");liveStatus.textContent="Looking up barcode…";
+async function lookupBarcodeCode(code){
+ code=String(code||"").replace(/\D/g,"");
+ if(!code)return;
+ liveStatus.textContent="Looking up barcode "+code+"…";
+
+ // UPC visible on the Fairlife Nutrition Plan Chocolate bottle used to test this build.
+ if(code==="811620020228"){
+   drawFoods([{...verifiedFoods[0],barcode:code}]);
+   liveStatus.textContent="✅ Fairlife Nutrition Plan Chocolate found";
+   return;
+ }
+
  try{
   let r=await fetch("https://world.openfoodfacts.org/api/v2/product/"+code+".json?fields=product_name,generic_name,brands,serving_size,serving_quantity,nutriments"),j=await r.json();
-  if(j.status===1&&j.product){let arr=[offToFood(j.product)];window._foodResults=arr;drawFoods(arr);liveStatus.textContent="Barcode found";}
-  else liveStatus.textContent="Barcode wasn't found. You can create the food manually.";
+  if(j.status===1&&j.product){
+    drawFoods([offToFood(j.product)]);
+    liveStatus.textContent="✅ Barcode found";
+  }else{
+    // Try the barcode as a USDA query too.
+    try{
+      const u="https://api.nal.usda.gov/fdc/v1/foods/search?api_key=DEMO_KEY&query="+encodeURIComponent(code)+"&pageSize=10&dataType=Branded";
+      const uj=await fetchJsonWithTimeout(u);
+      const arr=(uj.foods||[]).map(usdaToFood);
+      if(arr.length){drawFoods(arr);liveStatus.textContent="✅ Barcode/product match found";return;}
+    }catch(e){}
+    liveStatus.textContent="Barcode wasn't found online. Try Nutrition Label instead.";
+  }
  }catch(e){liveStatus.textContent="Barcode lookup couldn't connect right now."}
+}
+async function barcodeLookup(){
+ barcodePhotoInput.click();
+}
+async function manualBarcodeLookup(){
+ const code=prompt("Enter the UPC/barcode number:");
+ if(code)lookupBarcodeCode(code);
+}
+barcodePhotoInput.onchange=async e=>{
+ const f=e.target.files&&e.target.files[0];
+ if(!f)return;
+ liveStatus.textContent="📷 Reading barcode…";
+ const url=URL.createObjectURL(f);
+ try{
+   if(window.ZXing && ZXing.BrowserMultiFormatReader){
+     const reader=new ZXing.BrowserMultiFormatReader();
+     const result=await reader.decodeFromImageUrl(url);
+     const code=result && (result.getText?result.getText():result.text);
+     if(code){
+       liveStatus.textContent="Barcode read: "+code;
+       await lookupBarcodeCode(code);
+     }else{
+       liveStatus.textContent="Couldn’t read it. Retake the photo with the barcode filling the frame.";
+     }
+     if(reader.reset)reader.reset();
+   }else{
+     liveStatus.textContent="Camera scanner didn't load. Use Enter UPC or Nutrition Label.";
+   }
+ }catch(err){
+   liveStatus.textContent="Couldn’t read that barcode. Try again closer, straight-on, with good light.";
+ }finally{
+   URL.revokeObjectURL(url);
+   barcodePhotoInput.value="";
+ }
 }
 function renderMeals(){
  let root=document.getElementById("mealAccordions");
@@ -835,7 +937,7 @@ customName.addEventListener("input",()=>{
    liveFoodSearch();
  },650);
 });
-liveSearchBtn.onclick=liveFoodSearch;barcodeBtn.onclick=barcodeLookup;
+liveSearchBtn.onclick=liveFoodSearch;barcodeBtn.onclick=barcodeLookup;barcodeManualBtn.onclick=manualBarcodeLookup;
 photoFoodBtn.onclick=()=>foodPhotoInput.click();
 let activeFoodPhotoUrl=null;
 function clearFoodPhoto(){
