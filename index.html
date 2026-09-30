@@ -198,8 +198,12 @@ body{zoom:var(--app-scale,1)}
 .setDone.done{background:var(--a)!important;color:#fff!important;border-color:var(--a)!important}
 .changeWorkoutBox{margin-top:16px;padding:14px;border:1px solid var(--l);border-radius:16px;background:var(--app-card)}
 .changeWorkoutBox>button{width:100%;padding:13px}.changeOptions{display:none;margin-top:10px;gap:8px;grid-template-columns:1fr 1fr}.changeOptions.open{display:grid}.changeOptions button{padding:11px 8px}.customActivity{display:none;margin-top:10px}.customActivity.open{display:block}
-</style></head><body><main class="app">
-<header><button type="button" class="premiumSettingsBtn" id="settingsShortcut" aria-label="Open settings">⚙️</button><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 11.1</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
+
+/* Stable 12 — accounts + protected cloud sync */
+.authOverlay{display:none;position:fixed;inset:0;z-index:1200;background:#0b0c0e;color:#f7f5f2;overflow:auto;padding:24px 18px}.authOverlay.on{display:block}.authBox{max-width:480px;margin:5vh auto 0}.authBrand{margin-bottom:28px}.authMark{width:52px;height:52px;border-radius:16px;background:var(--a);display:grid;place-items:center;font-weight:950;font-size:24px;margin-bottom:12px}.authBox h1{font-size:30px;margin:6px 0}.authBox input{background:#15171a!important;color:#f7f5f2!important;border-color:#303338!important}.authActions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}.authPrimary{min-height:50px;border:0;border-radius:14px;background:var(--a);color:#fff;font-weight:900;font-size:15px}.authSecondary{min-height:50px;border:1px solid #34383e;border-radius:14px;background:#1b1d21;color:#f7f5f2;font-weight:850}.authMsg{margin-top:12px;padding:11px 12px;border-radius:12px;background:#181a1d;color:#bbb7b4;font-size:13px;line-height:1.4;display:none}.authMsg.show{display:block}.cloudBadge{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--l);border-radius:99px;padding:7px 10px;font-size:12px;font-weight:850}.cloudDot{width:8px;height:8px;border-radius:50%;background:#777}.cloudDot.on{background:#55c783}.accountRow{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.accountEmail{font-size:13px;color:var(--m);word-break:break-all}
+</style></head><body><div class="authOverlay" id="authOverlay"><div class="authBox"><div class="authBrand"><div class="authMark">M</div><div class="muted" style="font-size:12px;font-weight:900;letter-spacing:.12em">MILLIE’S MUSCLE BUILDER</div><h1>Your workouts. Your account.</h1><div class="muted">Sign in to keep your training data backed up and ready for friends + challenges later.</div></div><label>Email<input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com"></label><label style="display:block;margin-top:10px">Password<input id="authPassword" type="password" autocomplete="current-password" placeholder="At least 6 characters"></label><div class="authActions"><button class="authPrimary" id="authSignIn">Sign In</button><button class="authSecondary" id="authSignUp">Create Account</button></div><button class="foodSearchBtn" id="authOffline" style="margin-top:10px;background:#15171a!important;color:#ddd!important;border-color:#303338!important">Not now — keep using this device</button><div class="authMsg" id="authMsg"></div></div></div>
+<main class="app">
+<header><button type="button" class="premiumSettingsBtn" id="settingsShortcut" aria-label="Open settings">⚙️</button><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12 CLOUD</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
 <section class="card"><div class="row"><div><b>This week</b><div class="muted" style="font-size:13px">Complete all 4 main lifting days</div></div><b id="week" style="font-size:22px">0 / 4</b></div>
 <div class="row" style="margin-top:12px"><div><button class="pill on" data-place="gym">🏋️ Planet Fitness</button> <button class="pill" data-place="home">🏠 Home</button></div><button class="ghost" id="custom">🎨 Color</button></div></section>
 <section class="card settings" id="settings"><b>Choose your app color</b><div class="swatches">
@@ -299,6 +303,7 @@ body{zoom:var(--app-scale,1)}
 
 <section class="feature" id="feature-settings">
 <div class="card"><div class="bigicon">⚙️</div><h2>Settings</h2><div class="muted">The things you set once — not things you should have to see every day.</div></div>
+<div class="card"><div class="accountRow"><div><h3 style="margin:0 0 4px">☁️ Account + Cloud</h3><div class="accountEmail" id="accountEmail">Using this device only</div></div><span class="cloudBadge"><span class="cloudDot" id="cloudDot"></span><span id="cloudStatus">Local only</span></span></div><div class="buttons" style="margin-top:12px"><button class="mini" id="accountSignIn">Sign in / Create account</button><button class="mini" id="accountSignOut" style="display:none">Sign out</button><button class="mini" id="cloudSyncNow" style="display:none">Sync now</button></div><div class="softnote" id="cloudNote">Your current data stays on this device unless you sign in.</div></div>
 <details class="card"><summary><b>🎨 Appearance</b></summary><div class="muted">Change the whole app background, cards, buttons and text.</div><div class="muted" style="margin-top:12px"><b>App size</b></div><div class="scaleRow"><button type="button" class="scaleBtn" data-scale=".85">85%</button><button type="button" class="scaleBtn" data-scale=".90">90%</button><button type="button" class="scaleBtn" data-scale="1">100%</button></div><div class="modeRow"><button type="button" class="modeBtn" data-mode="light">☀️ Light</button><button type="button" class="modeBtn" data-mode="dark">🌙 Dark</button><button type="button" class="modeBtn" data-mode="system">◐ System</button></div><div class="muted" style="margin-top:12px"><b>Dark background</b></div><div class="darkToneRow"><button type="button" class="darkTone" data-darkbg="#08090a" style="background:#08090a" aria-label="Near black"></button><button type="button" class="darkTone" data-darkbg="#0b0c0e" style="background:#0b0c0e" aria-label="Charcoal"></button><button type="button" class="darkTone" data-darkbg="#171412" style="background:#171412" aria-label="Warm black"></button></div><div class="presetRow"><button type="button" data-look="warm">Warm</button><button type="button" data-look="clean">Clean</button><button type="button" data-look="rose">Rose</button><button type="button" data-look="dark">Dark</button></div><div class="appearanceGrid"><label class="appearanceField"><span>Background</span><input type="color" id="lookBg"></label><label class="appearanceField"><span>Cards</span><input type="color" id="lookCard"></label><label class="appearanceField"><span>Buttons</span><input type="color" id="lookAccent"></label><label class="appearanceField"><span>Text</span><input type="color" id="lookText"></label></div><button type="button" class="foodSearchBtn" id="resetLook">Reset appearance</button></details><details class="card"><summary><b>👤 Profile</b></summary><div class="softnote">Update your basic profile and preferences through Setup.</div><button class="foodSearchBtn" id="rerunSetup">Edit Profile / Setup</button></details>
 <details class="card"><summary><b>🎯 Goals & Nutrition</b></summary><div class="muted">Current targets</div><div id="settingsGoals" class="quick"></div><button class="foodSearchBtn" id="editGoals">Change Goals</button></details>
 <details class="card"><summary><b>🌸 Cycle Tracking</b></summary><div id="cycleSettingsStatus" class="quick"></div><button class="foodSearchBtn" id="toggleCycle">Turn Cycle Tracking On / Off</button></details>
@@ -318,6 +323,7 @@ body{zoom:var(--app-scale,1)}
 <div class="setupStep" id="setup2"><button type="button" class="setupBack" id="setupBack1">← Back</button><h2>🎯 What’s your goal?</h2><div class="foodform"><label>Goal<select id="setupGoal"><option value="lose">Lose fat while keeping/building muscle</option><option value="recomp">Recomposition</option><option value="maintain">Maintain</option><option value="build">Build muscle</option></select></label><label>Activity<select id="setupActivity"><option value="1.2">Mostly sedentary</option><option value="1.375">Lightly active</option><option value="1.55" selected>Moderately active</option><option value="1.725">Very active</option></select></label></div><button class="finish" id="setupNext2">Next →</button></div>
 <div class="setupStep" id="setup3"><button type="button" class="setupBack" id="setupBack2">← Back</button><h2>🌸 Cycle tracking</h2><p class="muted">Optional. If you turn it on, the app can estimate your current phase and use symptoms/performance as context for training.</p><div class="choiceGrid"><button class="choiceBtn" id="cycleYes">Yes, use it</button><button class="choiceBtn" id="cycleNo">Not now</button></div><div id="cycleSetupFields" style="display:none;margin-top:12px" class="foodform"><label>Last period started<input type="date" id="lastPeriod"></label><label>Typical cycle length<input inputmode="numeric" id="cycleLength" value="28"></label></div><button class="finish" id="finishSetup">Finish Setup 🔥</button></div>
 </div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const imgs={"Leg Press":"https://p19-lemon8-sign-useast5.tiktokcdn-us.com/tos-useast5-v-3931-tx/o8AFkeqhBICdun3RBgiAJV220BvI0ABEivw16U~tplv-pyavlv3z7u-text-logo%3AQGtpbGxpdHdpdGhrZW56%3Aq75.jpeg","Hip Abduction":"https://s10.localdatacdn.com/on/windsor/6828294/original/P7eCms90RX.jpg","Shoulder Press":"https://cdn.businessyab.com/assets/uploads/57c5849ce2eee52172252ce8df04b61a__united_states_pennsylvania_delaware_county_marple_township_broomall_springfield_road_2920_planet_fitnesshtml.jpg","Seated Hamstring Curl":"https://s3assets.skimble.com/assets/545101/image_iphone.jpg","Calf Raise":"https://i.ebayimg.com/images/g/PikAAOSwiOVl55FO/s-l1200.webp"};
 const P={
@@ -354,7 +360,7 @@ function trainKey(){let d=trainingCursor,y=d.getFullYear(),m=String(d.getMonth()
 let S=JSON.parse(localStorage.getItem("MMBv3")||'{}');S.day=S.day||"d1";S.place=S.place||"gym";S.color=S.color||"#8d6e8f";S.logs=S.logs||{};S.sets=S.sets||{};S.days=S.days||{};S.trainingDiary=S.trainingDiary||{};
 function trainDay(){let k=trainKey();S.trainingDiary[k]=S.trainingDiary[k]||{};let d=S.trainingDiary[k];d.logs=d.logs||{};d.sets=d.sets||{};d.days=d.days||{};d.cardio=Array.isArray(d.cardio)?d.cardio:[];d.cycle=d.cycle||{};return d}
 
-const save=()=>{if(S.diary&&typeof diaryCursor!=="undefined"){let k=localDateKey(diaryCursor);if(S.diary[k]){S.diary[k].foods=S.foods;S.diary[k].water=S.nutrition.water||0}}localStorage.setItem("MMBv3",JSON.stringify(S));};const tabs=document.getElementById("tabs"),panel=document.getElementById("panel"),week=document.getElementById("week");
+const save=()=>{if(S.diary&&typeof diaryCursor!=="undefined"){let k=localDateKey(diaryCursor);if(S.diary[k]){S.diary[k].foods=S.foods;S.diary[k].water=S.nutrition.water||0}}localStorage.setItem("MMBv3",JSON.stringify(S));if(typeof scheduleCloudSave==="function")scheduleCloudSave();};const tabs=document.getElementById("tabs"),panel=document.getElementById("panel"),week=document.getElementById("week");
 function theme(){document.documentElement.style.setProperty("--a",S.color);document.querySelector('meta[name="theme-color"]').content=S.color}theme();
 
 const scheduleDefaults={0:"rest",1:"d1",2:"d2",3:"rest",4:"d3",5:"d4",6:"d5"};
@@ -644,4 +650,52 @@ document.querySelectorAll("[data-darkbg]").forEach(b=>b.onclick=()=>{
  S.look.darkCard=b.dataset.darkbg==="#171412"?"#211d1a":(b.dataset.darkbg==="#08090a"?"#131518":"#181a1d");
  save();applyLook();document.querySelectorAll("[data-scale]").forEach(b=>b.onclick=()=>{S.look.scale=b.dataset.scale;save();applyLook()});buildScheduleSettings();syncWorkoutToDate();document.querySelectorAll("[data-darkbg]").forEach(x=>x.classList.toggle("active",x.dataset.darkbg===S.look.darkBg));
 });
+
+
+// Stable 12 cloud account layer. Publishable keys are intended for browser clients;
+// Row Level Security on public.user_data keeps each signed-in user's row private.
+const SUPABASE_URL="https://qcewlvswyrndfizjlgas.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_TVryiWYyr4LaB5-AusYGEQ_vvWIX-Xh";
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+let cloudUser=null,cloudTimer=null,cloudLoading=false;
+const authOverlayEl=document.getElementById("authOverlay"),authMsgEl=document.getElementById("authMsg");
+function authMessage(msg){authMsgEl.textContent=msg;authMsgEl.classList.add("show")}
+function setCloudUI(user,status){
+ cloudUser=user||null;
+ accountEmail.textContent=user?user.email:"Using this device only";
+ cloudDot.classList.toggle("on",!!user);cloudStatus.textContent=user?(status||"Cloud on"):"Local only";
+ accountSignOut.style.display=user?"inline-block":"none";cloudSyncNow.style.display=user?"inline-block":"none";accountSignIn.style.display=user?"none":"inline-block";
+ cloudNote.textContent=user?"Your Millie’s Muscle Builder data is protected by your account and synced to the cloud.":"Your current data stays on this device unless you sign in.";
+}
+function openAuth(){authMsgEl.classList.remove("show");authOverlayEl.classList.add("on")}
+function closeAuth(){authOverlayEl.classList.remove("on")}
+async function loadCloudData(user){
+ if(!user)return; cloudLoading=true; setCloudUI(user,"Syncing…");
+ try{
+  const {data,error}=await sb.from("user_data").select("app_data").eq("user_id",user.id).maybeSingle();
+  if(error)throw error;
+  if(data&&data.app_data&&Object.keys(data.app_data).length){
+   const localSetup=S.setupComplete; S=Object.assign({},S,data.app_data); localStorage.setItem("MMBv3",JSON.stringify(S));
+   setCloudUI(user,"Synced");
+   // Re-render the app from the cloud state without changing the approved UI.
+   applyLook();buildScheduleSettings();syncWorkoutToDate();nutritionSummary();refreshPersistentUI();render();
+  }else{
+   const {error:upErr}=await sb.from("user_data").upsert({user_id:user.id,app_data:S,updated_at:new Date().toISOString()},{onConflict:"user_id"});
+   if(upErr)throw upErr;setCloudUI(user,"Backed up");
+  }
+ }catch(e){console.error(e);setCloudUI(user,"Sync issue");cloudNote.textContent="Your device data is safe. Cloud sync had a problem; tap Sync now to retry."}
+ finally{cloudLoading=false}
+}
+async function pushCloudData(){
+ if(!cloudUser||cloudLoading)return;setCloudUI(cloudUser,"Saving…");
+ const {error}=await sb.from("user_data").upsert({user_id:cloudUser.id,app_data:S,updated_at:new Date().toISOString()},{onConflict:"user_id"});
+ if(error){console.error(error);setCloudUI(cloudUser,"Sync issue")}else setCloudUI(cloudUser,"Synced");
+}
+function scheduleCloudSave(){if(!cloudUser||cloudLoading)return;clearTimeout(cloudTimer);cloudTimer=setTimeout(pushCloudData,900)}
+authSignIn.onclick=async()=>{let email=authEmail.value.trim(),password=authPassword.value;if(!email||!password)return authMessage("Enter your email and password.");authSignIn.disabled=true;const {data,error}=await sb.auth.signInWithPassword({email,password});authSignIn.disabled=false;if(error)return authMessage(error.message);closeAuth();await loadCloudData(data.user)};
+authSignUp.onclick=async()=>{let email=authEmail.value.trim(),password=authPassword.value;if(!email||password.length<6)return authMessage("Enter your email and a password with at least 6 characters.");authSignUp.disabled=true;const {data,error}=await sb.auth.signUp({email,password,options:{emailRedirectTo:"https://frankielandman-cmyk.github.io/millies-muscle-builder/"}});authSignUp.disabled=false;if(error)return authMessage(error.message);if(data.session){closeAuth();await loadCloudData(data.user)}else authMessage("Account created! Check your email, tap the confirmation link, then come back here and sign in. Your current app data stays safe on this device.")};
+authOffline.onclick=()=>{sessionStorage.setItem("MMB_auth_skip","1");closeAuth()};
+accountSignIn.onclick=openAuth;accountSignOut.onclick=async()=>{await pushCloudData();await sb.auth.signOut();setCloudUI(null);openAuth()};cloudSyncNow.onclick=pushCloudData;
+sb.auth.onAuthStateChange(async(event,session)=>{if(session?.user){setCloudUI(session.user,event==="SIGNED_IN"?"Connected":"Cloud on");closeAuth();if(event==="SIGNED_IN"||event==="INITIAL_SESSION")setTimeout(()=>loadCloudData(session.user),0)}else{setCloudUI(null);if(!sessionStorage.getItem("MMB_auth_skip"))openAuth()}});
+(async()=>{const {data}=await sb.auth.getSession();if(data.session?.user){setCloudUI(data.session.user,"Connected");await loadCloudData(data.session.user)}else{setCloudUI(null);if(!sessionStorage.getItem("MMB_auth_skip"))openAuth()}})();
 </script></body></html>
