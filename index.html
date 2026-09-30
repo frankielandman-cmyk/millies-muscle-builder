@@ -248,7 +248,7 @@ body.theme-dark .trainQuickNav button.isToday{background:color-mix(in srgb,var(-
   </div>
 </div>
 <main class="app">
-<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.7 • CHOOSE YOUR GYM</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
+<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.9 • MALE CYCLE FIX</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
 <section class="card"><div class="row"><div><b>This week</b><div class="muted" style="font-size:13px">Complete all 4 main lifting days</div></div><b id="week" style="font-size:22px">0 / 4</b></div>
 <div class="row" style="margin-top:12px"><div><button class="pill on" data-place="gym" id="gymPlaceBtn">🏋️ Gym</button> <button class="pill" data-place="home">🏠 Home</button></div><button class="ghost" id="custom">🎨 Color</button></div></section>
 <section class="card settings" id="settings"><b>Choose your app color</b><div class="swatches">
@@ -407,7 +407,7 @@ body.theme-dark .trainQuickNav button.isToday{background:color-mix(in srgb,var(-
 <details class="card"><summary><b>🎨 Appearance</b></summary><div class="muted">Change the whole app background, cards, buttons and text.</div><div class="muted" style="margin-top:12px"><b>App size</b></div><div class="scaleRow"><button type="button" class="scaleBtn" data-scale=".85">85%</button><button type="button" class="scaleBtn" data-scale=".90">90%</button><button type="button" class="scaleBtn" data-scale="1">100%</button></div><div class="modeRow"><button type="button" class="modeBtn" data-mode="light">☀️ Light</button><button type="button" class="modeBtn" data-mode="dark">🌙 Dark</button><button type="button" class="modeBtn" data-mode="system">◐ System</button></div><div class="muted" style="margin-top:12px"><b>Dark background</b></div><div class="darkToneRow"><button type="button" class="darkTone" data-darkbg="#08090a" style="background:#08090a" aria-label="Near black"></button><button type="button" class="darkTone" data-darkbg="#0b0c0e" style="background:#0b0c0e" aria-label="Charcoal"></button><button type="button" class="darkTone" data-darkbg="#171412" style="background:#171412" aria-label="Warm black"></button></div><div class="presetRow"><button type="button" data-look="warm">Warm</button><button type="button" data-look="clean">Clean</button><button type="button" data-look="rose">Rose</button><button type="button" data-look="dark">Dark</button></div><div class="appearanceGrid"><label class="appearanceField"><span>Background</span><input type="color" id="lookBg"></label><label class="appearanceField"><span>Cards</span><input type="color" id="lookCard"></label><label class="appearanceField"><span>Buttons</span><input type="color" id="lookAccent"></label><label class="appearanceField"><span>Text</span><input type="color" id="lookText"></label></div><button type="button" class="foodSearchBtn" id="resetLook">Reset appearance</button></details><details class="card"><summary><b>👤 Profile</b></summary><div class="softnote">Update your basic profile and preferences through Setup.</div><button class="foodSearchBtn" id="rerunSetup">Edit Profile / Setup</button></details>
 <details class="card"><summary><b>🏋️ Training Location</b></summary><div class="muted">Choose Gym or Home. If you use a gym, add its name so the app feels like yours.</div><div class="onboardChoice" style="margin-top:12px"><button type="button" id="settingsGymBtn">🏋️ Gym</button><button type="button" id="settingsHomeBtn">🏠 Home</button></div><div class="onboardField" id="settingsGymNameWrap"><label>Gym name <span class="muted">(optional)</span></label><input id="settingsGymName" placeholder="Planet Fitness, Anytime Fitness, YMCA…"></div><button type="button" class="foodSearchBtn" id="saveTrainingLocation">Save Training Location</button></details>
 <details class="card"><summary><b>🎯 Goals & Nutrition</b></summary><div class="muted">Current targets</div><div id="settingsGoals" class="quick"></div><button class="foodSearchBtn" id="editGoals">Change Goals</button></details>
-<details class="card"><summary><b>🌸 Cycle Tracking</b></summary><div id="cycleSettingsStatus" class="quick"></div><button class="foodSearchBtn" id="toggleCycle">Turn Cycle Tracking On / Off</button></details>
+<details class="card" id="cycleSettingsCard"><summary><b>🌸 Cycle Tracking</b></summary><div id="cycleSettingsStatus" class="quick"></div><button class="foodSearchBtn" id="toggleCycle">Turn Cycle Tracking On / Off</button></details>
 <details class="card"><summary><b>❤️ Apple Health</b></summary><div class="muted">Apple Health connection becomes available in the iPhone/HealthKit version.</div></details>
 <details class="card" id="accountCard"><summary><b>☁️ Account + Cloud</b></summary><div id="accountStatus" class="softnote">Checking account…</div><div id="accountSignedOut"><label>Email<input id="accountEmail" type="email" autocomplete="email" placeholder="you@example.com"></label><label>Password<input id="accountPassword" type="password" autocomplete="current-password" placeholder="8+ characters"></label><div class="row" style="margin-top:12px"><button type="button" class="foodSearchBtn" id="accountSignIn">Log in</button><button type="button" class="foodSearchBtn" id="accountSignUp">Create account</button></div><div class="muted" style="margin-top:10px">Your current workout data stays on this phone while we connect cloud saving safely.</div></div><div id="accountSignedIn" style="display:none"><button type="button" class="foodSearchBtn" id="accountSignOut">Log out</button></div><button type="button" class="foodSearchBtn" id="previewOnboardingBtn" onclick="previewOnboarding()" style="margin-top:12px">👀 Preview New User Setup</button></details>
 <details class="card"><summary><b>🔐 Privacy & Friends</b></summary><div class="muted">Future controls for exactly what friends can see. Weight, nutrition details, measurements/photos and cycle information will stay private by default.</div></details>
@@ -716,20 +716,27 @@ function phaseInfo(d=new Date()){
  return {day,phase};
 }
 function refreshPersistentUI(){
- let p=phaseInfo(trainingCursor);phaseDisplay.innerHTML=p?`<span class="phaseBadge">🌸 ${p.phase} • estimated Day ${p.day}</span>`:"";
- cycleCard.style.display=S.cyclePrefs.enabled?"block":"none";
+ const male=S.profile?.sex==="male" || S.nutrition?.nSex==="male";
+ if(male)S.cyclePrefs.enabled=false;
+ let p=male?null:phaseInfo(trainingCursor);phaseDisplay.innerHTML=p?`<span class="phaseBadge">🌸 ${p.phase} • estimated Day ${p.day}</span>`:"";
+ cycleCard.style.display=(!male&&S.cyclePrefs.enabled)?"block":"none";
+ const cycleSettingsCard=document.getElementById("cycleSettingsCard");if(cycleSettingsCard)cycleSettingsCard.style.display=male?"none":"block";
  settingsGoals.innerHTML=`Goal weight: <b>${S.profile.goalWeight||"—"} lb</b><br>Calories: <b>${S.nutrition.calGoal||"—"}</b> • Protein: <b>${S.nutrition.proGoal||"—"}g</b><br>Carbs: ${S.nutrition.carbGoal||"—"}g • Fat: ${S.nutrition.fatGoal||"—"}g • Fiber: ${S.nutrition.fiberGoal||"—"}g`;
  cycleSettingsStatus.innerHTML=S.cyclePrefs.enabled?`On • ${S.cyclePrefs.length||28}-day cycle • phase shown as an estimate`:"Cycle tracking is off.";
 }
-setupSex.onchange=()=>applySexAccent(setupSex.value);
+setupSex.onchange=()=>{applySexAccent(setupSex.value);if(setupSex.value==="male"){S.cyclePrefs.enabled=false;save();refreshPersistentUI();}};
 setupNext1.onclick=()=>{if(!setupAge.value||!setupFeet.value||!setupWeight.value||!setupGoalWeight.value)return alert("Add age, height, current weight and goal weight.");applySexAccent(setupSex.value);Object.assign(S.profile,{name:setupName.value,sex:setupSex.value,age:+setupAge.value,feet:+setupFeet.value,inches:+setupInches.value||0,weight:+setupWeight.value,goalWeight:+setupGoalWeight.value});setupShow(2)};
-setupNext2.onclick=()=>{S.profile.goal=setupGoal.value;S.profile.activity=+setupActivity.value;setupShow(3)};
+setupNext2.onclick=()=>{
+ S.profile.goal=setupGoal.value;S.profile.activity=+setupActivity.value;
+ if(S.profile.sex==="male"){S.cyclePrefs.enabled=false;calcSetupTargets();S.setupComplete=true;save();setupOverlay.classList.remove("on");nutritionSummary();refreshPersistentUI();return;}
+ setupShow(3)
+};
 cycleYes.onclick=()=>{S.cyclePrefs.enabled=true;cycleSetupFields.style.display="block"};
 cycleNo.onclick=()=>{S.cyclePrefs.enabled=false;cycleSetupFields.style.display="none"};
 finishSetup.onclick=()=>{if(S.cyclePrefs.enabled){S.cyclePrefs.lastPeriod=lastPeriod.value;S.cyclePrefs.length=+cycleLength.value||28}calcSetupTargets();S.setupComplete=true;save();setupOverlay.classList.remove("on");nutritionSummary();refreshPersistentUI()};
 rerunSetup.onclick=openSetup;editGoals.onclick=openSetup;
-toggleCycle.onclick=()=>{S.cyclePrefs.enabled=!S.cyclePrefs.enabled;save();refreshPersistentUI()};
-if(!S.setupComplete)openSetup();
+toggleCycle.onclick=()=>{if(S.profile?.sex==="male"||S.nutrition?.nSex==="male"){S.cyclePrefs.enabled=false;save();refreshPersistentUI();return}S.cyclePrefs.enabled=!S.cyclePrefs.enabled;save();refreshPersistentUI()};
+/* Legacy setup disabled: the account onboarding below now owns first-time setup. */
 refreshPersistentUI();
 
 S.look=S.look||{bg:"#f7f4f0",card:"#ffffff",accent:"#8d6f64",text:"#272321"};
@@ -939,19 +946,64 @@ function refreshTrainingLocationSettings(){
 // Stable 12.1 onboarding — additive only; existing app state/storage remains MMBv3.
 const ONBOARD_KEY="MMB_onboarding_v1";
 let obStep=0;
-let obData={cycleOptIn:null,location:"Gym",gymName:"",goal:"Build muscle"};
+let obData={cycleOptIn:null,sex:(S.profile?.sex||S.nutrition?.nSex||null),location:"Gym",gymName:"",goal:"Build muscle",activity:"1.55",feet:"",inches:"",weight:"",goalWeight:"",loseAmount:""};
 const obSteps=["account","profile","goals","cycle","equipment","nutrition"];
 
 function obEsc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
 function obProgress(){
   onboardProgress.innerHTML=obSteps.map((_,i)=>`<span class="${i<=obStep?'on':''}"></span>`).join("");
 }
-function obNext(){ if(obStep<obSteps.length-1){obStep++;renderOnboard()} else finishOnboard() }
-function obBack(){ if(obStep>0){obStep--;renderOnboard()} }
+function obNext(){
+  if(obStep<obSteps.length-1){
+    obStep++;
+    if(obStep===3 && (obData.sex==="male" || S.profile?.sex==="male")){obData.cycleOptIn=false;S.cyclePrefs.enabled=false;obStep=4;save();}
+    renderOnboard();
+  } else finishOnboard()
+}
+function obBack(){
+  if(obStep>0){
+    obStep--;
+    if(obStep===3 && (obData.sex==="male" || S.profile?.sex==="male"))obStep=2;
+    renderOnboard();
+  }
+}
 function obNav(back=true,next="Continue"){
  return `<div class="onboardActions">${back?`<button type="button" onclick="obBack()">← Back</button>`:""}<button type="button" class="primary" onclick="obNext()">${next}</button></div>`;
 }
+function obGoalNeedsLoss(){return obData.goal==="Lose fat + build muscle"}
+function obSuggestedNutrition(){
+  const age=+obData.age||0, ft=+obData.feet||0, inch=+obData.inches||0, w=+obData.weight||0, act=+obData.activity||1.55;
+  if(!age||!ft||!w)return null;
+  let goalW=+obData.goalWeight||0;
+  if(obGoalNeedsLoss() && +obData.loseAmount>0) goalW=Math.max(1,w-(+obData.loseAmount));
+  if(!goalW) goalW=w;
+  const cm=(ft*12+inch)*2.54, kg=w*.453592;
+  const bmr=10*kg+6.25*cm-5*age+(obData.sex==="male"?5:-161);
+  const tdee=bmr*act;
+  let calories=tdee;
+  if(obData.goal==="Lose fat + build muscle") calories=tdee*.88;
+  else if(obData.goal==="Build muscle") calories=tdee*1.05;
+  else if(obData.goal==="Get stronger") calories=tdee*1.02;
+  calories=Math.max(1200,Math.round(calories/10)*10);
+  const protein=Math.round(goalW); // 1 g per lb of goal body weight
+  const fat=Math.max(40,Math.round(calories*.28/9));
+  const carbs=Math.max(0,Math.round((calories-protein*4-fat*9)/4));
+  const fiber=Math.max(25,Math.round(calories/1000*14));
+  const water=Math.round(w*.5/5)*5;
+  return {calories,protein,fat,carbs,fiber,water,goalW};
+}
+function obFillNutritionDefaults(){
+  const n=obSuggestedNutrition(); if(!n)return;
+  if(!obData.calories)obData.calories=n.calories;
+  if(!obData.protein)obData.protein=n.protein;
+  if(!obData.carbs)obData.carbs=n.carbs;
+  if(!obData.fat)obData.fat=n.fat;
+  if(!obData.fiber)obData.fiber=n.fiber;
+  if(!obData.water)obData.water=n.water;
+  if(!obData.goalWeight)obData.goalWeight=n.goalW;
+}
 function renderOnboard(){
+  if(obStep===3 && (obData.sex==="male" || S.profile?.sex==="male")){obData.cycleOptIn=false;S.cyclePrefs.enabled=false;obStep=4;save();}
   obProgress();
   const signed=!!window.MMBAccountUser;
   let x="";
@@ -967,19 +1019,26 @@ function renderOnboard(){
         <div class="onboardTiny">Already using the app on this phone? Your existing local workout data stays intact.</div>`}
        </div>`;
   } else if(obStep===1){
-    x=`<div class="onboardTitle">Tell me about you 👤</div><div class="onboardSub">Just the basics we need to personalize your plan.</div>
+    x=`<div class="onboardTitle">Tell me about you 👤</div><div class="onboardSub">These basics let us calculate useful nutrition targets instead of leaving them blank.</div>
     <div class="onboardCard">
       <div class="onboardField"><label>Name</label><input id="obName" value="${obEsc(obData.name||"")}" placeholder="First name"></div>
       <div class="onboardField"><label>Age</label><input id="obAge" inputmode="numeric" value="${obEsc(obData.age||"")}" placeholder="32"></div>
+      <div class="onboardField"><label>Sex for calculations</label><div class="onboardChoice">
+        <button type="button" class="${obData.sex==='female'?'selected':''}" onclick="obData.sex='female';applySexAccent('female');renderOnboard()">Female</button>
+        <button type="button" class="${obData.sex==='male'?'selected':''}" onclick="obData.sex='male';obData.cycleOptIn=false;applySexAccent('male');renderOnboard()">Male</button>
+      </div></div>
+      <div class="onboardField"><label>Height</label><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><input id="obFeet" inputmode="numeric" value="${obEsc(obData.feet||"")}" placeholder="Feet"><input id="obInches" inputmode="numeric" value="${obEsc(obData.inches||"")}" placeholder="Inches"></div></div>
+      <div class="onboardField"><label>Daily activity</label><select id="obActivity"><option value="1.2" ${obData.activity==='1.2'?'selected':''}>Mostly sedentary</option><option value="1.375" ${obData.activity==='1.375'?'selected':''}>Lightly active</option><option value="1.55" ${obData.activity==='1.55'?'selected':''}>Moderately active</option><option value="1.725" ${obData.activity==='1.725'?'selected':''}>Very active</option></select></div>
       ${obNav()}
     </div>`;
   } else if(obStep===2){
-    x=`<div class="onboardTitle">What’s your goal? 🎯</div><div class="onboardSub">We’ll use this to guide workouts and progress.</div>
+    const loss=obGoalNeedsLoss();
+    x=`<div class="onboardTitle">What’s your goal? 🎯</div><div class="onboardSub">We’ll use this for both your training plan and nutrition targets.</div>
     <div class="onboardCard"><div class="onboardChoice">
-      ${["Build muscle","Lose fat + build muscle","Get stronger","General fitness"].map(v=>`<button type="button" class="${obData.goal===v?'selected':''}" onclick="obData.goal='${v}';renderOnboard()">${v}</button>`).join("")}
+      ${["Build muscle","Lose fat + build muscle","Get stronger","General fitness"].map(v=>`<button type="button" class="${obData.goal===v?'selected':''}" onclick="captureOnboard();obData.goal='${v}';renderOnboard()">${v}</button>`).join("")}
     </div>
-    <div class="onboardField"><label>Current weight (optional)</label><input id="obWeight" inputmode="decimal" value="${obEsc(obData.weight||"")}" placeholder="lb"></div>
-    <div class="onboardField"><label>Goal weight (optional)</label><input id="obGoalWeight" inputmode="decimal" value="${obEsc(obData.goalWeight||"")}" placeholder="lb"></div>
+    <div class="onboardField"><label>Current weight</label><input id="obWeight" inputmode="decimal" value="${obEsc(obData.weight||"")}" placeholder="lb"></div>
+    ${loss?`<div class="onboardField"><label>How much do you want to lose?</label><input id="obLoseAmount" inputmode="decimal" value="${obEsc(obData.loseAmount||"")}" placeholder="lb"></div>${(+obData.weight>0&&+obData.loseAmount>0)?`<div class="softnote">That puts your goal weight around <b>${Math.max(1,+obData.weight-(+obData.loseAmount))} lb</b>.</div>`:""}`:`<div class="onboardField"><label>Goal weight <span class="muted">(optional)</span></label><input id="obGoalWeight" inputmode="decimal" value="${obEsc(obData.goalWeight||"")}" placeholder="lb"></div>`}
     ${obNav()}</div>`;
   } else if(obStep===3){
     x=`<div class="onboardTitle">Cycle tracking 🌸</div><div class="onboardSub">Optional. If you use it, we’ll show an estimated cycle phase and let symptoms add context to training.</div>
@@ -996,10 +1055,16 @@ function renderOnboard(){
       <button type="button" class="${obData.location==="Home"?'selected':''}" onclick="obData.location='Home';renderOnboard()">🏠 Home</button>
     </div>${obData.location==="Gym"?`<div class="onboardField"><label>Which gym? <span class="muted">(optional)</span></label><input id="obGymName" value="${obEsc(obData.gymName||'')}" placeholder="Planet Fitness, Anytime Fitness, YMCA…"></div>`:""}${obNav()}</div>`;
   } else {
-    x=`<div class="onboardTitle">Nutrition 🍓</div><div class="onboardSub">Set targets now, or skip them and change everything later in Settings.</div>
+    obFillNutritionDefaults();
+    const sug=obSuggestedNutrition();
+    x=`<div class="onboardTitle">Your nutrition goals 🍓</div><div class="onboardSub">Here’s a starting target based on the info you entered. You can edit any number.</div>
     <div class="onboardCard">
-      <div class="onboardField"><label>Daily calorie target (optional)</label><input id="obCalories" inputmode="numeric" value="${obEsc(obData.calories||"")}" placeholder="Set later"></div>
-      <div class="onboardField"><label>Protein target, grams (optional)</label><input id="obProtein" inputmode="numeric" value="${obEsc(obData.protein||"")}" placeholder="Set later"></div>
+      ${sug?`<div class="softnote" style="margin-bottom:12px"><b>✨ Suggested starting goals</b><br>${sug.calories} calories • ${sug.protein}g protein<br>${sug.carbs}g carbs • ${sug.fat}g fat • ${sug.fiber}g fiber<br><span class="muted">Protein is set at about <b>1g per lb of goal body weight</b>.</span></div>`:`<div class="softnote" style="margin-bottom:12px">Add your age, height and current weight to get automatic targets.</div>`}
+      <div class="onboardField"><label>Calories</label><input id="obCalories" inputmode="numeric" value="${obEsc(obData.calories||"")}" placeholder="Calories"></div>
+      <div class="onboardField"><label>Protein (g)</label><input id="obProtein" inputmode="numeric" value="${obEsc(obData.protein||"")}" placeholder="Protein"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div class="onboardField"><label>Carbs (g)</label><input id="obCarbs" inputmode="numeric" value="${obEsc(obData.carbs||"")}"></div><div class="onboardField"><label>Fat (g)</label><input id="obFat" inputmode="numeric" value="${obEsc(obData.fat||"")}"></div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div class="onboardField"><label>Fiber (g)</label><input id="obFiber" inputmode="numeric" value="${obEsc(obData.fiber||"")}"></div><div class="onboardField"><label>Water (oz)</label><input id="obWater" inputmode="numeric" value="${obEsc(obData.water||"")}"></div></div>
+      <div class="onboardTiny">These are editable starting estimates, not medical nutrition advice.</div>
       ${obNav(true,"Start my app 💪")}
     </div>`;
   }
@@ -1007,32 +1072,78 @@ function renderOnboard(){
 }
 function captureOnboard(){
   const get=id=>document.getElementById(id)?.value;
-  if(obStep===1){obData.name=get("obName")||obData.name;obData.age=get("obAge")||obData.age}
-  if(obStep===2){obData.weight=get("obWeight")||obData.weight;obData.goalWeight=get("obGoalWeight")||obData.goalWeight}
+  if(obStep===1){obData.name=get("obName")||obData.name;obData.age=get("obAge")||obData.age;obData.feet=get("obFeet")||obData.feet;obData.inches=get("obInches")??obData.inches;obData.activity=get("obActivity")||obData.activity;if(obData.sex){S.profile=S.profile||{};S.profile.sex=obData.sex;S.nutrition=S.nutrition||{};S.nutrition.nSex=obData.sex;if(obData.sex==="male"){S.cyclePrefs.enabled=false;obData.cycleOptIn=false;}applySexAccent(obData.sex);save();}}
+  if(obStep===2){obData.weight=get("obWeight")||obData.weight;obData.goalWeight=get("obGoalWeight")||obData.goalWeight;obData.loseAmount=get("obLoseAmount")||obData.loseAmount;if(obGoalNeedsLoss()&&+obData.weight>0&&+obData.loseAmount>0)obData.goalWeight=Math.max(1,+obData.weight-(+obData.loseAmount));}
   if(obStep===3 && obData.cycleOptIn){obData.period=get("obPeriod")||obData.period;obData.cycleLen=get("obCycleLen")||obData.cycleLen}
   if(obStep===4 && obData.location==="Gym"){obData.gymName=get("obGymName")??obData.gymName}
-  if(obStep===5){obData.calories=get("obCalories")||obData.calories;obData.protein=get("obProtein")||obData.protein}
+  if(obStep===5){obData.calories=get("obCalories")||obData.calories;obData.protein=get("obProtein")||obData.protein;obData.carbs=get("obCarbs")||obData.carbs;obData.fat=get("obFat")||obData.fat;obData.fiber=get("obFiber")||obData.fiber;obData.water=get("obWater")||obData.water}
 }
 const _obNext=obNext;
-obNext=function(){captureOnboard();_obNext()}
+obNext=function(){
+  captureOnboard();
+  if(obStep===1 && (!obData.age||!obData.feet||!obData.sex)){alert("Add your age, height, and sex for calculations so we can build your nutrition goals.");return;}
+  if(obStep===2 && !obData.weight){alert("Add your current weight so we can calculate your nutrition goals.");return;}
+  if(obStep===2 && obGoalNeedsLoss() && !obData.loseAmount){alert("Add how much you want to lose.");return;}
+  _obNext();
+}
 
+let obAuthBusy=false;
 async function obAuth(mode){
+  if(obAuthBusy) return;
   const e=document.getElementById("obEmail")?.value.trim(), p=document.getElementById("obPass")?.value;
   const er=document.getElementById("obError"); if(er)er.textContent="";
   if(!e||!p){if(er)er.textContent="Enter your email and password.";return}
+  const buttons=[...document.querySelectorAll(".onboardActions button")];
   try{
+    obAuthBusy=true;
+    buttons.forEach(b=>b.disabled=true);
+    if(er)er.textContent=mode==="signup"?"Creating your account…":"Logging you in…";
     if(!window.MMBCloud) throw new Error("Account service is still loading. Try again in a moment.");
     const res=mode==="signup"?await window.MMBCloud.auth.signUp({email:e,password:p,options:{emailRedirectTo:"https://frankielandman-cmyk.github.io/millies-muscle-builder/"}}):await window.MMBCloud.auth.signInWithPassword({email:e,password:p});
     if(res.error) throw res.error;
     window.MMBAccountUser=res.data?.user||window.MMBAccountUser||null;
-    if(mode==="signup" && !res.data?.session){if(er)er.textContent="Check your email to confirm your account, then come back and log in.";return}
+    if(mode==="signup" && !res.data?.session){
+      if(er)er.textContent="Account created! Check your email for the confirmation link, then come back and log in.";
+      return;
+    }
     obNext();
-  }catch(err){if(er)er.textContent=err.message||"Could not connect account."}
+  }catch(err){
+    const msg=String(err?.message||"");
+    if(er){
+      if(/security purposes|after \d+ seconds|rate limit/i.test(msg)){
+        er.textContent="That button was tapped more than once. Your first request may already have gone through. Check your email, or wait about a minute and try again.";
+      }else if(/already registered|user already registered/i.test(msg)){
+        er.textContent="That email already has an account. Tap Log in instead.";
+      }else{
+        er.textContent=msg||"Could not connect account.";
+      }
+    }
+  }finally{
+    obAuthBusy=false;
+    buttons.forEach(b=>b.disabled=false);
+  }
 }
 function finishOnboard(){
   captureOnboard();
   try{
     // Only merge fields we can safely identify in the existing state.
+    S.profile=S.profile||{}; S.nutrition=S.nutrition||{};
+    if(obData.sex){S.profile.sex=obData.sex;S.nutrition.nSex=obData.sex;}
+    if(obData.name)S.profile.name=obData.name;
+    if(obData.age){S.profile.age=+obData.age;S.nutrition.nAge=+obData.age;}
+    if(obData.feet){S.profile.feet=+obData.feet;S.profile.inches=+obData.inches||0;S.nutrition.nFeet=+obData.feet;S.nutrition.nInches=+obData.inches||0;}
+    if(obData.weight){S.profile.weight=+obData.weight;S.nutrition.nWeight=+obData.weight;}
+    if(obData.goalWeight){S.profile.goalWeight=+obData.goalWeight;S.nutrition.nGoalWeight=+obData.goalWeight;}
+    S.profile.goal=obData.goal; S.nutrition.nGoal=obData.goal==="Build muscle"?"build":obData.goal==="Lose fat + build muscle"?"recomp":"maintain";
+    S.nutrition.nActivity=+obData.activity||1.55;
+    if(obData.calories)S.nutrition.calGoal=+obData.calories;
+    if(obData.protein)S.nutrition.proGoal=+obData.protein;
+    if(obData.carbs)S.nutrition.carbGoal=+obData.carbs;
+    if(obData.fat)S.nutrition.fatGoal=+obData.fat;
+    if(obData.fiber)S.nutrition.fiberGoal=+obData.fiber;
+    if(obData.water)S.nutrition.waterGoal=+obData.water;
+    S.nutritionCoachComplete=true; S.setupComplete=true;
+    if(S.profile?.sex==="male"){S.cyclePrefs.enabled=false;obData.cycleOptIn=false;}
     if(obData.location){ S.location=obData.location; S.place=obData.location==="Home"?"home":"gym"; }
     if(obData.gymName!==undefined) S.gymName=(obData.gymName||"").trim();
     localStorage.setItem(ONBOARD_KEY,JSON.stringify({done:true,data:obData,at:new Date().toISOString()}));
@@ -1043,7 +1154,7 @@ function finishOnboard(){
 }
 function previewOnboarding(){
   obStep=0;
-  obData={cycleOptIn:null,location:"Gym",gymName:"",goal:"Build muscle"};
+  obData={cycleOptIn:null,sex:(S.profile?.sex||S.nutrition?.nSex||null),location:"Gym",gymName:"",goal:"Build muscle",activity:"1.55",feet:"",inches:"",weight:"",goalWeight:"",loseAmount:""};
   onboardOverlay.style.display="block";
   renderOnboard();
 }
