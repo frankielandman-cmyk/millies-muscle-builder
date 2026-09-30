@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#8d6e8f"><title>Millie's Muscle Builder</title>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#8d6e8f"><title>Millie’s Muscle Builder</title>
 <style>
 :root{--a:#8d6e8f;--bg:#f7f5f1;--c:#fff;--t:#1e1b1e;--m:#716b71;--l:#ded9de;--s:#eee9ee}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--t);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.app{max-width:760px;margin:auto;padding:18px 14px 80px}
@@ -238,7 +238,15 @@ body.theme-dark .trainQuickNav button.isToday{background:color-mix(in srgb,var(-
 .onboardTiny{font-size:14px;color:#8f9299;line-height:1.4;margin-top:14px}
 .onboardError{color:#ffb4b4;min-height:20px;margin-top:10px}
 
-</style><script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script><script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script></head><body>
+</style><script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script><script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20512%20512%22%3E%0A%3Crect%20width%3D%22512%22%20height%3D%22512%22%20rx%3D%22120%22%20fill%3D%22%23ad6b7f%22%2F%3E%0A%3Cg%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%2234%22%20stroke-linecap%3D%22round%22%3E%0A%3Cpath%20d%3D%22M130%20205v102M382%20205v102%22%2F%3E%0A%3Cpath%20d%3D%22M168%20180v152M344%20180v152%22%2F%3E%0A%3Cpath%20d%3D%22M168%20256h176%22%2F%3E%0A%3C%2Fg%3E%0A%3Ccircle%20cx%3D%22112%22%20cy%3D%22256%22%20r%3D%2226%22%20fill%3D%22%23fff%22%2F%3E%0A%3Ccircle%20cx%3D%22400%22%20cy%3D%22256%22%20r%3D%2226%22%20fill%3D%22%23fff%22%2F%3E%0A%3C%2Fsvg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20512%20512%22%3E%0A%3Crect%20width%3D%22512%22%20height%3D%22512%22%20rx%3D%22120%22%20fill%3D%22%23ad6b7f%22%2F%3E%0A%3Cg%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%2234%22%20stroke-linecap%3D%22round%22%3E%0A%3Cpath%20d%3D%22M130%20205v102M382%20205v102%22%2F%3E%0A%3Cpath%20d%3D%22M168%20180v152M344%20180v152%22%2F%3E%0A%3Cpath%20d%3D%22M168%20256h176%22%2F%3E%0A%3C%2Fg%3E%0A%3Ccircle%20cx%3D%22112%22%20cy%3D%22256%22%20r%3D%2226%22%20fill%3D%22%23fff%22%2F%3E%0A%3Ccircle%20cx%3D%22400%22%20cy%3D%22256%22%20r%3D%2226%22%20fill%3D%22%23fff%22%2F%3E%0A%3C%2Fsvg%3E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Millie’s Muscle Builder">
+<meta name="application-name" content="Millie’s Muscle Builder">
+
+</head><body>
 
 <div class="onboardOverlay" id="onboardOverlay" style="display:none">
   <div class="onboardWrap">
@@ -248,7 +256,7 @@ body.theme-dark .trainQuickNav button.isToday{background:color-mix(in srgb,var(-
   </div>
 </div>
 <main class="app">
-<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.29 • ADAPTIVE 3–7 DAY PLANS</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
+<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.31 • CLEAN TRAIN UI + APP IDENTITY</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
 <section class="card"><div class="row"><div><b>This week</b><div class="muted" id="weekGoalText" style="font-size:13px">Complete 4 training days this week</div></div><b id="week" style="font-size:22px">0 / 4</b></div>
 <div class="row" style="margin-top:12px"><div><button class="pill on" data-place="gym" id="gymPlaceBtn">🏋️ Gym</button> <button class="pill" data-place="home">🏠 Home</button></div><button class="ghost" id="custom">🎨 Color</button></div></section>
 <section class="card settings" id="settings"><b>Choose your app color</b><div class="swatches">
@@ -759,12 +767,14 @@ let suggestedExercises=getSuggestedExercisesForDay();
 let exList=getDayExerciseList();
 let nextStrength=nextScheduledStrength(trainingCursor);
 let restFlex=p.r?`<div class="restCoachBox"><div class="restCoachBadge">✨ Millie’s suggestion</div><h3>Recovery is suggested today</h3><p class="muted">You’re not locked into a rest day. If you feel good and want to train, choose what fits your plan.</p><button class="finish" id="trainInstead">🏋️ I Want to Train Today</button><div class="restSwitchOptions" id="restSwitchOptions"><div class="restMiniTitle">Best fit with your schedule</div><div class="restNextNote">Next up: <b>${P[nextStrength].n}</b></div><div class="restChoiceGrid"><button data-rest-next="keep">▶ Do ${P[nextStrength].n} today — keep schedule the same</button><button data-rest-next="advance">⏩ Do ${P[nextStrength].n} + move my schedule forward</button></div><div class="restDivider"></div><div class="restMiniTitle">Or choose a different strength workout</div><div class="restNextNote">This changes only today. Your normal schedule stays the same.</div><div class="restChoiceGrid">${["d1","d2","d3","d4","d5"].map(k=>`<button data-rest-strength="${k}">🏋️ ${P[k].n}</button>`).join("")}</div></div></div>`:"";
-panel.innerHTML=`<div class="card" style="margin:10px 0 14px">
-<div class="row" style="align-items:flex-start">
+panel.innerHTML=`<div class="card" style="margin:8px 0 12px;padding:14px 16px">
+<div class="row" style="align-items:center">
   <div style="min-width:0;flex:1">
-    <div class="muted" style="font-size:12px;font-weight:900;letter-spacing:.05em">TODAY’S SUGGESTED WORKOUT</div>
-    <h2 style="margin:5px 0 4px;font-size:25px">${p.t}</h2>
-    <div class="muted">${p.s}</div>
+    <div class="muted" style="font-size:11px;font-weight:900;letter-spacing:.05em">TODAY’S PLAN</div>
+    <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-top:2px">
+      <h3 style="margin:0;font-size:20px">${p.t}</h3>
+      <span class="muted" style="font-size:13px">${p.s}</span>
+    </div>
   </div>
   <button type="button" class="mini" id="customizeTodayWorkout">Customize</button>
 </div>
@@ -780,8 +790,8 @@ panel.innerHTML=`<div class="card" style="margin:10px 0 14px">
   </div>
 </div>
 </div>`+restFlex+exList.map((e,i)=>{let k=S.day+"-"+i,L=TD.logs[k]||{},sets=TD.sets[k]||[],pic=S.place==="gym"&&imgs[e[0]]?`<button class="mini" data-pic="pic-${i}">📸 Show machine</button><img id="pic-${i}" class="pic" src="${imgs[e[0]]}" alt="${e[0]} reference" style="display:none" onerror="this.style.display='none'">`:"";return `<article class="card ex"><div class="row"><div><h3>${i+1}. ${e[0]}</h3><b>${e[1]} × ${e[2]}</b></div><div style="display:flex;gap:6px;align-items:center"><span class="tag">🎯 ${e[3]}</span><button type="button" class="mini" data-removeexercise="${i}" aria-label="Remove ${e[0]}">×</button></div></div>
-<div class="quick"><b>${S.place==="gym"?"👀 What to look for":"🏠 Home version"}</b><br>${S.place==="gym"?e[4]:e[8]}</div><div class="buttons">${pic}<button class="mini" data-demo="${i}">▶️ Watch demo</button><button class="mini" data-toggle="why-${i}">💡 Why?</button><button class="mini" data-toggle="how-${i}">⚙️ How?</button><button class="mini" data-toggle="alt-${i}">🔄 Can't find it?</button></div>
-<div class="info" id="why-${i}">${e[6]}</div><div class="info" id="how-${i}">${e[5]}</div><div class="info" id="alt-${i}">${S.place==="gym"?e[7]:e[8]}</div>
+<div class="buttons">${pic}<button class="mini" data-toggle="setup-${i}">👀 Setup & form</button><button class="mini" data-demo="${i}">▶️ Demo</button><button class="mini" data-toggle="why-${i}">💡 Why?</button><button class="mini" data-toggle="alt-${i}">🔄 Alternative</button></div>
+<div class="info" id="setup-${i}"><b>${S.place==="gym"?"What to look for":"Home setup"}</b><br>${S.place==="gym"?e[4]:e[8]}<br><br><b>How to do it</b><br>${e[5]}</div><div class="info" id="why-${i}">${e[6]}</div><div class="info" id="alt-${i}">${S.place==="gym"?e[7]:e[8]}</div>
 ${p.r?"":(()=>{let hist=latestExercise(e[0]),suggest=suggestedWeight(e[0],e[2]),sets=TD.sets[S.day+"-"+i]||[],last=hist&&hist.sets&&hist.sets.length?hist.sets[hist.sets.length-1]:null;return `<div class="logs"><label>Weight (lb)<input data-w="${i}" inputmode="decimal" value="${L.w||suggest||""}" placeholder="e.g. 70"></label><label>Reps<input data-r="${i}" inputmode="numeric" value="${L.r||""}" placeholder="e.g. 10"></label></div><div class="sets">${Array.from({length:e[1]},(_,n)=>`<button class="set ${sets[n]?"done":""}" data-set="${i}-${n}">Set ${n+1}${sets[n]?" ✓":""}</button>`).join("")}</div><div class="last"><b>Last:</b> ${last?`${last.weight} lb × ${last.reps}`:"Nothing yet"}${suggest?` &nbsp;•&nbsp; <b>Suggested:</b> ${suggest} lb`:""}</div>`})()}</article>`}).join("")+(p.r?"" : `<div class="card" id="exerciseBuilderCard" style="display:none">
 <div class="row"><div><h3 style="margin:0">➕ Customize Today’s Exercises</h3><div class="muted" style="font-size:13px;margin-top:3px">Search the full library or make your own.</div></div><button type="button" class="mini" id="toggleExerciseBuilder">Close</button></div>
 <div id="exerciseBuilderBody" style="display:none;margin-top:12px">
