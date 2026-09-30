@@ -469,7 +469,7 @@ body.theme-dark .trainQuickNav button.isToday{background:color-mix(in srgb,var(-
 <div class="softnote" id="trainingDaysNote">Your weekly goal is 4 training days.</div>
 </details><details class="card"><summary><b>ℹ️ About</b></summary>
 <div class="muted">Millie’s Muscle Builder</div>
-<div class="quick" style="margin-top:10px"><b>Version 12.4.39</b><br>Train smarter. Eat better. Track your progress.</div>
+<div class="quick" style="margin-top:10px"><b>Version 12.4.40</b><br>Train smarter. Eat better. Track your progress.</div>
 </details>
 <details class="card"><summary><b>📅 Workout Schedule</b></summary>
 <div class="muted">The app builds a suggested week from your 3–7 day training goal. You can still change any individual day here.</div>
@@ -2209,8 +2209,10 @@ let onboardingPreviewSnapshot=null;
 function startFreshSetupPreview(){
  onboardingPreviewSnapshot=JSON.parse(JSON.stringify(S));
  onboardingPreviewMode=true;
- obStep=1;
+ obStep=0;
  obData={
+   previewEmail:"preview@milliesmusclebuilder.test",
+   previewPassword:"Preview123!",
    name:"",
    age:"",
    sex:"",
@@ -2263,8 +2265,32 @@ function previewSetupBanner(){
  return onboardingPreviewMode?`<div class="softnote" style="margin:0 0 12px"><b>👀 Setup Preview</b><br>This is a mock new-user setup. Nothing you enter here will change your real account.</div>`:"";
 }
 
+
+function renderPreviewAccountStep(){
+  const shell=document.getElementById("onboarding");
+  if(!shell)return;
+  shell.style.display="block";
+  shell.innerHTML=`${previewSetupBanner()}
+  <div class="onboardCard">
+    <div class="onboardTitle">Welcome to Millie’s Muscle Builder 💪</div>
+    <div class="onboardSub">This is the mock account step a new user would see. Nothing here creates a real account.</div>
+    <div class="onboardField"><label>Email</label><input id="previewEmail" type="email" value="${obEsc(obData.previewEmail||"preview@milliesmusclebuilder.test")}"></div>
+    <div class="onboardField"><label>Password</label><input id="previewPassword" type="password" value="${obEsc(obData.previewPassword||"Preview123!")}"></div>
+    <div class="softnote">🧪 Preview only — no email is sent and no account is created.</div>
+    <button type="button" class="foodSearchBtn" id="previewAccountContinue" style="margin-top:14px">Continue Setup</button>
+  </div>`;
+  const btn=document.getElementById("previewAccountContinue");
+  if(btn)btn.onclick=()=>{
+    obData.previewEmail=document.getElementById("previewEmail")?.value||"";
+    obData.previewPassword=document.getElementById("previewPassword")?.value||"";
+    obStep=1;
+    renderOnboard();
+  };
+}
+
 function renderOnboard(){
   const previewBanner=previewSetupBanner();
+  if(onboardingPreviewMode && obStep===0){ renderPreviewAccountStep(); return; }
   if(obStep===3 && (obData.sex==="male" || S.profile?.sex==="male")){obData.cycleOptIn=false;S.cyclePrefs.enabled=false;obStep=4;save();}
   obProgress();
   const signed=!!window.MMBAccountUser;
