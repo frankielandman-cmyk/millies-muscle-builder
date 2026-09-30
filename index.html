@@ -1,0 +1,473 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#8d6e8f"><title>Millie's Muscle Builder</title>
+<style>
+:root{--a:#8d6e8f;--bg:#f7f5f1;--c:#fff;--t:#1e1b1e;--m:#716b71;--l:#ded9de;--s:#eee9ee}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--t);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.app{max-width:760px;margin:auto;padding:18px 14px 80px}
+h1{font-size:29px;margin:4px 0}.muted{color:var(--m)}.card{background:var(--c);border:1px solid var(--l);border-radius:20px;padding:15px;margin:12px 0}.row{display:flex;gap:9px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.tabs{display:flex;gap:8px;overflow:auto;padding:5px 0 10px}.tab,.pill,.ghost{min-height:44px;border:1px solid var(--l);background:#fff;border-radius:999px;padding:10px 14px;white-space:nowrap}.tab.on,.pill.on,.set.done,.finish{background:var(--a);color:#fff;border-color:var(--a)}
+.ex h3{font-size:20px;margin:0}.tag{display:inline-block;background:var(--s);border-radius:999px;padding:5px 9px;font-size:12px;margin:6px 0}.pic{width:100%;max-height:280px;object-fit:cover;border-radius:14px;margin-top:10px;background:var(--s)}
+.quick{background:var(--s);padding:11px;border-radius:13px;margin-top:9px;font-size:14px;line-height:1.4}.buttons{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.mini{min-height:42px;border:1px solid var(--l);background:#fff;border-radius:12px;padding:9px 11px;font-weight:700}.info{display:none;background:var(--s);border-radius:12px;padding:10px;margin-top:7px;font-size:14px;line-height:1.4}
+.logs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:11px}label{font-size:12px;color:var(--m)}input{width:100%;font-size:16px;padding:11px;border:1px solid var(--l);border-radius:12px;background:#fff;margin-top:4px}
+.sets{display:flex;gap:7px;margin-top:10px}.set{flex:1;min-height:45px;border:1px solid var(--l);background:#fff;border-radius:12px;font-weight:800}.last{font-size:13px;color:var(--m);margin-top:8px}.finish{width:100%;min-height:50px;border:0;border-radius:15px;font-weight:850;font-size:16px;margin-top:10px}
+.settings{display:none}.swatches{display:flex;gap:9px;flex-wrap:wrap;margin-top:10px}.sw{width:44px;height:44px;border-radius:50%;border:3px solid white;outline:1px solid var(--l)}
+.tiny{font-size:12px;color:var(--m);text-align:center;margin-top:20px}
+
+.mainnav{position:sticky;top:0;z-index:20;display:grid;grid-template-columns:repeat(4,1fr);gap:5px;background:rgba(247,245,241,.96);padding:8px 0;margin:8px 0}
+.mainnav button{border:1px solid var(--l);background:#fff;border-radius:14px;min-height:54px;font-size:12px;font-weight:800;padding:5px}
+.mainnav button.on{background:var(--a);color:#fff;border-color:var(--a)}
+.feature{display:none}.feature.on{display:block}.bigicon{font-size:38px}.feature h2{margin:4px 0}.feature .card h3{margin:0 0 7px}.meter{height:10px;background:var(--s);border-radius:99px;overflow:hidden;margin:8px 0}.meter span{display:block;height:100%;background:var(--a);width:0}
+.photoBox{border:2px dashed var(--l);border-radius:16px;padding:18px;text-align:center;background:#fff;margin-top:8px}
+.photoBox input{border:0;padding:6px}.preview{max-width:100%;max-height:280px;border-radius:14px;margin-top:8px;display:none}
+.bottomnote{font-size:12px;color:var(--m);line-height:1.4}
+
+details.card{padding:0;overflow:hidden}details.card>summary{list-style:none;cursor:pointer;padding:16px;display:flex;justify-content:space-between;align-items:center;min-height:56px}details.card>summary::-webkit-details-marker{display:none}details.card>summary:after{content:"▾";font-size:18px;color:var(--m)}details.card[open]>summary:after{content:"▴"}details.card[open]>:not(summary){margin-left:15px;margin-right:15px}details.card[open]>:last-child{margin-bottom:15px}
+select{width:100%;font:inherit;font-size:16px;padding:11px;border:1px solid var(--l);border-radius:12px;background:#fff;margin-top:4px}
+.mealTop{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%}.mealStats{font-size:12px;color:var(--m);font-weight:500}.foodrow{padding:10px 0;border-top:1px solid var(--l)}.foodrow:first-child{border-top:0}.foodmac{font-size:12px;color:var(--m);margin-top:3px}
+.foodform{display:grid;grid-template-columns:2fr 1fr 1fr;gap:7px;padding-top:10px}.foodform input{font-size:14px;padding:9px}.foodform .wide{grid-column:1/-1}.foodform button{grid-column:1/-1}
+
+.nutritionHero{padding:4px 2px 8px}.macroGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}.macroBox{background:var(--s);border-radius:14px;padding:11px}.macroBox b{font-size:18px}.macroBox small{display:block;color:var(--m);margin-top:2px}.macroBar{height:7px;background:#fff;border-radius:99px;overflow:hidden;margin-top:7px}.macroBar span{display:block;height:100%;background:var(--a)}
+.foodSearchBtn{width:100%;min-height:46px;border:1px solid var(--l);background:#fff;border-radius:13px;font-weight:800;margin-top:10px}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:100;padding:20px 12px;align-items:flex-end}.modal.on{display:flex}.sheet{background:var(--bg);width:100%;max-width:760px;margin:auto;border-radius:24px 24px 10px 10px;padding:16px;max-height:88vh;overflow:auto}.sheetHead{display:flex;justify-content:space-between;align-items:center;gap:10px}.sheetHead h2{margin:0}.searchbox{width:100%;margin:12px 0;padding:13px;border-radius:13px;border:1px solid var(--l);font-size:16px}.foodChoice{background:#fff;border:1px solid var(--l);border-radius:14px;padding:12px;margin:8px 0}.foodChoice .name{font-weight:800}.foodChoice .sub{font-size:12px;color:var(--m);margin-top:3px}.foodChoice button{margin-top:8px}.recentLabel{font-size:12px;font-weight:850;color:var(--m);margin:12px 2px 5px;text-transform:uppercase;letter-spacing:.04em}
+
+.trainDateNav{display:flex;align-items:center;gap:8px;margin:10px 0}.trainDateNav .center{flex:1;text-align:center}.trainDateNav h3{margin:0}.checkgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.checkpill{border:1px solid var(--l);background:#fff;border-radius:12px;padding:10px;font-size:13px}.cardioEntry{padding:10px 0;border-top:1px solid var(--l)}.cardioEntry:first-child{border-top:0}.softnote{font-size:13px;line-height:1.4;background:var(--s);padding:10px;border-radius:12px;margin-top:10px}
+
+.goalSettingsCard{display:none!important}
+.setupOverlay{display:none;position:fixed;inset:0;z-index:500;background:var(--bg);overflow:auto;padding:20px 14px}.setupOverlay.on{display:block}.setupBox{max-width:650px;margin:0 auto}.setupStep{display:none}.setupStep.on{display:block}.choiceGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.choiceBtn{background:#fff;border:1px solid var(--l);border-radius:14px;padding:14px;font-weight:800}.phaseBadge{display:inline-block;background:var(--s);border-radius:99px;padding:7px 11px;font-size:13px;font-weight:800;margin:5px 0}
+
+:root{--app-bg:#f7f4f0;--app-card:#ffffff;--app-text:#272321}
+html,body{background:var(--app-bg)!important}body{color:var(--app-text)!important}
+.card,.sheet,.choiceBtn,.checkpill,.macroBox,.foodChoice{background:var(--app-card)!important}
+.setupOverlay{background:var(--app-bg)!important}.setupStep{background:var(--app-card)!important;border-radius:24px!important;box-shadow:0 16px 45px rgba(0,0,0,.07);padding:20px!important}
+.appearanceGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.appearanceField{border:1px solid var(--l);border-radius:16px;padding:10px;background:var(--app-card)}.appearanceField span{display:block;font-size:12px;font-weight:800;margin-bottom:6px}.appearanceField input{width:100%;height:42px;border:0;padding:0;background:transparent}
+.presetRow{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.presetRow button{border:1px solid var(--l);background:var(--app-card);color:var(--app-text);border-radius:99px;padding:9px 13px;font-weight:800}
+
+/* Stable 3 premium UI — presentation only */
+body{padding-bottom:92px}header{padding:18px 18px 8px!important;background:transparent!important}header h1{font-size:23px!important;letter-spacing:-.03em}
+.card{border-radius:22px!important;border:1px solid rgba(80,70,65,.10)!important;box-shadow:0 8px 28px rgba(45,38,34,.045);padding:17px!important}.feature{padding-bottom:18px}.tabs{gap:8px!important;padding:4px 0 12px!important}.tabs button{border-radius:999px!important;padding:10px 14px!important}
+.topnav{position:fixed!important;z-index:150!important;left:12px!important;right:12px!important;bottom:12px!important;top:auto!important;border-radius:25px!important;padding:7px!important;background:rgba(255,255,255,.94)!important;box-shadow:0 12px 40px rgba(25,25,25,.16)!important;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}.topnav button{font-size:11px!important;border-radius:18px!important;min-height:52px!important;padding:6px 5px!important}
+.finish,.foodSearchBtn{border-radius:15px!important;min-height:50px!important;font-weight:850!important}input,select{border-radius:14px!important;min-height:48px!important}.macroBox{border-radius:18px!important}.exercise{border-radius:22px!important}
+.setupOverlay{padding:0!important;background:var(--app-bg)!important}.setupBox{max-width:520px!important;min-height:100vh;margin:0 auto!important;padding:24px 22px 36px!important}.setupBrand{margin:10px 0 28px!important;text-align:left!important}.setupBrand .mark{width:48px!important;height:48px!important;border-radius:15px!important;margin:0!important;font-size:24px!important;box-shadow:none!important}.setupBrand b{font-size:11px!important;letter-spacing:.14em!important;margin-top:10px!important;color:var(--m)}.setupDots{justify-content:flex-start!important;margin:0 0 30px!important;gap:6px!important}.setupDots span{height:5px!important;width:44px!important}.setupDots span.on{background:var(--a)!important}
+.setupStep{border:0!important;box-shadow:none!important;padding:0!important;background:transparent!important;border-radius:0!important}.setupStep h1,.setupStep h2{font-size:34px!important;letter-spacing:-.045em!important;line-height:1.03!important;margin:0 0 10px!important}.setupStep>p{font-size:16px!important;line-height:1.45!important;margin-bottom:28px!important}.setupStep .foodform{display:grid!important;grid-template-columns:1fr!important;gap:14px!important}.setupStep .foodform label{font-size:13px!important;font-weight:800!important;color:var(--app-text)!important}.setupStep input,.setupStep select{width:100%!important;min-height:56px!important;background:var(--app-card)!important;border:1px solid rgba(80,70,65,.14)!important;font-size:17px!important;padding:0 15px!important;box-sizing:border-box!important}.setupStep .finish{width:100%!important;min-height:58px!important;margin-top:24px!important;font-size:17px!important}.setupBack{font-size:14px!important;margin-bottom:18px!important}.choiceGrid{grid-template-columns:1fr!important;gap:10px!important}.choiceBtn{min-height:58px!important;text-align:left!important;padding:0 16px!important;border-radius:16px!important}.setupStep .row{display:grid!important;grid-template-columns:1fr 1fr!important;gap:10px!important}.setupStep .row>*{width:100%!important}
+.diaryNav,.trainDateNav{background:var(--app-card);border-radius:20px;padding:12px!important;border:1px solid rgba(80,70,65,.09)}details.card summary{font-size:16px}
+
+/* Stable 4 robust theme system */
+:root{color-scheme:light}
+body.theme-dark{--app-bg:#121315!important;--app-card:#1c1e21!important;--app-text:#f4f1ee!important;--l:#34373b!important;--m:#aaa6a2!important;color-scheme:dark}
+body.theme-light{color-scheme:light}
+body.theme-dark,body.theme-dark main,body.theme-dark .feature,body.theme-dark .setupOverlay{background:var(--app-bg)!important;color:var(--app-text)!important}
+body.theme-dark .card,body.theme-dark .sheet,body.theme-dark .choiceBtn,body.theme-dark .checkpill,body.theme-dark .macroBox,body.theme-dark .foodChoice,body.theme-dark .diaryNav,body.theme-dark .trainDateNav,body.theme-dark input,body.theme-dark select,body.theme-dark textarea,body.theme-dark .topnav{background:var(--app-card)!important;color:var(--app-text)!important;border-color:var(--l)!important}
+body.theme-dark .muted,body.theme-dark label{color:var(--m)!important}
+body.theme-dark .topnav{box-shadow:0 12px 40px rgba(0,0,0,.45)!important}
+body.theme-dark input::placeholder{color:#777!important}
+.modeRow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.modeBtn{min-height:46px;border:1px solid var(--l);border-radius:14px;background:var(--app-card);color:var(--app-text);font-weight:850}
+.modeBtn.active{background:var(--a);color:#fff;border-color:var(--a)}
+
+/* Stable 5 */
+body.theme-dark{--app-bg:#0b0c0e!important;--app-card:#181a1d!important;--app-text:#f7f5f2!important;--l:#303338!important;--m:#9d9da3!important}
+body.theme-dark,body.theme-dark header,body.theme-dark main,body.theme-dark .feature,body.theme-dark .setupOverlay{background:#0b0c0e!important;color:#f7f5f2!important}
+body.theme-dark .card,body.theme-dark .exercise,body.theme-dark details.card,body.theme-dark .macroBox,body.theme-dark .diaryNav,body.theme-dark .trainDateNav{background:#181a1d!important;color:#f7f5f2!important;border-color:#2c2f34!important;box-shadow:none!important}
+body.theme-dark .tabs button,body.theme-dark .mini,body.theme-dark .foodSearchBtn,body.theme-dark .choiceBtn{background:#202328!important;color:#f7f5f2!important;border-color:#34383e!important}
+body.theme-dark .tabs button.on,body.theme-dark .topnav button.on,body.theme-dark .finish{background:var(--a)!important;color:#fff!important}
+body.theme-dark .topnav{background:rgba(24,26,29,.97)!important;border:1px solid #303338!important}
+body.theme-dark input,body.theme-dark select,body.theme-dark textarea{background:#202328!important;color:#f7f5f2!important;border-color:#34383e!important}
+body.theme-dark .muted,body.theme-dark label{color:#aaa6a2!important}
+.modeRow{display:grid!important;grid-template-columns:repeat(3,1fr)!important;gap:8px!important;margin:12px 0!important}
+.modeBtn{display:block!important;min-height:48px!important;border:1px solid var(--l)!important;border-radius:14px!important;background:var(--app-card)!important;color:var(--app-text)!important;font-weight:850!important}
+.modeBtn.active{background:var(--a)!important;color:#fff!important}
+.darkToneRow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0 14px}.darkTone{height:48px;border-radius:14px;border:2px solid #444}.darkTone.active{border-color:var(--a)}
+</style></head><body><main class="app">
+<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 6</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
+<section class="card"><div class="row"><div><b>This week</b><div class="muted" style="font-size:13px">Complete all 4 main lifting days</div></div><b id="week" style="font-size:22px">0 / 4</b></div>
+<div class="row" style="margin-top:12px"><div><button class="pill on" data-place="gym">🏋️ Planet Fitness</button> <button class="pill" data-place="home">🏠 Home</button></div><button class="ghost" id="custom">🎨 Color</button></div></section>
+<section class="card settings" id="settings"><b>Choose your app color</b><div class="swatches">
+<button class="sw" style="background:#8d6e8f" data-color="#8d6e8f"></button><button class="sw" style="background:#b36b86" data-color="#b36b86"></button><button class="sw" style="background:#657c68" data-color="#657c68"></button><button class="sw" style="background:#55758c" data-color="#55758c"></button><button class="sw" style="background:#222" data-color="#222222"></button>
+<label style="width:100%">Pick any color<input id="picker" type="color" style="height:48px;padding:5px"></label></div></section>
+
+<nav class="mainnav" id="mainnav">
+<button class="on" data-main="train">🏋️<br>Train</button>
+<button data-main="nutrition">🥗<br>Nutrition</button>
+<button data-main="goal">✨<br>My Goal</button>
+<button data-main="progress">📈<br>Progress</button>
+</nav>
+
+<section class="feature on" id="feature-train">
+<div class="trainDateNav"><button class="mini" id="prevTrain">←</button><div class="center"><h3 id="trainDateTitle">Today</h3><div class="muted" id="trainDateText"></div></div><button class="mini" id="nextTrain">→</button></div>
+<div id="phaseDisplay" style="text-align:center"></div><button class="foodSearchBtn" id="todayTrain" style="margin:0 0 8px">Jump to Today</button>
+<nav id="tabs" class="tabs"></nav><section id="panel"></section>
+<details class="card"><summary><b>🏃 Add Cardio</b> <span class="muted" id="cardioSummary"></span></summary>
+<div class="logs" style="margin-top:12px"><label>Type<select id="cardioType"><option>Walking</option><option>Treadmill</option><option>Peloton / Bike</option><option>Stair Climber</option><option>Elliptical</option><option>Running</option><option>Other</option></select></label><label>Minutes<input id="cardioMinutes" inputmode="numeric" placeholder="30"></label><label>Distance (optional)<input id="cardioDistance" inputmode="decimal" placeholder="miles"></label><label>Incline / resistance<input id="cardioLevel" placeholder="optional"></label><label>Calories (optional)<input id="cardioCalories" inputmode="numeric" placeholder="optional"></label><label>Effort<select id="cardioEffort"><option>Easy</option><option selected>Moderate</option><option>Hard</option></select></label></div>
+<button class="finish" id="addCardio">Save cardio to this day</button><div id="cardioList"></div></details>
+<details class="card" id="cycleCard"><summary><b>🌸 Cycle + How I Feel</b> <span class="muted">optional</span></summary>
+<div class="logs" style="margin-top:12px"><label>Cycle status<select id="cyclePhase"><option value="">Not tracking</option><option>Period</option><option>Follicular</option><option>Ovulation</option><option>Luteal / PMS</option><option>Not sure</option></select></label><label>Cycle day<input id="cycleDay" inputmode="numeric" placeholder="optional"></label><label>Energy<select id="cycleEnergy"><option>High</option><option selected>Normal</option><option>Low</option><option>Very low</option></select></label><label>Weights feel<select id="weightFeel"><option selected>Normal</option><option>Light today</option><option>Heavy today</option><option>Much heavier than usual</option></select></label></div>
+<div class="checkgrid"><label class="checkpill"><input type="checkbox" id="symCramps"> Cramps</label><label class="checkpill"><input type="checkbox" id="symFatigue"> Fatigue</label><label class="checkpill"><input type="checkbox" id="symHeadache"> Headache</label><label class="checkpill"><input type="checkbox" id="symSore"> Soreness</label></div>
+<button class="finish" id="saveCycle">Save check-in</button><div id="cycleAdvice" class="softnote">Your cycle phase alone won't automatically lower your workout. This uses how you actually feel and perform today.</div></details>
+<section class="card"><b>🧠 Your growth rule</b><div style="font-size:14px;line-height:1.45;margin-top:5px">Good form first. When you can hit the top of your rep range across your sets with control, that's a sign you're ready to try a small weight increase next time. That's progressive overload.</div></section>
+</section>
+
+<section class="feature" id="feature-nutrition">
+<div class="nutritionHero"><div class="row" style="align-items:center"><button class="mini" id="prevDiary">←</button><div style="text-align:center;flex:1"><h2 id="diaryTitle" style="margin:4px 0">🥗 Today</h2><div class="muted" id="diaryDate"></div></div><button class="mini" id="nextDiary">→</button></div><button class="foodSearchBtn" id="todayDiary" style="margin-top:8px">Today</button></div>
+<div class="card"><div class="row"><h3 style="margin:0">Daily nutrition</h3><b id="calHeadline">0 cal</b></div><div id="nutriSummary"></div></div>
+
+<details class="card goalSettingsCard"><summary><b>⚙️ Set / Change My Goals</b><span class="muted" style="font-size:12px">optional</span></summary>
+<div class="logs" style="margin-top:12px">
+<label>Current weight (lb)<input id="nWeight" inputmode="decimal" placeholder="e.g. 180"></label><label>Goal weight (lb)<input id="nGoalWeight" inputmode="decimal" placeholder="e.g. 150"></label>
+<label>Height — feet<input id="nFeet" inputmode="numeric" placeholder="5"></label><label>Height — inches<input id="nInches" inputmode="numeric" placeholder="0"></label>
+<label>Age<input id="nAge" inputmode="numeric" placeholder="e.g. 32"></label>
+<label>Goal<select id="nGoal"><option value="lose">Lose fat</option><option value="recomp">Lose fat + build muscle</option><option value="maintain">Maintain</option><option value="build">Build muscle</option></select></label>
+<label>Activity<select id="nActivity"><option value="1.2">Mostly sedentary</option><option value="1.375">Lightly active</option><option value="1.55" selected>Train 3–5 days/week</option><option value="1.725">Very active</option></select></label>
+<label>Sex for calorie estimate<select id="nSex"><option value="female">Female</option><option value="male">Male</option></select></label>
+</div>
+<button class="finish" id="suggestTargets">Calculate suggested targets</button>
+<div class="logs">
+<label>Calories<input id="calGoal" inputmode="numeric"></label><label>Protein (g)<input id="proGoal" inputmode="numeric"></label>
+<label>Carbs (g)<input id="carbGoal" inputmode="numeric"></label><label>Fat (g)<input id="fatGoal" inputmode="numeric"></label>
+<label>Fiber (g)<input id="fiberGoal" inputmode="numeric"></label><label>Water (oz)<input id="waterGoal" inputmode="numeric"></label>
+</div><p class="bottomnote">Suggested values are editable starting estimates, not medical nutrition advice.</p>
+</details>
+
+
+
+<div id="mealAccordions"></div>
+
+<details class="card" open><summary><b>💧 Water</b> <span id="waterSummary" class="muted"></span></summary>
+<div style="font-size:27px;font-weight:850;margin-top:12px" id="waterText">0 oz</div>
+<div class="meter"><span id="waterMeter"></span></div>
+<div class="buttons"><button class="mini waterAdd" data-oz="8">+8 oz</button><button class="mini waterAdd" data-oz="16">+16 oz</button><button class="mini waterAdd" data-oz="24">+24 oz</button><button class="mini" id="waterUndo">↩ Undo</button></div>
+</details>
+
+<details class="card"><summary><b>📷 Scan / Search Food</b></summary><p class="muted">Coming in the connected version: barcode scanning and food-database search. Manual meal logging works now.</p></details>
+</section>
+
+<div class="modal" id="foodModal"><div class="sheet">
+<div class="sheetHead"><div><h2>Add Food</h2><div class="muted" id="mealDest">Breakfast</div></div><button class="mini" id="closeFood">✕</button></div>
+<input class="searchbox" id="foodSearch" placeholder="Search real foods & brands">
+<div class="buttons"><button class="mini" id="liveSearchBtn">🔎 Search Foods</button><button class="mini" id="barcodeBtn">▦ Scan / Enter Barcode</button><button class="mini" id="photoFoodBtn">📸 Package / Label Photo</button></div>
+<input id="foodPhotoInput" type="file" accept="image/*" capture="environment" style="display:none">
+<div id="foodPhotoPreview" style="display:none;margin-top:10px"></div>
+<div id="liveStatus" class="muted" style="font-size:12px;margin-top:7px"></div>
+<div class="recentLabel">Results</div><div id="foodResults"></div>
+<div class="recentLabel">Or enter your own</div>
+<div class="foodform"><input class="wide" id="customName" placeholder="Food name"><input id="customCal" inputmode="numeric" placeholder="Calories"><input id="customP" inputmode="numeric" placeholder="Protein"><input id="customC" inputmode="numeric" placeholder="Carbs"><input id="customF" inputmode="numeric" placeholder="Fat"><input id="customFi" inputmode="numeric" placeholder="Fiber"><button class="mini" id="addCustom">+ Add custom food</button></div>
+</div></div>
+
+<section class="feature" id="feature-goal">
+<div class="card"><div class="bigicon">✨</div><h2>My Goal</h2><div class="muted">“I want THIS” → “I'm HERE” → build a plan toward it.</div></div>
+<div class="card"><h3>🌟 My inspiration</h3><div class="photoBox">Add a physique/fitness inspiration photo<input type="file" accept="image/*" id="inspoInput"><img id="inspoPreview" class="preview"></div></div>
+<div class="card"><h3>📸 Where I am now</h3><div class="photoBox">Add a current progress photo<input type="file" accept="image/*" id="currentInput"><img id="currentPreview" class="preview"></div>
+<p class="bottomnote">Photos stay on this device in this prototype. Future AI analysis will focus on trainable goals and visible progress—not attractiveness or body scoring.</p></div>
+<div class="card"><h3>🤖 Goal analysis</h3><div class="quick">Coming with the published AI version: compare your stated goal with your training priorities and suggest muscle groups, exercises, nutrition habits and progress markers to focus on.</div></div>
+</section>
+
+<section class="feature" id="feature-progress">
+<div class="card"><div class="bigicon">📈</div><h2>Progress</h2><div class="muted">Strength + body metrics + consistency—not just the scale.</div></div>
+<div class="card"><h3>Body check-in</h3><div class="logs"><label>Weight (lb)<input id="bodyWeight" inputmode="decimal" placeholder="Optional"></label><label>Waist (in)<input id="waist" inputmode="decimal" placeholder="Optional"></label><label>Hips (in)<input id="hips" inputmode="decimal" placeholder="Optional"></label><label>Arm (in)<input id="arm" inputmode="decimal" placeholder="Optional"></label></div><button class="finish" id="saveCheck">Save check-in</button><div id="checkMsg" class="last"></div></div>
+<div class="card"><h3>🏆 Strength progress</h3><div id="strengthSummary" class="quick">Log weights in Train and your latest numbers will appear here.</div></div>
+<div class="card"><h3>📅 Training diary</h3><div id="trainingHistorySummary" class="quick">Your completed workouts and cardio are saved by date in Train. Use the arrows there to revisit any day.</div></div>
+<div class="muted">Future iPhone sync for weight, steps, workouts, active calories, heart rate and sleep — only the categories you approve.</div><button class="foodSearchBtn" id="healthConnect">🍎 Connect Apple Health</button><div id="healthNote" class="muted" style="font-size:12px;margin-top:8px"></div></div></section>
+
+<p class="tiny">Machine models vary by gym. Use the machine label/QR instructions when available. Stop if you feel sharp or unusual pain.</p>
+
+<section class="feature" id="feature-settings">
+<div class="card"><div class="bigicon">⚙️</div><h2>Settings</h2><div class="muted">The things you set once — not things you should have to see every day.</div></div>
+<details class="card"><summary><b>🎨 Appearance</b></summary><div class="muted">Change the whole app background, cards, buttons and text.</div><div class="modeRow"><button type="button" class="modeBtn" data-mode="light">☀️ Light</button><button type="button" class="modeBtn" data-mode="dark">🌙 Dark</button><button type="button" class="modeBtn" data-mode="system">◐ System</button></div><div class="muted" style="margin-top:12px"><b>Dark background</b></div><div class="darkToneRow"><button type="button" class="darkTone" data-darkbg="#08090a" style="background:#08090a" aria-label="Near black"></button><button type="button" class="darkTone" data-darkbg="#0b0c0e" style="background:#0b0c0e" aria-label="Charcoal"></button><button type="button" class="darkTone" data-darkbg="#171412" style="background:#171412" aria-label="Warm black"></button></div><div class="presetRow"><button type="button" data-look="warm">Warm</button><button type="button" data-look="clean">Clean</button><button type="button" data-look="rose">Rose</button><button type="button" data-look="dark">Dark</button></div><div class="appearanceGrid"><label class="appearanceField"><span>Background</span><input type="color" id="lookBg"></label><label class="appearanceField"><span>Cards</span><input type="color" id="lookCard"></label><label class="appearanceField"><span>Buttons</span><input type="color" id="lookAccent"></label><label class="appearanceField"><span>Text</span><input type="color" id="lookText"></label></div><button type="button" class="foodSearchBtn" id="resetLook">Reset appearance</button></details><details class="card"><summary><b>👤 Profile</b></summary><div class="softnote">Update your basic profile and preferences through Setup.</div><button class="foodSearchBtn" id="rerunSetup">Edit Profile / Setup</button></details>
+<details class="card"><summary><b>🎯 Goals & Nutrition</b></summary><div class="muted">Current targets</div><div id="settingsGoals" class="quick"></div><button class="foodSearchBtn" id="editGoals">Change Goals</button></details>
+<details class="card"><summary><b>🌸 Cycle Tracking</b></summary><div id="cycleSettingsStatus" class="quick"></div><button class="foodSearchBtn" id="toggleCycle">Turn Cycle Tracking On / Off</button></details>
+<details class="card"><summary><b>❤️ Apple Health</b></summary><div class="muted">Apple Health connection becomes available in the iPhone/HealthKit version.</div></details>
+<details class="card"><summary><b>🔐 Privacy & Friends</b></summary><div class="muted">Future controls for exactly what friends can see. Weight, nutrition details, measurements/photos and cycle information will stay private by default.</div></details>
+</section>
+</main>
+
+<div class="setupOverlay" id="setupOverlay"><div class="setupBox"><div class="setupBrand"><div class="mark">M</div><b>MILLIE’S MUSCLE BUILDER</b></div><div class="setupDots"><span id="setupDot1" class="on"></span><span id="setupDot2"></span><span id="setupDot3"></span></div>
+<div class="setupStep on" id="setup1"><div class="bigicon">💪</div><h1>Build a plan that fits you.</h1><p class="muted">A few details personalize your training and daily nutrition targets. You can edit them anytime.</p>
+<div class="foodform"><label>Name<input id="setupName" placeholder="First name"></label><label>Sex for calculations<select id="setupSex"><option value="female">Female</option><option value="male">Male</option></select></label><label>Age<input id="setupAge" inputmode="numeric"></label><label>Height — feet<input id="setupFeet" inputmode="numeric"></label><label>Height — inches<input id="setupInches" inputmode="numeric"></label><label>Current weight (lb)<input id="setupWeight" inputmode="decimal"></label><label>Goal weight (lb)<input id="setupGoalWeight" inputmode="decimal"></label></div><button class="finish" id="setupNext1">Next →</button></div>
+<div class="setupStep" id="setup2"><button type="button" class="setupBack" id="setupBack1">← Back</button><h2>🎯 What’s your goal?</h2><div class="foodform"><label>Goal<select id="setupGoal"><option value="lose">Lose fat while keeping/building muscle</option><option value="recomp">Recomposition</option><option value="maintain">Maintain</option><option value="build">Build muscle</option></select></label><label>Activity<select id="setupActivity"><option value="1.2">Mostly sedentary</option><option value="1.375">Lightly active</option><option value="1.55" selected>Moderately active</option><option value="1.725">Very active</option></select></label></div><button class="finish" id="setupNext2">Next →</button></div>
+<div class="setupStep" id="setup3"><button type="button" class="setupBack" id="setupBack2">← Back</button><h2>🌸 Cycle tracking</h2><p class="muted">Optional. If you turn it on, the app can estimate your current phase and use symptoms/performance as context for training.</p><div class="choiceGrid"><button class="choiceBtn" id="cycleYes">Yes, use it</button><button class="choiceBtn" id="cycleNo">Not now</button></div><div id="cycleSetupFields" style="display:none;margin-top:12px" class="foodform"><label>Last period started<input type="date" id="lastPeriod"></label><label>Typical cycle length<input inputmode="numeric" id="cycleLength" value="28"></label></div><button class="finish" id="finishSetup">Finish Setup 🔥</button></div>
+</div></div>
+<script>
+const imgs={"Leg Press":"https://p19-lemon8-sign-useast5.tiktokcdn-us.com/tos-useast5-v-3931-tx/o8AFkeqhBICdun3RBgiAJV220BvI0ABEivw16U~tplv-pyavlv3z7u-text-logo%3AQGtpbGxpdHdpdGhrZW56%3Aq75.jpeg","Hip Abduction":"https://s10.localdatacdn.com/on/windsor/6828294/original/P7eCms90RX.jpg","Shoulder Press":"https://cdn.businessyab.com/assets/uploads/57c5849ce2eee52172252ce8df04b61a__united_states_pennsylvania_delaware_county_marple_township_broomall_springfield_road_2920_planet_fitnesshtml.jpg","Seated Hamstring Curl":"https://s3assets.skimble.com/assets/545101/image_iphone.jpg","Calf Raise":"https://i.ebayimg.com/images/g/PikAAOSwiOVl55FO/s-l1200.webp"};
+const P={
+d1:{n:"Day 1 • Glutes + Quads",t:"Glutes + Quads",s:"Heavy lower-body growth day",x:[
+["Leg Press",3,"8–12","Quads • Glutes","Big seated/reclined machine with a LARGE footplate.","Control down; drive through your whole foot.","One of your main leg builders. Getting stronger here over time helps drive muscle growth.","Smith-machine squat or goblet squat.","Goblet squat."],
+["Hip Abduction",3,"12–15","Side Glutes","Seated machine with pads OUTSIDE your knees.","Press knees apart under control. Don't bounce the stack.","Direct work for upper/outer glutes and more glute shape.","Banded seated abductions.","Banded seated abductions."],
+["Leg Extension",3,"10–15","Quads","Seated machine with a padded roller across the FRONT of your lower legs.","Align knees with the pivot; squeeze your thighs at the top.","Direct quad work for visibly muscular thighs.","Goblet squat.","Goblet squat."],
+["Smith Machine Squat",3,"8–12","Quads • Glutes","Barbell attached to two vertical rails.","Start light; whole foot planted; control the lowering.","Stable compound leg work that we can progressively load.","Goblet squat.","Goblet squat."],
+["Calf Raise",3,"12–20","Calves","Use a calf machine, leg press, or Smith setup.","Lower heels under control, rise up, pause; don't bounce.","Builds lower-leg size and strength.","Leg-press calf raise.","Standing dumbbell calf raise."]]},
+d2:{n:"Day 2 • Back + Shoulders",t:"Back + Shoulders",s:"Build width, round shoulders and strong arms",x:[
+["Lat Pulldown",3,"8–12","Lats • Biceps","Tall cable machine with an overhead bar and thigh pads.","Drive elbows down toward your ribs without swinging.","Builds your lats for a stronger, wider-looking back.","Assisted pull-up.","Band pulldown."],
+["Seated Row",3,"8–12","Mid Back • Biceps","Seated machine/cable with handles in front.","Pull elbows back; squeeze shoulder blades.","Builds back thickness and pulling strength.","One-arm dumbbell row.","One-arm dumbbell row."],
+["Shoulder Press",3,"8–12","Shoulders • Triceps","Seated machine with handles starting near shoulder height.","Press smoothly; don't aggressively arch your back.","A main builder for bigger, rounder shoulders.","Dumbbell shoulder press.","Dumbbell shoulder press."],
+["Lateral Raise",3,"12–15","Side Delts","Machine or dumbbells; arms move out to your sides.","Use a weight you can control without swinging.","Side delts help create visibly wider, rounded shoulders.","Dumbbell lateral raise.","Dumbbell lateral raise."],
+["Biceps Curl",3,"10–15","Biceps","Curl machine or dumbbells.","Keep upper arms still.","Direct biceps work adds arm size.","Dumbbell curl.","Dumbbell curl."]]},
+d3:{n:"Day 3 • Glutes + Hams",t:"Glutes + Hamstrings",s:"Grow your glutes and the backs of your legs",x:[
+["Smith Romanian Deadlift",3,"8–12","Glutes • Hamstrings","Smith bar attached to vertical rails.","Soft knees; push hips BACK; keep bar close.","Loads glutes and hamstrings through a stretched position.","Dumbbell RDL.","Dumbbell RDL."],
+["Seated Hamstring Curl",3,"10–15","Hamstrings","Seated machine with thigh pad and roller behind lower legs.","Keep hips down while curling.","Directly grows the backs of your thighs.","Dumbbell RDL.","Dumbbell RDL."],
+["Hip Thrust / Glute Drive",3,"8–12","Glutes","Glute-drive machine with belt/pad across hips, or Smith + bench.","Drive hips up with glutes; don't over-arch.","Lets us load your glutes directly and track strength.","Smith hip thrust.","Dumbbell hip thrust."],
+["Leg Press",3,"10–12","Glutes • Hamstrings","Same big-footplate leg press; comfortable slightly higher foot position.","Keep whole foot planted and hips against pad.","Adds more quality lower-body volume.","Smith squat.","Goblet squat."],
+["Hip Abduction",3,"15–20","Side Glutes","Pads outside knees; press apart.","Controlled higher reps.","Extra weekly glute volume.","Band abduction.","Band abduction."]]},
+d4:{n:"Day 4 • Upper Body",t:"Upper Body B",s:"Back, shoulders, chest and triceps",x:[
+["Chest Press",3,"8–12","Chest • Triceps","Seated machine with handles at chest height.","Press smoothly; keep shoulders controlled.","Builds pushing strength and upper-body muscle.","Dumbbell bench press.","Dumbbell bench press."],
+["Assisted Pull-up / Pulldown",3,"8–12","Back • Biceps","Assisted machine has knee platform + overhead handles.","Pull elbows toward ribs with control.","A second weekly back stimulus for growth.","Lat pulldown.","Band pulldown."],
+["Seated Row",3,"10–12","Mid Back","Seated machine/cable with handles in front.","Lead with elbows; don't jerk.","More weekly back volume for a muscular upper body.","One-arm dumbbell row.","One-arm dumbbell row."],
+["Lateral Raise",3,"12–15","Side Delts","Machine or dumbbells.","Control both directions.","We hit side delts twice because bigger shoulders are a goal.","Dumbbells.","Dumbbells."],
+["Triceps Pressdown",3,"10–15","Triceps","High cable with rope or short bar.","Keep elbows tucked near your sides.","Triceps make up a big portion of upper-arm size.","Overhead dumbbell extension.","Overhead dumbbell extension."]]},
+d5:{n:"Bonus • Glutes + Arms",t:"Bonus Pump Day",s:"Optional Day 5 — extra growth volume",x:[
+["Hip Thrust / Glute Drive",3,"10–12","Glutes","Glute-drive or hip-thrust setup.","Squeeze glutes at top.","Extra quality glute volume.","Dumbbell hip thrust.","Dumbbell hip thrust."],["Hip Abduction",3,"15–20","Side Glutes","Pads outside knees.","Control every rep.","Extra glute volume.","Band abduction.","Band abduction."],["Biceps Curl",3,"10–15","Biceps","Machine or dumbbells.","No swinging.","Extra arm volume.","Dumbbells.","Dumbbells."],["Triceps Pressdown",3,"10–15","Triceps","High cable.","Elbows stay tucked.","Builds back of upper arms.","DB overhead extension.","DB overhead extension."],["Lateral Raise",3,"12–20","Shoulders","Machine or dumbbells.","Control every rep.","Extra shoulder volume.","Dumbbells.","Dumbbells."]]},
+rest:{n:"Active Rest 🌿",t:"Active Recovery",s:"Pick ONE. Finish feeling better, not exhausted.",r:true,x:[
+["Peloton Easy Ride",1,"20–30 min","Recovery","Your Peloton.","Keep it easy enough to talk.","Movement without making recovery another hard workout.","Easy walk.","Easy Peloton."],["Easy Walk",1,"20–45 min","Recovery","Outside or treadmill.","Comfortable talking pace.","Keeps you active with little fatigue.","Short walk.","Treadmill walk."],["Mobility + Stretching",1,"10–20 min","Mobility","Floor or mat.","Gentle range; don't force pain.","Can help you feel less stiff.","Complete rest.","Complete rest."],["Complete Rest",1,"Rest","Whole Body","Your couch counts.","Recover, hydrate, eat enough protein.","Training is the stimulus; recovery is where adaptation happens.","Rest.","Rest."]]}};
+let trainingCursor=new Date();
+function trainKey(){let d=trainingCursor,y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,"0"),day=String(d.getDate()).padStart(2,"0");return `${y}-${m}-${day}`}
+let S=JSON.parse(localStorage.getItem("MMBv3")||'{}');S.day=S.day||"d1";S.place=S.place||"gym";S.color=S.color||"#8d6e8f";S.logs=S.logs||{};S.sets=S.sets||{};S.days=S.days||{};S.trainingDiary=S.trainingDiary||{};
+function trainDay(){let k=trainKey();S.trainingDiary[k]=S.trainingDiary[k]||{};let d=S.trainingDiary[k];d.logs=d.logs||{};d.sets=d.sets||{};d.days=d.days||{};d.cardio=Array.isArray(d.cardio)?d.cardio:[];d.cycle=d.cycle||{};return d}
+
+const save=()=>{if(S.diary&&typeof diaryCursor!=="undefined"){let k=localDateKey(diaryCursor);if(S.diary[k]){S.diary[k].foods=S.foods;S.diary[k].water=S.nutrition.water||0}}localStorage.setItem("MMBv3",JSON.stringify(S));};const tabs=document.getElementById("tabs"),panel=document.getElementById("panel"),week=document.getElementById("week");
+function theme(){document.documentElement.style.setProperty("--a",S.color);document.querySelector('meta[name="theme-color"]').content=S.color}theme();
+function render(){
+let TD=trainDay();week.textContent=["d1","d2","d3","d4"].filter(k=>TD.days[k]).length+" / 4";tabs.innerHTML="";
+let now=new Date(),isToday=trainKey()===`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
+trainDateTitle.textContent=isToday?"Today":"Training Diary";trainDateText.textContent=trainingCursor.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric",year:"numeric"});
+Object.entries(P).forEach(([k,p])=>{let b=document.createElement("button");b.className="tab"+(S.day===k?" on":"");b.textContent=p.n;b.onclick=()=>{S.day=k;save();render()};tabs.appendChild(b)});
+
+function renderTrainingExtras(){
+ let td=trainDay(), mins=td.cardio.reduce((a,x)=>a+(+x.minutes||0),0);
+ cardioSummary.textContent=td.cardio.length?`${mins} min logged`:"";
+ cardioList.innerHTML=td.cardio.map((x,i)=>`<div class="cardioEntry"><div class="row"><div><b>${x.type}</b><div class="muted">${x.minutes} min${x.distance?" • "+x.distance+" mi":""}${x.level?" • "+x.level:""} • ${x.effort}</div></div><button class="mini" data-carddel="${i}">×</button></div></div>`).join("");
+ cardioList.querySelectorAll("[data-carddel]").forEach(b=>b.onclick=()=>{td.cardio.splice(+b.dataset.carddel,1);save();renderTrainingExtras()});
+ let c=td.cycle||{};cyclePhase.value=c.phase||"";cycleDay.value=c.day||"";cycleEnergy.value=c.energy||"Normal";weightFeel.value=c.feel||"Normal";symCramps.checked=!!c.cramps;symFatigue.checked=!!c.fatigue;symHeadache.checked=!!c.headache;symSore.checked=!!c.sore;
+ if(c.feel==="Much heavier than usual"||c.energy==="Very low")cycleAdvice.textContent="Today may be a good day to keep the weight lighter, use the lower end of your rep range, or stop a set early. How you feel today matters more than cycle phase.";
+ else if(c.feel==="Heavy today"||c.energy==="Low"||c.cramps||c.fatigue)cycleAdvice.textContent="If warm-ups still feel unusually hard, keep today's weight the same or slightly lighter and prioritize controlled reps. You don't need to force a progression today.";
+ else cycleAdvice.textContent="Your cycle phase alone won't automatically lower your workout. This uses how you actually feel and perform today.";
+}
+prevTrain.onclick=()=>{trainingCursor.setDate(trainingCursor.getDate()-1);render();renderTrainingExtras();refreshPersistentUI()};
+nextTrain.onclick=()=>{trainingCursor.setDate(trainingCursor.getDate()+1);render();renderTrainingExtras();refreshPersistentUI()};
+todayTrain.onclick=()=>{trainingCursor=new Date();render();renderTrainingExtras();refreshPersistentUI()};
+addCardio.onclick=()=>{let min=+cardioMinutes.value;if(!min){alert("Add the cardio minutes first.");return}let td=trainDay();td.cardio.push({type:cardioType.value,minutes:min,distance:cardioDistance.value,level:cardioLevel.value,calories:cardioCalories.value,effort:cardioEffort.value});cardioMinutes.value=cardioDistance.value=cardioLevel.value=cardioCalories.value="";save();renderTrainingExtras()};
+saveCycle.onclick=()=>{let td=trainDay();td.cycle={phase:cyclePhase.value,day:cycleDay.value,energy:cycleEnergy.value,feel:weightFeel.value,cramps:symCramps.checked,fatigue:symFatigue.checked,headache:symHeadache.checked,sore:symSore.checked};save();renderTrainingExtras()};
+renderTrainingExtras();
+document.querySelectorAll("[data-place]").forEach(b=>b.classList.toggle("on",b.dataset.place===S.place));
+let p=P[S.day];
+panel.innerHTML=`<div style="margin:10px 2px 14px"><h2 style="margin:0;font-size:25px">${p.t}</h2><div class="muted">${p.s}</div></div>`+p.x.map((e,i)=>{let k=S.day+"-"+i,L=TD.logs[k]||{},sets=TD.sets[k]||[],pic=S.place==="gym"&&imgs[e[0]]?`<button class="mini" data-pic="pic-${i}">📸 Show machine</button><img id="pic-${i}" class="pic" src="${imgs[e[0]]}" alt="${e[0]} reference" style="display:none" onerror="this.style.display='none'">`:"";return `<article class="card ex"><div class="row"><div><h3>${i+1}. ${e[0]}</h3><b>${e[1]} × ${e[2]}</b></div><span class="tag">🎯 ${e[3]}</span></div>
+<div class="quick"><b>${S.place==="gym"?"👀 What to look for":"🏠 Home version"}</b><br>${S.place==="gym"?e[4]:e[8]}</div><div class="buttons">${pic}<button class="mini" data-toggle="why-${i}">💡 Why?</button><button class="mini" data-toggle="how-${i}">⚙️ How?</button><button class="mini" data-toggle="alt-${i}">🔄 Can't find it?</button></div>
+<div class="info" id="why-${i}">${e[6]}</div><div class="info" id="how-${i}">${e[5]}</div><div class="info" id="alt-${i}">${S.place==="gym"?e[7]:e[8]}</div>
+${p.r?"":`<div class="logs"><label>Weight (lb)<input data-w="${i}" inputmode="decimal" value="${L.w||""}" placeholder="e.g. 70"></label><label>Reps<input data-r="${i}" inputmode="numeric" value="${L.r||""}" placeholder="e.g. 10"></label></div><div class="sets">${Array.from({length:e[1]},(_,n)=>`<button class="set ${sets[n]?"done":""}" data-set="${i}-${n}">Set ${n+1}${sets[n]?" ✓":""}</button>`).join("")}</div><div class="last"><b>Last logged:</b> ${L.last||"Nothing yet — today's your baseline!"}</div>`}</article>`}).join("")+(p.r?"":`<button class="finish" id="finish">${TD.days[S.day]?"Workout completed ✓":"Finish workout"}</button>`);
+panel.querySelectorAll("[data-toggle]").forEach(b=>b.onclick=()=>{let x=document.getElementById(b.dataset.toggle);x.style.display=x.style.display==="block"?"none":"block"});
+panel.querySelectorAll("[data-pic]").forEach(b=>b.onclick=()=>{let x=document.getElementById(b.dataset.pic);let open=x.style.display==="block";x.style.display=open?"none":"block";b.textContent=open?"📸 Show machine":"🙈 Hide machine"});
+panel.querySelectorAll("[data-w]").forEach(x=>x.onchange=()=>{let k=S.day+"-"+x.dataset.w;TD.logs[k]=TD.logs[k]||{};TD.logs[k].w=x.value;save()});
+panel.querySelectorAll("[data-r]").forEach(x=>x.onchange=()=>{let k=S.day+"-"+x.dataset.r;TD.logs[k]=TD.logs[k]||{};TD.logs[k].r=x.value;save()});
+panel.querySelectorAll("[data-set]").forEach(b=>b.onclick=()=>{let [i,n]=b.dataset.set.split("-").map(Number),k=S.day+"-"+i;TD.sets[k]=TD.sets[k]||[];TD.sets[k][n]=!TD.sets[k][n];let L=TD.logs[k]||{};if(TD.sets[k][n]&&L.w&&L.r){L.last=L.w+" lb × "+L.r;TD.logs[k]=L}save();render()});
+let f=document.getElementById("finish");if(f)f.onclick=()=>{TD.days[S.day]=true;save();render()}
+}
+document.querySelectorAll("[data-place]").forEach(b=>b.onclick=()=>{S.place=b.dataset.place;save();render()});document.getElementById("custom").onclick=()=>{let x=document.getElementById("settings");x.style.display=x.style.display==="block"?"none":"block"};
+document.querySelectorAll("[data-color]").forEach(b=>b.onclick=()=>{S.color=b.dataset.color;document.getElementById("picker").value=S.color;theme();save()});document.getElementById("picker").value=S.color;
+document.getElementById("picker").oninput=e=>{S.color=e.target.value;theme();save()};
+S.main=S.main||"train";S.nutrition=S.nutrition||{};S.checkins=S.checkins||[];
+function showMain(name){S.main=name;save();document.querySelectorAll(".feature").forEach(x=>x.classList.toggle("on",x.id==="feature-"+name));document.querySelectorAll("[data-main]").forEach(x=>x.classList.toggle("on",x.dataset.main===name));if(name==="progress")updateStrength()}
+document.querySelectorAll("[data-main]").forEach(b=>b.onclick=()=>showMain(b.dataset.main));
+S.nutrition=S.nutrition||{};S.foods=S.foods||{Breakfast:[],Lunch:[],Dinner:[],Snacks:[]};S.water=S.water||0;S.waterHistory=S.waterHistory||[];
+const meals=["Breakfast","Lunch","Dinner","Snacks"], icons={Breakfast:"🍳",Lunch:"🥪",Dinner:"🍽️",Snacks:"🍿"};
+
+function localDateKey(d){let y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,"0"),day=String(d.getDate()).padStart(2,"0");return `${y}-${m}-${day}`}
+let diaryCursor=new Date(); S.diary=S.diary||{};
+function ensureDiary(){const k=localDateKey(diaryCursor);if(!S.diary[k]){S.diary[k]={foods:{Breakfast:[],Lunch:[],Dinner:[],Snacks:[]},water:0};if(k===localDateKey(new Date())&&!S.diaryMigrated){S.diary[k].foods=S.foods||S.diary[k].foods;S.diary[k].water=+(S.nutrition.water||0);S.diaryMigrated=true}}S.foods=S.diary[k].foods;S.nutrition.water=S.diary[k].water||0;return k}
+function commitDiary(){const k=ensureDiary();S.diary[k].foods=S.foods;S.diary[k].water=S.nutrition.water||0;save()}
+function renderDiary(){ensureDiary();diaryTitle.textContent=localDateKey(diaryCursor)===localDateKey(new Date())?"🥗 Today":"🥗 Food Diary";diaryDate.textContent=diaryCursor.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric",year:"numeric"});renderMeals();nutritionSummary();waterUI()}
+const goalIds=["calGoal","proGoal","carbGoal","fatGoal","fiberGoal","waterGoal"];
+goalIds.forEach(id=>{let el=document.getElementById(id);el.value=S.nutrition[id]||"";el.oninput=()=>{S.nutrition[id]=el.value;save();nutritionSummary();waterUI()}});
+["nWeight","nGoalWeight","nFeet","nInches","nAge","nSex","nGoal","nActivity"].forEach(id=>{let el=document.getElementById(id);if(S.nutrition[id]!=null)el.value=S.nutrition[id];el.onchange=()=>{S.nutrition[id]=el.value;save()}});
+document.getElementById("suggestTargets").onclick=()=>{
+ let w=+nWeight.value,gw=+nGoalWeight.value,ft=+nFeet.value,inch=+nInches.value,h=ft*12+inch,a=+nAge.value,sex=nSex.value,act=+nActivity.value,goal=nGoal.value;
+ if(!w||!gw||!h||!a){alert("Add current weight, goal weight, height and age first.");return}
+ let kg=w*.453592,cm=h*2.54,bmr=10*kg+6.25*cm-5*a+(sex==="male"?5:-161),tdee=bmr*act;
+ let goalKg=gw*.453592,goalBmr=10*goalKg+6.25*cm-5*a+(sex==="male"?5:-161),goalTdee=goalBmr*act;
+ let raw={lose:Math.max(goalTdee,tdee*.80),recomp:Math.max(goalTdee,tdee*.88),maintain:tdee,build:Math.max(tdee*1.05,goalTdee*1.03)}[goal],cal=Math.round(raw/10)*10;
+ let protein=Math.round(kg*(goal==="maintain"?1.2:1.6)),fat=Math.round(cal*.28/9),carb=Math.max(0,Math.round((cal-protein*4-fat*9)/4)),fiber=Math.max(25,Math.round(cal/1000*14)),water=Math.round(w*.5/5)*5;
+ Object.assign(S.nutrition,{nWeight:w,nGoalWeight:gw,nFeet:ft,nInches:inch,nHeight:h,nAge:a,nSex:sex,nGoal:goal,nActivity:act,calGoal:cal,proGoal:protein,carbGoal:carb,fatGoal:fat,fiberGoal:fiber,waterGoal:water});
+ goalIds.forEach(id=>document.getElementById(id).value=S.nutrition[id]);save();nutritionSummary();waterUI()
+};
+function totals(){let t={cal:0,p:0,c:0,f:0,fi:0};meals.forEach(m=>(S.foods[m]||[]).forEach(x=>{t.cal+=+x.cal||0;t.p+=+x.p||0;t.c+=+x.c||0;t.f+=+x.f||0;t.fi+=+x.fi||0}));return t}
+function nutritionSummary(){
+ let t=totals(),n=S.nutrition;
+ const items=[["Protein",t.p,+n.proGoal||0,"g"],["Carbs",t.c,+n.carbGoal||0,"g"],["Fat",t.f,+n.fatGoal||0,"g"],["Fiber",t.fi,+n.fiberGoal||0,"g"]];
+ calHeadline.textContent=t.cal+" / "+(n.calGoal||"—")+" cal";
+ nutriSummary.innerHTML=`<div class="macroGrid">${items.map(x=>`<div class="macroBox"><b>${x[1]}${x[3]}</b><small>${x[0]} • goal ${x[2]||"—"}${x[3]}</small><div class="macroBar"><span style="width:${x[2]?Math.min(100,x[1]/x[2]*100):0}%"></span></div></div>`).join("")}</div>`;
+}
+const mockFoods=[
+{name:"Egg, large",serv:"1 large egg",cal:72,p:6,c:0,f:5,fi:0},
+{name:"Egg whites",serv:"3 large",cal:51,p:11,c:1,f:0,fi:0},
+{name:"Banana",serv:"1 medium",cal:105,p:1,c:27,f:0,fi:3},
+{name:"Chicken breast, grilled",serv:"4 oz cooked",cal:187,p:35,c:0,f:4,fi:0},
+{name:"93% lean ground turkey",serv:"4 oz cooked",cal:170,p:22,c:0,f:8,fi:0},
+{name:"White rice, cooked",serv:"1 cup",cal:205,p:4,c:45,f:0,fi:1},
+{name:"Potato, baked",serv:"1 medium",cal:161,p:4,c:37,f:0,fi:4},
+{name:"Avocado",serv:"1/2 medium",cal:120,p:2,c:6,f:11,fi:5},
+{name:"Almond milk, unsweetened",serv:"1 cup",cal:30,p:1,c:1,f:3,fi:1},
+{name:"Protein shake",serv:"1 shake",cal:160,p:30,c:6,f:3,fi:1},
+{name:"Turkey taco bowl",serv:"1 bowl",cal:420,p:35,c:43,f:13,fi:7},
+{name:"Chicken rice bowl",serv:"1 bowl",cal:510,p:45,c:58,f:12,fi:5},
+{name:"Gluten-free turkey sandwich",serv:"1 sandwich",cal:390,p:28,c:42,f:13,fi:5},
+{name:"Protein oatmeal",serv:"1 bowl",cal:360,p:27,c:48,f:8,fi:7},
+{name:"Apple + peanut butter",serv:"1 snack",cal:285,p:8,c:31,f:16,fi:6}
+];
+let activeMeal="Breakfast";
+function openFood(m){activeMeal=m;mealDest.textContent="Add to "+m;foodSearch.value="";renderFoodResults("");foodModal.classList.add("on");}
+prevDiary.onclick=()=>{commitDiary();diaryCursor.setDate(diaryCursor.getDate()-1);renderDiary()};
+nextDiary.onclick=()=>{commitDiary();diaryCursor.setDate(diaryCursor.getDate()+1);renderDiary()};
+todayDiary.onclick=()=>{commitDiary();diaryCursor=new Date();renderDiary()};
+function offToFood(p){
+ let n=p.nutriments||{}, servingG=parseFloat(p.serving_quantity)||100, factor=servingG/100;
+ let kcal=n["energy-kcal_serving"] ?? (n["energy-kcal_100g"]!=null?n["energy-kcal_100g"]*factor:0);
+ let val=(key)=>Math.round(((n[key+"_serving"] ?? (n[key+"_100g"]!=null?n[key+"_100g"]*factor:0))||0)*10)/10;
+ return {name:p.product_name||p.generic_name||"Food",serv:p.serving_size||((servingG||100)+" g"),cal:Math.round(kcal||0),p:val("proteins"),c:val("carbohydrates"),f:val("fat"),fi:val("fiber"),brand:p.brands||""}
+}
+function drawFoods(arr,label="Results"){
+ foodResults.innerHTML=arr.map((x,i)=>`<div class="foodChoice"><div class="name">${x.name}</div><div class="sub">${x.brand?x.brand+" • ":""}${x.serv} • ${x.cal} cal • ${x.p}g protein</div><button class="mini" data-livepick="${i}">+ Add</button></div>`).join("")||'<div class="muted">No foods found. Try another search or add a custom food.</div>';
+ foodResults.querySelectorAll("[data-livepick]").forEach(b=>b.onclick=()=>{let x=window._foodResults[+b.dataset.livepick];S.foods[activeMeal].push({...x});rememberFood(x);commitDiary();foodModal.classList.remove("on");renderMeals();nutritionSummary()})
+}
+
+S.recentFoods=S.recentFoods||[];
+S.favoriteFoods=S.favoriteFoods||[];
+function rememberFood(x){
+ S.recentFoods=[x,...S.recentFoods.filter(y=>y.name!==x.name)].slice(0,20);save();
+}
+function renderSavedFoods(){
+ if(!S.recentFoods.length&&!S.favoriteFoods.length)return;
+ let saved=[...S.favoriteFoods,...S.recentFoods].filter((x,i,a)=>a.findIndex(y=>y.name===x.name)===i);
+ window._foodResults=saved;
+ drawFoods(saved);
+ liveStatus.textContent="Recent & favorite foods";
+}
+function renderFoodResults(q){
+ q=(q||"").toLowerCase();let arr=mockFoods.filter(x=>(x.name+" "+x.serv).toLowerCase().includes(q));window._foodResults=arr;drawFoods(arr)
+}
+async function liveFoodSearch(){
+ let q=foodSearch.value.trim();if(!q)return;liveStatus.textContent="Searching food database…";
+ try{
+  let u="https://world.openfoodfacts.org/cgi/search.pl?search_terms="+encodeURIComponent(q)+"&search_simple=1&action=process&json=1&page_size=20&fields=product_name,generic_name,brands,serving_size,serving_quantity,nutriments";
+  let r=await fetch(u),j=await r.json(),arr=(j.products||[]).filter(p=>p.product_name&&p.nutriments).map(offToFood);
+  window._foodResults=arr;drawFoods(arr);liveStatus.textContent=arr.length?"Live food results":"No live results found";
+ }catch(e){liveStatus.textContent="Live search couldn't connect. Showing built-in foods instead.";renderFoodResults(q)}
+}
+async function barcodeLookup(){
+ let code=prompt("Scan support is being prepared for the camera. For now, enter the UPC/barcode number:");
+ if(!code)return;code=code.replace(/\D/g,"");liveStatus.textContent="Looking up barcode…";
+ try{
+  let r=await fetch("https://world.openfoodfacts.org/api/v2/product/"+code+".json?fields=product_name,generic_name,brands,serving_size,serving_quantity,nutriments"),j=await r.json();
+  if(j.status===1&&j.product){let arr=[offToFood(j.product)];window._foodResults=arr;drawFoods(arr);liveStatus.textContent="Barcode found";}
+  else liveStatus.textContent="Barcode wasn't found. You can create the food manually.";
+ }catch(e){liveStatus.textContent="Barcode lookup couldn't connect right now."}
+}
+function renderMeals(){
+ let root=document.getElementById("mealAccordions");
+ root.innerHTML=meals.map((m)=>{let arr=S.foods[m]||[],mt=arr.reduce((z,x)=>z+(+x.cal||0),0),mp=arr.reduce((z,x)=>z+(+x.p||0),0);return `<details class="card"><summary><span class="mealTop"><b>${icons[m]} ${m}</b><span class="mealStats">${mt} cal • ${mp}g protein</span></span></summary><div>${arr.map((x,i)=>`<div class="foodrow"><div class="row"><div><b>${x.name}</b><div class="foodmac">${x.serv?x.serv+" • ":""}${x.cal} cal • P ${x.p}g • C ${x.c}g • F ${x.f}g • Fiber ${x.fi}g</div></div><button class="mini" data-del="${m}|${i}">×</button></div></div>`).join("")||'<div class="muted" style="font-size:13px">Nothing logged yet.</div>'}<button class="foodSearchBtn" data-openfood="${m}">＋ Add Food</button></div></details>`}).join("");
+ root.querySelectorAll("[data-openfood]").forEach(b=>b.onclick=()=>openFood(b.dataset.openfood));
+ root.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{let [m,i]=b.dataset.del.split("|");S.foods[m].splice(+i,1);commitDiary();renderMeals();nutritionSummary()})
+}
+closeFood.onclick=()=>foodModal.classList.remove("on");foodModal.onclick=e=>{if(e.target===foodModal)foodModal.classList.remove("on")};
+foodSearch.onkeydown=e=>{if(e.key==="Enter")liveFoodSearch()};liveSearchBtn.onclick=liveFoodSearch;barcodeBtn.onclick=barcodeLookup;
+photoFoodBtn.onclick=()=>foodPhotoInput.click();
+foodPhotoInput.onchange=e=>{
+ const f=e.target.files&&e.target.files[0]; if(!f)return;
+ const url=URL.createObjectURL(f);
+ foodPhotoPreview.style.display="block";
+ foodPhotoPreview.innerHTML=`<div class="foodChoice"><div class="name">📸 Photo ready</div><div class="sub">For best results, photograph the Nutrition Facts panel straight-on with good lighting. Automatic label reading will activate when the vision backend is connected.</div><img src="${url}" alt="Food package preview" style="width:100%;max-height:230px;object-fit:contain;border-radius:12px;margin-top:9px"><button class="mini" id="photoManual">Enter nutrition from this label</button></div>`;
+ setTimeout(()=>{let b=document.getElementById("photoManual");if(b)b.onclick=()=>customName.focus()},0);
+};
+
+addCustom.onclick=()=>{if(!customName.value)return;S.foods[activeMeal].push({name:customName.value,serv:"Custom",cal:+customCal.value||0,p:+customP.value||0,c:+customC.value||0,f:+customF.value||0,fi:+customFi.value||0});commitDiary();["customName","customCal","customP","customC","customF","customFi"].forEach(id=>document.getElementById(id).value="");foodModal.classList.remove("on");renderMeals();nutritionSummary()};
+renderFoodResults("");
+function waterUI(){let g=+S.nutrition.waterGoal||0,p=g?Math.min(100,S.water/g*100):0;waterText.textContent=S.water+" / "+(g||"—")+" oz";waterSummary.textContent=S.water+" oz";waterMeter.style.width=p+"%"}
+document.querySelectorAll(".waterAdd").forEach(b=>b.onclick=()=>{let oz=+b.dataset.oz;S.water+=oz;S.waterHistory.push(oz);save();waterUI()});
+waterUndo.onclick=()=>{let x=S.waterHistory.pop()||0;S.water=Math.max(0,S.water-x);save();waterUI()};
+renderMeals();nutritionSummary();waterUI();
+
+function preview(input,img){input.onchange=()=>{let f=input.files&&input.files[0];if(!f)return;let r=new FileReader();r.onload=e=>{img.src=e.target.result;img.style.display="block"};r.readAsDataURL(f)}}
+preview(document.getElementById("inspoInput"),document.getElementById("inspoPreview"));preview(document.getElementById("currentInput"),document.getElementById("currentPreview"));
+document.getElementById("saveCheck").onclick=()=>{let o={date:new Date().toLocaleDateString(),weight:bodyWeight.value,waist:waist.value,hips:hips.value,arm:arm.value};S.checkins.push(o);save();document.getElementById("checkMsg").textContent="Saved check-in • "+o.date};
+function updateStrength(){let rows=[];Object.entries(S.logs).forEach(([k,v])=>{if(v.w){let [d,i]=k.split("-"),p=P[d];if(p&&p.x[i])rows.push(`<b>${p.x[i][0]}</b>: ${v.w} lb${v.r?" × "+v.r:""}`)}});document.getElementById("strengthSummary").innerHTML=rows.length?rows.slice(-10).join("<br>"):"Log weights in Train and your latest numbers will appear here."}
+render();showMain(S.main);
+
+
+const hc=document.getElementById("healthConnect");
+if(hc)hc.onclick=()=>{document.getElementById("healthNote").textContent="Apple Health requires the iPhone/HealthKit version of the app. Your web app data stays unchanged for now.";};
+
+// ---- V5 setup + persistent settings ----
+S.profile=S.profile||{};
+S.cyclePrefs=S.cyclePrefs||{enabled:false,lastPeriod:"",length:28};
+
+function setupShow(n){document.querySelectorAll(".setupStep").forEach(x=>x.classList.remove("on"));document.getElementById("setup"+n).classList.add("on")}
+function openSetup(){setupOverlay.classList.add("on");setupShow(1);
+ setupName.value=S.profile.name||"";setupSex.value=S.profile.sex||"female";setupAge.value=S.profile.age||S.nutrition.nAge||"";setupFeet.value=S.profile.feet||S.nutrition.nFeet||"";setupInches.value=S.profile.inches||S.nutrition.nInches||"";setupWeight.value=S.profile.weight||S.nutrition.nWeight||"";setupGoalWeight.value=S.profile.goalWeight||S.nutrition.nGoalWeight||"";
+}
+function calcSetupTargets(){
+ let p=S.profile,w=+p.weight,gw=+p.goalWeight,h=(+p.feet*12)+(+p.inches),a=+p.age,act=+p.activity||1.55;
+ if(!w||!gw||!h||!a)return;
+ let kg=w*.453592,cm=h*2.54,bmr=10*kg+6.25*cm-5*a+(p.sex==="male"?5:-161),tdee=bmr*act,goalKg=gw*.453592,goalBmr=10*goalKg+6.25*cm-5*a+(p.sex==="male"?5:-161),goalTdee=goalBmr*act;
+ let raw={lose:Math.max(goalTdee,tdee*.80),recomp:Math.max(goalTdee,tdee*.88),maintain:tdee,build:Math.max(tdee*1.05,goalTdee*1.03)}[p.goal]||tdee;
+ let cal=Math.round(raw/10)*10,protein=Math.round(Math.min(w,gw)*.85),fat=Math.round(cal*.28/9),carb=Math.round((cal-protein*4-fat*9)/4),fiber=Math.max(25,Math.round(cal/1000*14)),water=Math.round(w*.5);
+ Object.assign(S.nutrition,{nWeight:w,nGoalWeight:gw,nFeet:+p.feet,nInches:+p.inches,nAge:a,nSex:p.sex,nGoal:p.goal,nActivity:act,calGoal:cal,proGoal:protein,carbGoal:carb,fatGoal:fat,fiberGoal:fiber,waterGoal:water});
+}
+function phaseInfo(d=new Date()){
+ if(!S.cyclePrefs.enabled||!S.cyclePrefs.lastPeriod)return null;
+ let start=new Date(S.cyclePrefs.lastPeriod+"T12:00:00"),len=+S.cyclePrefs.length||28,days=Math.floor((d-start)/86400000),day=((days%len)+len)%len+1;
+ let phase=day<=5?"Period":day<=13?"Follicular":day<=16?"Ovulation":"Luteal";
+ return {day,phase};
+}
+function refreshPersistentUI(){
+ let p=phaseInfo(trainingCursor);phaseDisplay.innerHTML=p?`<span class="phaseBadge">🌸 ${p.phase} • estimated Day ${p.day}</span>`:"";
+ cycleCard.style.display=S.cyclePrefs.enabled?"block":"none";
+ settingsGoals.innerHTML=`Goal weight: <b>${S.profile.goalWeight||"—"} lb</b><br>Calories: <b>${S.nutrition.calGoal||"—"}</b> • Protein: <b>${S.nutrition.proGoal||"—"}g</b><br>Carbs: ${S.nutrition.carbGoal||"—"}g • Fat: ${S.nutrition.fatGoal||"—"}g • Fiber: ${S.nutrition.fiberGoal||"—"}g`;
+ cycleSettingsStatus.innerHTML=S.cyclePrefs.enabled?`On • ${S.cyclePrefs.length||28}-day cycle • phase shown as an estimate`:"Cycle tracking is off.";
+}
+setupNext1.onclick=()=>{if(!setupAge.value||!setupFeet.value||!setupWeight.value||!setupGoalWeight.value)return alert("Add age, height, current weight and goal weight.");Object.assign(S.profile,{name:setupName.value,sex:setupSex.value,age:+setupAge.value,feet:+setupFeet.value,inches:+setupInches.value||0,weight:+setupWeight.value,goalWeight:+setupGoalWeight.value});setupShow(2)};
+setupNext2.onclick=()=>{S.profile.goal=setupGoal.value;S.profile.activity=+setupActivity.value;setupShow(3)};
+cycleYes.onclick=()=>{S.cyclePrefs.enabled=true;cycleSetupFields.style.display="block"};
+cycleNo.onclick=()=>{S.cyclePrefs.enabled=false;cycleSetupFields.style.display="none"};
+finishSetup.onclick=()=>{if(S.cyclePrefs.enabled){S.cyclePrefs.lastPeriod=lastPeriod.value;S.cyclePrefs.length=+cycleLength.value||28}calcSetupTargets();S.setupComplete=true;save();setupOverlay.classList.remove("on");nutritionSummary();refreshPersistentUI()};
+rerunSetup.onclick=openSetup;editGoals.onclick=openSetup;
+toggleCycle.onclick=()=>{S.cyclePrefs.enabled=!S.cyclePrefs.enabled;save();refreshPersistentUI()};
+if(!S.setupComplete)openSetup();
+refreshPersistentUI();
+
+S.look=S.look||{bg:"#f7f4f0",card:"#ffffff",accent:"#8d6f64",text:"#272321"};
+S.look.mode=S.look.mode||"light";S.look.darkBg=S.look.darkBg||"#0b0c0e";S.look.darkCard=S.look.darkCard||"#181a1d";S.look.darkText=S.look.darkText||"#f4f1ee";
+function applyLook(){
+ let mode=S.look.mode||"light";
+ let systemDark=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;
+ let dark=mode==="dark"||(mode==="system"&&systemDark);
+ document.body.classList.toggle("theme-dark",dark);
+ document.body.classList.toggle("theme-light",!dark);
+ let bg=dark?(S.look.darkBg||"#0b0c0e"):S.look.bg;
+ let card=dark?(S.look.darkCard||"#181a1d"):S.look.card;
+ let text=dark?(S.look.darkText||"#f4f1ee"):S.look.text;
+ document.documentElement.style.setProperty("--app-bg",bg);
+ document.documentElement.style.setProperty("--app-card",card);
+ document.documentElement.style.setProperty("--app-text",text);
+ document.documentElement.style.setProperty("--a",S.look.accent);
+ document.body.style.backgroundColor=bg;
+ document.body.style.color=text;
+ lookBg.value=bg;lookCard.value=card;lookAccent.value=S.look.accent;lookText.value=text;
+ document.querySelectorAll("[data-mode]").forEach(b=>b.classList.toggle("active",b.dataset.mode===mode));
+}
+function chooseLook(n){let x={warm:{bg:"#f7f4f0",card:"#ffffff",accent:"#8d6f64",text:"#272321"},clean:{bg:"#f3f6f8",card:"#ffffff",accent:"#5d7180",text:"#202428"},rose:{bg:"#fbf3f5",card:"#ffffff",accent:"#a45f70",text:"#302428"},dark:{bg:"#1f2022",card:"#2b2c2f",accent:"#b99587",text:"#f5f2ef"}}[n];if(x){S.look=x;save();applyLook()}}
+document.querySelectorAll("[data-look]").forEach(b=>b.onclick=()=>chooseLook(b.dataset.look));
+[["lookBg","bg"],["lookCard","card"],["lookAccent","accent"],["lookText","text"]].forEach(([id,k])=>document.getElementById(id).oninput=e=>{
+ let dark=(S.look.mode==="dark")||(S.look.mode==="system"&&window.matchMedia("(prefers-color-scheme: dark)").matches);
+ if(k==="bg"&&dark)S.look.darkBg=e.target.value;else if(k==="card"&&dark)S.look.darkCard=e.target.value;else if(k==="text"&&dark)S.look.darkText=e.target.value;else S.look[k]=e.target.value;
+ save();applyLook()
+});
+resetLook.onclick=()=>{S.look={bg:"#f7f4f0",card:"#ffffff",accent:"#8d6f64",text:"#272321"};save();applyLook()};applyLook();
+
+if(typeof setupBack1!=="undefined")setupBack1.onclick=()=>setupShow(1);
+if(typeof setupBack2!=="undefined")setupBack2.onclick=()=>setupShow(2);
+if(typeof setupNext1!=="undefined")setupNext1.addEventListener("click",()=>{if(typeof setupDot2!=="undefined"){setupDot1.classList.remove("on");setupDot2.classList.add("on")}});
+if(typeof setupNext2!=="undefined")setupNext2.addEventListener("click",()=>{if(typeof setupDot3!=="undefined"){setupDot2.classList.remove("on");setupDot3.classList.add("on")}});
+
+document.querySelectorAll("[data-mode]").forEach(b=>b.onclick=()=>{S.look.mode=b.dataset.mode;save();applyLook()});
+if(window.matchMedia){window.matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change",()=>{if(S.look.mode==="system")applyLook()})}
+applyLook();
+
+document.querySelectorAll("[data-darkbg]").forEach(b=>b.onclick=()=>{
+ S.look.mode="dark";S.look.darkBg=b.dataset.darkbg;
+ S.look.darkCard=b.dataset.darkbg==="#171412"?"#211d1a":(b.dataset.darkbg==="#08090a"?"#131518":"#181a1d");
+ save();applyLook();document.querySelectorAll("[data-darkbg]").forEach(x=>x.classList.toggle("active",x.dataset.darkbg===S.look.darkBg));
+});
+</script></body></html>
