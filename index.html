@@ -248,7 +248,7 @@ body.theme-dark .trainQuickNav button.isToday{background:color-mix(in srgb,var(-
   </div>
 </div>
 <main class="app">
-<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.22 • VERIFIED WEB FOOD FALLBACK</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
+<header><div class="muted" style="font-size:13px;font-weight:800">MILLIE'S MUSCLE BUILDER • V5 STABLE 12.4.23 • CALORIES REMAINING</div><h1>Build BIG muscles 💪</h1><div class="muted">Your whole workout, all in one place.</div></header>
 <section class="card"><div class="row"><div><b>This week</b><div class="muted" style="font-size:13px">Complete all 4 main lifting days</div></div><b id="week" style="font-size:22px">0 / 4</b></div>
 <div class="row" style="margin-top:12px"><div><button class="pill on" data-place="gym" id="gymPlaceBtn">🏋️ Gym</button> <button class="pill" data-place="home">🏠 Home</button></div><button class="ghost" id="custom">🎨 Color</button></div></section>
 <section class="card settings" id="settings"><b>Choose your app color</b><div class="swatches">
@@ -280,7 +280,7 @@ body.theme-dark .trainQuickNav button.isToday{background:color-mix(in srgb,var(-
 
 <section class="feature" id="feature-nutrition">
 <div class="nutritionHero"><div class="row" style="align-items:center"><button class="mini" id="prevDiary">←</button><div style="text-align:center;flex:1"><h2 id="diaryTitle" style="margin:4px 0">🥗 Today</h2><div class="muted" id="diaryDate"></div></div><button class="mini" id="nextDiary">→</button></div><button class="foodSearchBtn" id="todayDiary" style="margin-top:8px">Today</button></div>
-<div class="card"><div class="row"><h3 style="margin:0">Daily nutrition</h3><b id="calHeadline">0 cal</b></div><div id="nutriSummary"></div></div>
+<div class="card"><div class="row"><h3 style="margin:0">Daily nutrition</h3><div style="text-align:right"><b id="calHeadline">0 cal</b><div id="caloriesRemaining" class="muted" style="font-size:14px;font-weight:800;margin-top:4px"></div></div></div><div id="nutriSummary"></div></div>
 
 <details class="card goalSettingsCard"><summary><b>⚙️ Set / Change My Goals</b><span class="muted" style="font-size:12px">optional</span></summary><button type="button" class="foodSearchBtn" id="openNutritionSetup" style="margin-top:12px">✨ Set My Nutrition Goals</button>
 <div class="logs" style="margin-top:12px">
@@ -589,11 +589,55 @@ document.getElementById("suggestTargets").onclick=()=>{
  goalIds.forEach(id=>document.getElementById(id).value=S.nutrition[id]);save();nutritionSummary();waterUI()
 };
 function totals(){let t={cal:0,p:0,c:0,f:0,fi:0};meals.forEach(m=>(S.foods[m]||[]).forEach(x=>{t.cal+=+x.cal||0;t.p+=+x.p||0;t.c+=+x.c||0;t.f+=+x.f||0;t.fi+=+x.fi||0}));return t}
+
+function updateCaloriesRemaining(){
+ try{
+   const goal=Number(S?.nutritionGoals?.calories ?? S?.calorieGoal ?? S?.caloriesGoal ?? 0);
+   let eaten=0;
+   if(S && S.foods){
+     Object.values(S.foods).forEach(arr=>{
+       if(Array.isArray(arr)) eaten += arr.reduce((sum,x)=>sum+(Number(x.cal)||0),0);
+     });
+   }
+   let el=document.getElementById("caloriesRemaining");
+   if(!el){
+     // Find the visible "X / Y cal" text inside Daily nutrition and add the line beneath it.
+     const dailyHead=[...document.querySelectorAll("section,div")].find(node=>{
+       const t=(node.textContent||"").trim();
+       return t.includes("Daily nutrition") && /\d+\s*\/\s*\d+\s*cal/i.test(t);
+     });
+     if(dailyHead){
+       const candidates=[...dailyHead.querySelectorAll("b,strong,div,span")].filter(n=>/\d+\s*\/\s*\d+\s*cal/i.test((n.textContent||"").trim()));
+       const target=candidates[candidates.length-1];
+       if(target){
+         const wrap=document.createElement("div");
+         wrap.style.textAlign="right";
+         target.parentNode.insertBefore(wrap,target);
+         wrap.appendChild(target);
+         el=document.createElement("div");
+         el.id="caloriesRemaining";
+         el.className="muted";
+         el.style.fontSize="14px";
+         el.style.fontWeight="800";
+         el.style.marginTop="4px";
+         wrap.appendChild(el);
+       }
+     }
+   }
+   if(el && goal>0){
+     const left=Math.max(0,Math.round(goal-eaten));
+     el.textContent=left.toLocaleString()+" cal remaining";
+   }
+ }catch(e){}
+}
+
 function nutritionSummary(){
  let t=totals(),n=S.nutrition;
  const items=[["Protein",t.p,+n.proGoal||0,"g"],["Carbs",t.c,+n.carbGoal||0,"g"],["Fat",t.f,+n.fatGoal||0,"g"],["Fiber",t.fi,+n.fiberGoal||0,"g"]];
  calHeadline.textContent=t.cal+" / "+(n.calGoal||"—")+" cal";
  nutriSummary.innerHTML=`<div class="macroGrid">${items.map(x=>`<div class="macroBox"><b>${x[1]}${x[3]}</b><small>${x[0]} • goal ${x[2]||"—"}${x[3]}</small><div class="macroBar"><span style="width:${x[2]?Math.min(100,x[1]/x[2]*100):0}%"></span></div></div>`).join("")}</div>`;
+
+ updateCaloriesRemaining();
 }
 const mockFoods=[
 {name:"Egg, large",serv:"1 large egg",cal:72,p:6,c:0,f:5,fi:0},
