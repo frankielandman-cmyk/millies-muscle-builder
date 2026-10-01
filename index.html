@@ -135,7 +135,7 @@ body.theme-dark .premiumSettingsBtn{background:#17191d!important;border-color:#2
 .mainnav{grid-template-columns:repeat(6,1fr)!important}
 .mainnav.cycleHidden{grid-template-columns:repeat(5,1fr)!important}
 .mainnav button{font-size:11px!important;padding-left:3px!important;padding-right:3px!important}
-/* Stable 12.4.52 — In-app AI goal photo analysis + swipe tabs + backup/recovery */
+/* Stable 12.4.53 — In-app AI goal photo analysis + swipe tabs + backup/recovery */
 .cycleHero{padding:20px!important;background:linear-gradient(145deg,color-mix(in srgb,var(--a) 14%,var(--app-card)),var(--app-card))!important}
 .cycleHeroTop{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
 .cycleDayBig{font-size:44px;font-weight:950;letter-spacing:-.06em;line-height:1;margin:4px 0 6px}
@@ -449,19 +449,20 @@ setTimeout(()=>{
 <div class="card"><div class="bigicon">✨</div><h2>My Goal</h2><div class="muted">Add one goal/inspiration photo. Millie can help turn it into realistic training priorities before you change your workout plan.</div></div>
 
 <div class="card">
-  <h3>🌟 Goal photo</h3>
-  <div class="photoBox">Add the physique/fitness look you want to work toward
-    <input type="file" accept="image/*" id="inspoInput">
-    <img id="inspoPreview" class="preview" alt="Goal inspiration preview">
+  <h3>🌟 Goal photos</h3>
+  <div class="photoBox">
+    Add up to 3 physique/fitness inspiration photos
+    <input type="file" accept="image/*" id="inspoInput" multiple>
+    <div id="inspoPreviewGrid" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px"></div>
   </div>
-  <p class="bottomnote">Use this as inspiration—not a body score. What is realistically trainable depends on muscle development, body composition, genetics, proportions, and time.</p>
+  <p class="bottomnote">Millie analyzes the photos together for common trainable priorities. Inspiration photos are not body scores, and exact proportions can vary with genetics and individual structure.</p>
 </div>
 
 <div class="card">
   <h3>🤖 Millie’s focus notes</h3>
-  <div class="quick" id="goalAiIntro" style="margin-bottom:12px">Upload a goal photo and Millie will analyze the visible training emphasis automatically, then fill in suggested muscle groups and focus notes here.</div>
+  <div class="quick" id="goalAiIntro" style="margin-bottom:12px">Upload 1–3 goal photos and Millie will analyze them together, identify the shared training emphasis, and automatically adapt your suggested workouts toward those goals.</div>
   <div class="softnote" id="goalAiStatus" style="margin-bottom:12px">AI photo analysis is waiting for a photo.</div>
-  <button type="button" class="foodSearchBtn" id="reanalyzeGoalPhoto" style="display:none;margin-bottom:12px">✨ Analyze goal photo again</button>
+  <button type="button" class="foodSearchBtn" id="reanalyzeGoalPhoto" style="display:none;margin-bottom:12px">✨ Reanalyze goal photos</button>
   <textarea id="goalFocusNotes" rows="5" placeholder="AI suggestions will appear here after the photo is analyzed." style="width:100%;box-sizing:border-box;border-radius:14px;padding:12px;background:#101216;color:#fff;border:1px solid #353941;font:inherit;resize:vertical"></textarea>
 
   <div style="margin-top:14px"><b>Training areas to consider</b></div>
@@ -477,7 +478,9 @@ setTimeout(()=>{
   </div>
 
   <button type="button" class="finish" id="saveGoalFocus" style="margin-top:14px">Save focus notes</button>
-  <div class="softnote" id="goalFocusStatus" style="margin-top:10px">Saving these notes will NOT change your workout plan yet. We’ll decide that separately.</div>
+  <button type="button" class="finish" id="applyGoalToPlan" style="margin-top:10px;background:#24282e">🏋️ Rebuild my plan from these goals</button>
+  <button type="button" class="foodSearchBtn" id="removeGoalFromPlan" style="margin-top:10px;display:none">↩ Remove goal-photo priorities from plan</button>
+  <div class="softnote" id="goalFocusStatus" style="margin-top:10px">Save the notes first, or add the selected priorities to your training plan when you're ready.</div>
 </div>
 </section>
 
@@ -553,7 +556,7 @@ setTimeout(()=>{
 <details class="card" id="cycleSettingsCard"><summary><b>🌸 Cycle Tracking</b></summary><div id="cycleSettingsStatus" class="quick"></div><button class="foodSearchBtn" id="toggleCycle">Turn Cycle Tracking On / Off</button></details>
 <details class="card"><summary><b>❤️ Apple Health</b></summary><div class="muted">Apple Health connection becomes available in the iPhone/HealthKit version.</div></details>
 <details class="card" id="accountCard"><summary><b>☁️ Account + Cloud</b></summary><div id="accountStatus" class="softnote">Checking account…</div><div id="accountSignedOut"><label>Email<input id="accountEmail" type="email" autocomplete="email" placeholder="you@example.com"></label><label>Password<input id="accountPassword" type="password" autocomplete="current-password" placeholder="8+ characters"></label><div class="row" style="margin-top:12px"><button type="button" class="foodSearchBtn" id="accountSignIn">Log in</button><button type="button" class="foodSearchBtn" id="accountSignUp">Create account</button></div><div class="muted" style="margin-top:10px">Your current workout data stays on this phone while we connect cloud saving safely.</div></div><div id="accountSignedIn" style="display:none"><button type="button" class="foodSearchBtn" id="accountSignOut">Log out</button></div></details>
-<details class="card" id="goalAiSettingsCard"><summary><b>✨ AI Goal Photo Analysis</b></summary>
+<details class="card" id="goalAiSettingsCard" style="display:none"><summary><b>✨ AI Goal Photo Analysis</b></summary>
 <div class="muted">This connects the goal-photo uploader to your private analysis endpoint. The OpenAI API key stays on the server, never in this app.</div>
 <label style="display:block;margin-top:12px">Analysis endpoint<input id="goalAiEndpoint" type="url" inputmode="url" placeholder="https://your-worker.workers.dev" style="width:100%;box-sizing:border-box"></label>
 <button type="button" class="foodSearchBtn" id="saveGoalAiEndpoint" style="margin-top:10px">Save AI Endpoint</button>
@@ -576,7 +579,7 @@ setTimeout(()=>{
 </details><details class="card"><summary><b>ℹ️ About</b></summary>
 <div class="muted">Millie’s Muscle Builder</div>
 <div class="quick" style="margin-top:10px">
-  <b id="appVersionUnlock" style="user-select:none;-webkit-user-select:none">Version 12.4.52</b><br>
+  <b id="appVersionUnlock" style="user-select:none;-webkit-user-select:none">Version 12.4.53</b><br>
   Train smarter. Eat better. Track your progress.
 </div>
 <div id="ownerPreviewTools" style="display:none;margin-top:12px">
@@ -882,7 +885,69 @@ function exerciseLibraryMatches(query,category){
 
 
 function dateExerciseKey(){return trainKey()}
+function buildGoalPlanExercises(areas){
+ const selected=new Set(Array.isArray(areas)?areas:[]);
+ const plan={};
+ const muscleAliases={
+  Glutes:["glute"],Quads:["quad"],Hamstrings:["hamstring"],
+  Shoulders:["shoulder","delt"],Back:["back","lat"],
+  Arms:["biceps","triceps","arm"],Core:["core","abs"],Conditioning:["cardio","conditioning"]
+ };
+ function scoreExercise(e){
+   const hay=((e?.[0]||"")+" "+(e?.[3]||"")).toLowerCase();
+   let score=0;
+   selected.forEach(a=>(muscleAliases[a]||[]).forEach(k=>{if(hay.includes(k))score+=1}));
+   return score;
+ }
+ Object.entries(P).forEach(([day,p])=>{
+   if(!p||p.r||!Array.isArray(p.x)){plan[day]=p?.x?[...p.x]:[];return}
+   const base=[...p.x];
+   base.sort((a,b)=>scoreExercise(b)-scoreExercise(a));
+   plan[day]=base;
+ });
+
+ // Add a little extra direct work only where it fits the existing split.
+ function addOrReplace(day,exercise,replaceIndex=-1){
+   if(!plan[day])return;
+   if(plan[day].some(e=>String(e[0]).toLowerCase()===String(exercise[0]).toLowerCase()))return;
+   if(replaceIndex>=0 && plan[day][replaceIndex]) plan[day][replaceIndex]=exercise;
+   else plan[day].push(exercise);
+ }
+ if(selected.has("Back")||selected.has("Shoulders")){
+   addOrReplace("d2",["Rear Delt Fly",3,"12–20","Rear Delts • Upper Back","Reverse pec deck or rear-delt machine.","Open your arms under control without shrugging.","Adds direct rear-delt and upper-back work to match your goal-photo priorities.","Face Pull.","Bent-Over Rear Delt Raise."],4);
+ }
+ if(selected.has("Back")){
+   addOrReplace("d4",["Lat Pulldown",3,"8–12","Lats • Biceps","Tall cable machine with an overhead bar and thigh pads.","Drive elbows down toward your ribs without swinging.","Adds another weekly back-width stimulus while keeping the plan balanced.","Assisted Pull-up.","Band Pulldown."],0);
+ }
+ if(selected.has("Shoulders")){
+   addOrReplace("d4",["Shoulder Press",3,"8–12","Shoulders • Triceps","Seated press machine or dumbbells.","Press smoothly without aggressively arching your back.","Adds another shoulder-growth stimulus to your upper-body day.","Dumbbell Shoulder Press.","Dumbbell Shoulder Press."],0);
+ }
+ if(selected.has("Arms")){
+   addOrReplace("d4",["Biceps Curl",3,"10–15","Biceps","Curl machine or dumbbells.","Keep upper arms still and control the lowering.","Adds direct biceps work to balance the existing triceps work.","Dumbbell Curl.","Dumbbell Curl."],2);
+ }
+ if(selected.has("Glutes")){
+   addOrReplace("d1",["Hip Thrust / Glute Drive",3,"8–12","Glutes","Glute-drive machine or Smith + bench.","Drive through your feet and squeeze glutes at the top.","Adds more direct glute work to a lower-body day.","Smith Hip Thrust.","Dumbbell Hip Thrust."],4);
+ }
+ if(selected.has("Hamstrings")){
+   addOrReplace("d1",["Seated Hamstring Curl",3,"10–15","Hamstrings","Seated hamstring curl machine.","Keep hips down and curl smoothly.","Adds direct hamstring volume while preserving your main lower-body lifts.","Lying Hamstring Curl.","Dumbbell RDL."],4);
+ }
+ if(selected.has("Quads")){
+   addOrReplace("d3",["Leg Extension",3,"10–15","Quads","Seated leg-extension machine.","Align knees with the pivot and squeeze at the top.","Adds direct quad work to keep lower-body development balanced.","Goblet Squat.","Goblet Squat."],4);
+ }
+ if(selected.has("Core")){
+   addOrReplace("d4",["Cable Crunch",3,"10–20","Core • Abs","High cable with rope.","Curl ribs toward pelvis under control.","Adds direct, loadable core work without changing your main split.","Ab Crunch Machine.","Weighted Crunch."],4);
+ }
+ if(selected.has("Conditioning")){
+   addOrReplace("d5",["Incline Treadmill Walk",1,"15–25 min","Conditioning • Glutes","Treadmill.","Use a sustainable incline and pace.","Adds a conditioning emphasis without turning every strength day into cardio.","Stationary Bike.","Outdoor Walk."],4);
+ }
+ return plan;
+}
+S.goalPlanActive=!!S.goalPlanActive;
+S.goalPlanAreas=Array.isArray(S.goalPlanAreas)?S.goalPlanAreas:[];
+S.goalPlanExercises=S.goalPlanExercises&&typeof S.goalPlanExercises==="object"?S.goalPlanExercises:{};
+
 function getSuggestedExercisesForDay(){
+ if(S.goalPlanActive&&Array.isArray(S.goalPlanExercises[S.day]))return S.goalPlanExercises[S.day];
  const pp=P[S.day];
  return pp&&Array.isArray(pp.x)?pp.x:[];
 }
@@ -1929,7 +1994,8 @@ async function fileToGoalDataUrl(file){
 (function setupGoalFocus(){
   S.goalFocusNotes=S.goalFocusNotes||"";
   S.goalFocusAreas=Array.isArray(S.goalFocusAreas)?S.goalFocusAreas:[];
-  S.goalAiEndpoint=S.goalAiEndpoint||"";
+  S.goalAiEndpoint=S.goalAiEndpoint||"https://millies-muscle-builder-ai.frankielandman.workers.dev";
+
   const notes=document.getElementById("goalFocusNotes");
   const status=document.getElementById("goalFocusStatus");
   const aiStatus=document.getElementById("goalAiStatus");
@@ -1937,15 +2003,19 @@ async function fileToGoalDataUrl(file){
   const endpointStatus=document.getElementById("goalAiEndpointStatus");
   const reanalyze=document.getElementById("reanalyzeGoalPhoto");
   const fileInput=document.getElementById("inspoInput");
-  const previewImg=document.getElementById("inspoPreview");
-  let lastGoalFile=null;
+  const previewGrid=document.getElementById("inspoPreviewGrid");
+  const applyBtn=document.getElementById("applyGoalToPlan");
+  const removeBtn=document.getElementById("removeGoalFromPlan");
+  let lastGoalFiles=[];
+
   if(notes)notes.value=S.goalFocusNotes;
   if(endpointInput)endpointInput.value=S.goalAiEndpoint;
 
   function endpointSummary(){
     if(!endpointStatus)return;
-    endpointStatus.textContent=S.goalAiEndpoint?"Connected. Goal photos will analyze automatically after upload.":"Not connected yet. Add your Worker URL here once it is deployed.";
+    endpointStatus.textContent=S.goalAiEndpoint?"Connected. Goal photos analyze automatically after upload.":"AI connection is unavailable.";
   }
+
   function paint(){
     document.querySelectorAll(".goalFocusChip").forEach(b=>{
       const on=S.goalFocusAreas.includes(b.dataset.focus);
@@ -1954,33 +2024,91 @@ async function fileToGoalDataUrl(file){
       b.style.background=on?"rgba(181,106,128,.22)":"";
     });
   }
-  async function analyzeGoalPhoto(file){
-    if(!file)return;
-    if(!S.goalAiEndpoint){
-      if(aiStatus)aiStatus.textContent="Photo uploaded. AI setup is not connected yet — add the analysis endpoint in Settings → AI Goal Photo Analysis.";
+
+  function refreshGoalPlanButtons(){
+    if(removeBtn)removeBtn.style.display=S.goalPlanActive?"block":"none";
+    if(applyBtn)applyBtn.textContent=S.goalPlanActive?"🏋️ Rebuild my plan from these goals":"🏋️ Build my plan from these goals";
+    if(S.goalPlanActive&&status){
+      const a=(S.goalPlanAreas||[]).join(", ");
+      status.textContent="✓ Your suggested workouts are currently adapted to: "+(a||"your goal photos")+".";
+    }
+  }
+
+  function applyGoalPlan(auto=false){
+    S.goalFocusNotes=notes?notes.value.trim():"";
+    if(!S.goalFocusAreas.length){
+      if(status)status.textContent="No trainable focus areas were selected yet.";
       return;
     }
-    if(aiStatus)aiStatus.textContent="✨ Analyzing the goal photo…";
+    S.goalPlanActive=true;
+    S.goalPlanAreas=[...S.goalFocusAreas];
+    S.goalPlanExercises=buildGoalPlanExercises(S.goalPlanAreas);
+    // Clear only future/date-specific customizations so the refreshed suggested plan can show.
+    // Completed workout history remains untouched.
+    S.customDayExercises=S.customDayExercises||{};
+    save();
+    refreshGoalPlanButtons();
+    if(status)status.textContent=(auto?"✓ AI updated":"✓ Updated")+" your suggested training plan around: "+S.goalPlanAreas.join(", ")+". Your logged workout history and completed sessions were not changed.";
+    render();
+  }
+
+  function renderGoalPreviews(files){
+    if(!previewGrid)return;
+    previewGrid.innerHTML="";
+    files.forEach((f,i)=>{
+      const wrap=document.createElement("div");
+      wrap.style.cssText="aspect-ratio:1/1;border-radius:12px;overflow:hidden;background:#101216;border:1px solid #353941";
+      const img=document.createElement("img");
+      img.alt="Goal inspiration "+(i+1);
+      img.style.cssText="width:100%;height:100%;object-fit:cover;display:block";
+      const url=URL.createObjectURL(f);
+      img.src=url;
+      img.onload=()=>URL.revokeObjectURL(url);
+      wrap.appendChild(img);
+      previewGrid.appendChild(wrap);
+    });
+  }
+
+  async function analyzeGoalPhotos(files){
+    files=Array.from(files||[]).slice(0,3);
+    if(!files.length)return;
+
+    if(!S.goalAiEndpoint){
+      if(aiStatus)aiStatus.textContent="AI analysis is not connected right now.";
+      return;
+    }
+
+    if(aiStatus)aiStatus.textContent="✨ Analyzing "+files.length+" goal photo"+(files.length===1?"":"s")+" together…";
     if(reanalyze){reanalyze.disabled=true;reanalyze.style.display="inline-block";reanalyze.textContent="Analyzing…"}
+
     try{
-      const image_data_url=await fileToGoalDataUrl(file);
+      const image_data_urls=[];
+      for(const file of files) image_data_urls.push(await fileToGoalDataUrl(file));
+
       const res=await fetch(S.goalAiEndpoint.replace(/\/+$/,'')+"/analyze-goal",{
         method:"POST",
         headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({image_data_url})
+        body:JSON.stringify({image_data_urls})
       });
+
       const data=await res.json().catch(()=>({}));
       if(!res.ok)throw new Error(data.error||"Analysis failed");
+
       const allowed=["Glutes","Quads","Hamstrings","Shoulders","Back","Arms","Core","Conditioning"];
       S.goalFocusAreas=(Array.isArray(data.focus_areas)?data.focus_areas:[]).filter(x=>allowed.includes(x));
       S.goalFocusNotes=(data.notes||"").trim();
+
       if(notes)notes.value=S.goalFocusNotes;
-      paint();save();
-      if(aiStatus)aiStatus.textContent="✓ Analysis complete. Review the suggestions below before deciding whether to change your workout plan.";
+      paint();
+
+      // The user explicitly wants goal photos to affect the training plan.
+      applyGoalPlan(true);
+
+      if(aiStatus)aiStatus.textContent="✓ Analysis complete. I combined the photos and updated your suggested training plan automatically. Review the priorities below; you can edit them and rebuild anytime.";
     }catch(err){
-      if(aiStatus)aiStatus.textContent="I couldn't analyze that photo. Check the AI endpoint in Settings, then try again. "+(err&&err.message?err.message:"");
+      if(aiStatus)aiStatus.textContent="I couldn't analyze those photos. "+(err&&err.message?err.message:"Please try again.");
     }finally{
-      if(reanalyze){reanalyze.disabled=false;reanalyze.style.display="inline-block";reanalyze.textContent="✨ Analyze goal photo again"}
+      if(reanalyze){reanalyze.disabled=false;reanalyze.style.display="inline-block";reanalyze.textContent="✨ Reanalyze goal photos"}
     }
   }
 
@@ -1989,29 +2117,49 @@ async function fileToGoalDataUrl(file){
     S.goalFocusAreas=S.goalFocusAreas.includes(f)?S.goalFocusAreas.filter(x=>x!==f):[...S.goalFocusAreas,f];
     paint();
   });
+
   const saveBtn=document.getElementById("saveGoalFocus");
   if(saveBtn)saveBtn.onclick=()=>{
     S.goalFocusNotes=notes?notes.value.trim():"";
     save();
-    if(status)status.textContent="Saved. Your current workout plan has NOT been changed.";
+    if(status)status.textContent=S.goalPlanActive?"Saved. Your plan is still using the applied goal priorities. Tap Rebuild if you changed the focus areas.":"Saved.";
   };
+
+  if(applyBtn)applyBtn.onclick=()=>applyGoalPlan(false);
+
+  if(removeBtn)removeBtn.onclick=()=>{
+    S.goalPlanActive=false;
+    S.goalPlanAreas=[];
+    S.goalPlanExercises={};
+    save();
+    refreshGoalPlanButtons();
+    if(status)status.textContent="Goal-photo priorities removed. Your standard suggested workout plan is active again.";
+    render();
+  };
+
   const saveEndpoint=document.getElementById("saveGoalAiEndpoint");
   if(saveEndpoint)saveEndpoint.onclick=()=>{
     let v=(endpointInput?.value||"").trim().replace(/\/+$/,'');
     if(v&&!/^https:\/\//i.test(v)){endpointStatus.textContent="Use the full https:// Worker URL.";return}
     S.goalAiEndpoint=v;save();endpointSummary();
   };
-  if(fileInput&&previewImg){
+
+  if(fileInput){
     fileInput.onchange=async()=>{
-      const f=fileInput.files&&fileInput.files[0];if(!f)return;
-      lastGoalFile=f;
-      const r=new FileReader();r.onload=e=>{previewImg.src=e.target.result;previewImg.style.display="block"};r.readAsDataURL(f);
+      const chosen=Array.from(fileInput.files||[]).slice(0,3);
+      if(!chosen.length)return;
+      lastGoalFiles=chosen;
+      renderGoalPreviews(chosen);
       if(reanalyze)reanalyze.style.display="inline-block";
-      await analyzeGoalPhoto(f);
+      await analyzeGoalPhotos(chosen);
     };
   }
-  if(reanalyze)reanalyze.onclick=()=>lastGoalFile?analyzeGoalPhoto(lastGoalFile):(aiStatus.textContent="Choose a goal photo first.");
-  endpointSummary();paint();
+
+  if(reanalyze)reanalyze.onclick=()=>lastGoalFiles.length?analyzeGoalPhotos(lastGoalFiles):(aiStatus.textContent="Choose 1–3 goal photos first.");
+
+  endpointSummary();
+  paint();
+  refreshGoalPlanButtons();
 })();
 document.getElementById("saveCheck").onclick=()=>{let o={date:new Date().toLocaleDateString(),weight:bodyWeight.value,waist:waist.value,hips:hips.value,arm:arm.value};S.checkins.push(o);save();document.getElementById("checkMsg").textContent="Saved check-in • "+o.date};
 function updateStrength(){let rows=[];Object.entries(S.logs).forEach(([k,v])=>{if(v.w){let [d,i]=k.split("-"),p=P[d];if(p&&p.x[i])rows.push(`<b>${p.x[i][0]}</b>: ${v.w} lb${v.r?" × "+v.r:""}`)}});document.getElementById("strengthSummary").innerHTML=rows.length?rows.slice(-10).join("<br>"):"Log weights in Train and your latest numbers will appear here."}
