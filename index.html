@@ -576,10 +576,19 @@ setTimeout(()=>{
 <div class="onboardField" style="margin-top:12px"><label>Training days per week</label>
 <select id="settingsTrainingDays"><option value="3">3 days</option><option value="4">4 days</option><option value="5">5 days</option><option value="6">6 days</option><option value="7">7 days</option></select></div>
 <div class="softnote" id="trainingDaysNote">Your weekly goal is 4 training days.</div>
-</details><details class="card"><summary><b>ℹ️ About</b></summary>
+</details>
+<details class="card" id="trainingPlanResetCard"><summary><b>🔄 Reset / Rebuild Training Plan</b></summary>
+<div class="muted">Fix the upcoming schedule without deleting workouts you already completed, weights, sets, or exercise history.</div>
+<div class="softnote" style="margin-top:10px"><b>Your completed workout history stays saved.</b><br>These buttons only change the planned schedule.</div>
+<button type="button" class="foodSearchBtn" id="rebuildPlanFromToday" style="margin-top:12px">✨ Rebuild Plan From Today</button>
+<button type="button" class="foodSearchBtn" id="resetPlanThisMonth" style="margin-top:8px">📅 Reset This Month</button>
+<button type="button" class="foodSearchBtn" id="startFreshTrainingPlan" style="margin-top:8px">↻ Start Fresh Training Plan</button>
+<div class="muted" id="trainingPlanResetStatus" style="font-size:12px;margin-top:10px"></div>
+</details>
+<details class="card"><summary><b>ℹ️ About</b></summary>
 <div class="muted">Millie’s Muscle Builder</div>
 <div class="quick" style="margin-top:10px">
-  <b id="appVersionUnlock" style="user-select:none;-webkit-user-select:none">Version 12.4.53</b><br>
+  <b id="appVersionUnlock" style="user-select:none;-webkit-user-select:none">Version 12.4.54</b><br>
   Train smarter. Eat better. Track your progress.
 </div>
 <div id="ownerPreviewTools" style="display:none;margin-top:12px">
@@ -687,8 +696,61 @@ function applySuggestedSchedule(force=false){
 }
 if(!S.workoutSchedule||S.scheduleMode==="auto")applySuggestedSchedule(true);
 function localDateKey(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
-function workoutForDate(d){return S.dateWorkoutOverrides[localDateKey(d)]||S.workoutSchedule[d.getDay()]||"rest"}
+function completedWorkoutKeyForDateKey(k){
+ const td=S.trainingDiary&&S.trainingDiary[k];
+ if(!td)return "";
+ if(td.completedWorkout&&P[td.completedWorkout])return td.completedWorkout;
+ const done=td.days&&Object.keys(td.days).find(x=>td.days[x]&&P[x]&&!P[x].r);
+ return done||"";
+}
+function workoutForDate(d){
+ const k=localDateKey(d),completed=completedWorkoutKeyForDateKey(k);
+ return completed||S.dateWorkoutOverrides[k]||S.workoutSchedule[d.getDay()]||"rest";
+}
 function syncWorkoutToDate(){S.day=workoutForDate(trainingCursor)}
+function strengthPlanRotation(){
+ const vals=[];
+ for(let i=0;i<7;i++){
+   const k=S.workoutSchedule[i];
+   if(k&&k!=="rest"&&P[k]&&!P[k].r&&!vals.includes(k))vals.push(k);
+ }
+ return vals.length?vals:["d1","d2","d3","d4"];
+}
+function mostRecentCompletedWorkout(beforeDate=new Date()){
+ const cutoff=localDateKey(beforeDate);
+ const keys=Object.keys(S.trainingDiary||{}).filter(k=>k<cutoff).sort().reverse();
+ for(const k of keys){const w=completedWorkoutKeyForDateKey(k);if(w)return w}
+ return "";
+}
+function clearPlannedOverridesFrom(startDate,endDate){
+ const start=localDateKey(startDate),end=endDate?localDateKey(endDate):null;
+ Object.keys(S.dateWorkoutOverrides||{}).forEach(k=>{if(k>=start&&(!end||k<=end))delete S.dateWorkoutOverrides[k]});
+ Object.keys(S.customDayExercises||{}).forEach(k=>{if(k>=start&&(!end||k<=end))delete S.customDayExercises[k]});
+}
+function rebuildPlanFrom(startDate,endDate){
+ applySuggestedSchedule(true);
+ clearPlannedOverridesFrom(startDate,endDate);
+ const rotation=strengthPlanRotation();
+ const last=mostRecentCompletedWorkout(startDate);
+ let idx=last&&rotation.includes(last)?(rotation.indexOf(last)+1)%rotation.length:0;
+ const cursor=new Date(startDate.getFullYear(),startDate.getMonth(),startDate.getDate());
+ const limit=endDate?new Date(endDate):new Date(cursor.getFullYear(),cursor.getMonth()+2,0);
+ while(cursor<=limit){
+   const key=localDateKey(cursor),completed=completedWorkoutKeyForDateKey(key);
+   if(completed){
+     if(rotation.includes(completed))idx=(rotation.indexOf(completed)+1)%rotation.length;
+   }else{
+     const base=S.workoutSchedule[cursor.getDay()]||"rest";
+     if(base!=="rest"){
+       S.dateWorkoutOverrides[key]=rotation[idx%rotation.length];
+       idx=(idx+1)%rotation.length;
+     }
+   }
+   cursor.setDate(cursor.getDate()+1);
+ }
+ S.scheduleMode="auto";
+ syncWorkoutToDate();save();buildScheduleSettings();render();renderMonth();refreshTrainingGoalUI();
+}
 function nextScheduledStrength(d){
  for(let i=1;i<=7;i++){let x=new Date(d);x.setDate(x.getDate()+i);let k=workoutForDate(x);if(k!=="rest"&&P[k])return k}
  return "d1"
@@ -1123,15 +1185,13 @@ let exList=getDayExerciseList();
 let nextStrength=nextScheduledStrength(trainingCursor);
 let restFlex=p.r?`<div class="restCoachBox"><div class="restCoachBadge">✨ Millie’s suggestion</div><h3>Recovery is suggested today</h3><p class="muted">You’re not locked into a rest day. If you feel good and want to train, choose what fits your plan.</p><button class="finish" id="trainInstead">🏋️ I Want to Train Today</button><div class="restSwitchOptions" id="restSwitchOptions"><div class="restMiniTitle">Best fit with your schedule</div><div class="restNextNote">Next up: <b>${P[nextStrength].n}</b></div><div class="restChoiceGrid"><button data-rest-next="keep">▶ Do ${P[nextStrength].n} today — keep schedule the same</button><button data-rest-next="advance">⏩ Do ${P[nextStrength].n} + move my schedule forward</button></div><div class="restDivider"></div><div class="restMiniTitle">Or choose a different strength workout</div><div class="restNextNote">This changes only today. Your normal schedule stays the same.</div><div class="restChoiceGrid">${["d1","d2","d3","d4","d5"].map(k=>`<button data-rest-strength="${k}">🏋️ ${P[k].n}</button>`).join("")}</div></div></div>`:"";
 panel.innerHTML=`<div class="card" style="margin:8px 0 12px;padding:14px 16px">
-<div class="row" style="align-items:center">
-  <div style="min-width:0;flex:1">
-    <div class="muted" style="font-size:11px;font-weight:900;letter-spacing:.05em">TODAY’S PLAN</div>
-    <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-top:2px">
-      <h3 style="margin:0;font-size:20px">${p.t}</h3>
-      <span class="muted" style="font-size:13px">${p.s}${S.place==="home"?` · 🏠 ${homeWorkoutTimeLabel()}`:""}</span>
-    </div>
+<div>
+  <div class="muted" style="font-size:11px;font-weight:900;letter-spacing:.05em">TODAY’S PLAN</div>
+  <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-top:2px">
+    <h3 style="margin:0;font-size:20px">${p.t}</h3>
+    <span class="muted" style="font-size:13px">${p.s}${S.place==="home"?` · 🏠 ${homeWorkoutTimeLabel()}`:""}</span>
   </div>
-  <button type="button" class="mini" id="customizeTodayWorkout">Customize</button>
+  <button type="button" class="mini" id="customizeTodayWorkout" style="margin-top:8px">Customize</button>
 </div>
 <div id="todayCustomizePanel" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid #30343a">
   <div class="muted" style="font-size:13px;margin-bottom:8px">Changes apply only to this date. Your normal suggested plan stays intact.</div>
@@ -1291,7 +1351,7 @@ let ct=document.getElementById("changeToday"),co=document.getElementById("change
 panel.querySelectorAll("[data-altact]").forEach(b=>b.onclick=()=>{S.dayChanges[trainKey()]={type:b.dataset.altact,original:S.day};save();alert(b.dataset.altact+" saved for today. Your strength workout stays next in rotation.")});
 let cab=document.getElementById("customActBtn"),caf=document.getElementById("customActivity");if(cab)cab.onclick=()=>caf.classList.toggle("open");
 let sca=document.getElementById("saveCustomAct");if(sca)sca.onclick=()=>{let n=document.getElementById("customActName").value.trim(),m=document.getElementById("customActMinutes").value;if(n){S.dayChanges[trainKey()]={type:n,minutes:m,original:S.day};save();alert(n+" saved for today. Your strength workout stays next in rotation.")}};
-let f=document.getElementById("finish");if(f)f.onclick=()=>{exList.forEach((e,i)=>{let k=S.day+"-"+i,L=TD.logs[k],a=TD.sets[k]||[];if(L&&(L.w||L.r))saveExerciseSession(e[0],Array.from({length:e[1]},(_,j)=>({weight:+L.w||0,reps:+L.r||0,done:!!a[j]})))});TD.days[S.day]=true;save();render()}
+let f=document.getElementById("finish");if(f)f.onclick=()=>{exList.forEach((e,i)=>{let k=S.day+"-"+i,L=TD.logs[k],a=TD.sets[k]||[];if(L&&(L.w||L.r))saveExerciseSession(e[0],Array.from({length:e[1]},(_,j)=>({weight:+L.w||0,reps:+L.r||0,done:!!a[j]})))});TD.days[S.day]=true;TD.completedWorkout=S.day;TD.completedAt=new Date().toISOString();S.dateWorkoutOverrides[trainKey()]=S.day;save();render();renderMonth()}
 }
 document.querySelectorAll("[data-place]").forEach(b=>b.onclick=()=>{
  S.place=b.dataset.place;
@@ -2422,6 +2482,31 @@ const settingsTrainingDays=document.getElementById("settingsTrainingDays");
 if(settingsTrainingDays){
  settingsTrainingDays.value=String(S.trainingDaysPerWeek||4);
  settingsTrainingDays.onchange=()=>{S.trainingDaysPerWeek=Math.min(7,Math.max(3,+settingsTrainingDays.value||4));applySuggestedSchedule(true);syncWorkoutToDate();save();refreshTrainingGoalUI();buildScheduleSettings();render();renderMonth();if(window.MMBSyncProfile)window.MMBSyncProfile();};
+
+const rebuildPlanFromToday=document.getElementById("rebuildPlanFromToday");
+if(rebuildPlanFromToday)rebuildPlanFromToday.onclick=()=>{
+ const today=new Date();today.setHours(0,0,0,0);
+ rebuildPlanFrom(today);
+ const st=document.getElementById("trainingPlanResetStatus");if(st)st.textContent="✓ Rebuilt from today using your completed workout history. Past workouts were kept.";
+};
+const resetPlanThisMonth=document.getElementById("resetPlanThisMonth");
+if(resetPlanThisMonth)resetPlanThisMonth.onclick=()=>{
+ const now=new Date(),start=new Date(now.getFullYear(),now.getMonth(),1),end=new Date(now.getFullYear(),now.getMonth()+1,0);
+ rebuildPlanFrom(start,end);
+ const st=document.getElementById("trainingPlanResetStatus");if(st)st.textContent="✓ This month’s planned schedule was rebuilt. Completed workouts were kept.";
+};
+const startFreshTrainingPlan=document.getElementById("startFreshTrainingPlan");
+if(startFreshTrainingPlan)startFreshTrainingPlan.onclick=()=>{
+ if(!confirm("Start a fresh training plan? Your completed workouts, weights, sets, and exercise history will stay saved."))return;
+ applySuggestedSchedule(true);
+ const todayKey=localDateKey(new Date());
+ Object.keys(S.dateWorkoutOverrides||{}).forEach(k=>{if(k>=todayKey)delete S.dateWorkoutOverrides[k]});
+ Object.keys(S.customDayExercises||{}).forEach(k=>{if(k>=todayKey)delete S.customDayExercises[k]});
+ Object.keys(S.dayChanges||{}).forEach(k=>{if(k>=todayKey)delete S.dayChanges[k]});
+ S.scheduleMode="auto";
+ syncWorkoutToDate();save();buildScheduleSettings();render();renderMonth();refreshTrainingGoalUI();
+ const st=document.getElementById("trainingPlanResetStatus");if(st)st.textContent="✓ Fresh suggested plan created. Your workout history was not deleted.";
+};
 
 const useSuggestedSchedule=document.getElementById("useSuggestedSchedule");
 if(useSuggestedSchedule)useSuggestedSchedule.onclick=()=>{
