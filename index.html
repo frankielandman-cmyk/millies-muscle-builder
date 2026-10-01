@@ -1355,6 +1355,10 @@ let f=document.getElementById("finish");if(f)f.onclick=()=>{exList.forEach((e,i)
 }
 document.querySelectorAll("[data-place]").forEach(b=>b.onclick=()=>{
  S.place=b.dataset.place;
+ S.trainingLocationMode=S.place==="home"?"Home":"Gym";
+ S.location=S.trainingLocationMode;
+ save();
+ if(window.MMBSyncProfile)window.MMBSyncProfile();
  if(S.place==="home" && !(S.homeEquipment||[]).length){
    showMain("settings");
    const homeCard=document.getElementById("homeEquipmentSettingsList");
@@ -2240,7 +2244,7 @@ function refreshBackupStatus(){
 }
 function buildBackupPackage(){
  let onboard=null;try{onboard=JSON.parse(localStorage.getItem("MMB_onboarding_v1")||"null")}catch(e){}
- return {app:"Millie's Muscle Builder",version:"12.4.51",schema:1,exportedAt:new Date().toISOString(),data:S,onboarding:onboard};
+ return {app:"Millie's Muscle Builder",version:"12.4.53",schema:1,exportedAt:new Date().toISOString(),data:S,onboarding:onboard};
 }
 function downloadMMBBackup(){
  save();
